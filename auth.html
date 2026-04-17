@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>TradeOS — Signing in</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <link rel="stylesheet" href="/tradeos/css/app.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">Trade<span>OS</span></div>
+  </div>
+  <div class="container" style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+    <div style="text-align:center">
+      <div style="font-size:18px;color:#7f5af0;margin-bottom:12px" id="status">Signing you in...</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.4)" id="sub">Please wait</div>
+    </div>
+  </div>
+  <script>
+    async function handleCallback() {
+      var params = new URLSearchParams(window.location.search);
+      var code = params.get('code');
+      var error = params.get('error');
+
+      if (error) {
+        document.getElementById('status').textContent = 'Sign in failed';
+        document.getElementById('sub').textContent = error;
+        return;
+      }
+
+      if (!code) {
+        document.getElementById('status').textContent = 'No auth code received';
+        return;
+      }
+
+      try {
+        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback?code=' + code);
+        var data = await res.json();
+
+        if (data.id_token) {
+          localStorage.setItem('tradeos_id_token', data.id_token);
+          localStorage.setItem('tradeos_access_token', data.access_token);
+          localStorage.setItem('tradeos_token_expiry', Date.now() + (data.expires_in * 1000));
+          document.getElementById('status').textContent = 'Signed in!';
+          document.getElementById('sub').textContent = 'Redirecting...';
+          setTimeout(function() { window.location.href = '/tradeos/'; }, 800);
+        } else {
+          document.getElementById('status').textContent = 'Sign in failed';
+          document.getElementById('sub').textContent = data.error || 'Unknown error';
+        }
+      } catch(e) {
+        document.getElementById('status').textContent = 'Sign in failed';
+        document.getElementById('sub').textContent = e.message;
+      }
+    }
+
+    handleCallback();
+  </script>
+</body>
+</html>

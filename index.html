@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TradeOS">
+  <title>TradeOS</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <link rel="stylesheet" href="/tradeos/css/app.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">Trade<span>OS</span></div>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title" id="greeting">Good morning.</div>
+      <div class="page-sub">1% better every day.</div>
+    </div>
+
+    <div class="metric-grid" id="stats-grid">
+      <div class="metric"><div class="metric-label">Trades</div><div class="metric-value" id="s-total">—</div></div>
+      <div class="metric"><div class="metric-label">Win rate</div><div class="metric-value" id="s-wr">—</div></div>
+      <div class="metric"><div class="metric-label">Net P&L</div><div class="metric-value" id="s-pnl">—</div></div>
+      <div class="metric"><div class="metric-label">Avg win</div><div class="metric-value green" id="s-avgwin">—</div></div>
+      <div class="metric"><div class="metric-label">Avg loss</div><div class="metric-value red" id="s-avgloss">—</div></div>
+      <div class="metric"><div class="metric-label">Best trade</div><div class="metric-value purple" id="s-best">—</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quick actions</div>
+      <div class="quick-actions">
+        <a href="/tradeos/journal.html" class="qa-btn qa-journal">Log trade</a>
+        <a href="/tradeos/candies.html" class="qa-btn qa-candies">Candies</a>
+        <a href="/tradeos/calculator.html" class="qa-btn qa-calc">Calculator</a>
+        <a href="/tradeos/playbook.html" class="qa-btn qa-playbook">Playbook</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Daily rules</div>
+      <div id="rules-list"></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+
+  <script src="/tradeos/js/nav.js"></script>
+  <script src="/tradeos/js/api.js"></script>
+  <script>
+    renderNav('');
+
+    const rules = [
+      'Cut losses quickly — always. No exceptions.',
+      'Only trade stocks with a real catalyst.',
+      'Set stop loss before entering — always.',
+      'Max loss per trade: $50. Use the Calculator.',
+      'Primary window: 9:30–10:30am. After 10:30 only if volume + catalyst + VWAP confirm.',
+      'No averaging down — ever.',
+      'Never underestimate a stock.',
+      'Never trust a stock.',
+      'Log every trade — win or lose.',
+      'No trade day is still a good day.'
+    ];
+
+    document.getElementById('rules-list').innerHTML = rules.map((r, i) =>
+      `<div class="rule-item"><span class="rule-n">${i+1}</span><span>${r}</span></div>`
+    ).join('');
+
+    const hr = new Date().getHours();
+    const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('greeting').textContent = greet + ', Gordon.';
+
+    getStats().then(stats => {
+      if (!stats) return;
+      const wr = stats.winRate || 0;
+      const pnl = stats.totalPnl || 0;
+      document.getElementById('s-total').textContent = stats.total || 0;
+      const wrEl = document.getElementById('s-wr');
+      wrEl.textContent = wr + '%';
+      wrEl.className = 'metric-value ' + (wr >= 50 ? 'green' : 'amber');
+      const pnlEl = document.getElementById('s-pnl');
+      pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
+      pnlEl.className = 'metric-value ' + (pnl >= 0 ? 'green' : 'red');
+      document.getElementById('s-avgwin').textContent = '$' + (stats.avgWin || 0).toFixed(2);
+      document.getElementById('s-avgloss').textContent = '$' + Math.abs(stats.avgLoss || 0).toFixed(2);
+      document.getElementById('s-best').textContent = '$' + (stats.best || 0).toFixed(2);
+    });
+  </script>
+</body>
+</html>

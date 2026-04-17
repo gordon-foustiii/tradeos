@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>TradeOS — Calculator</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <link rel="stylesheet" href="/tradeos/css/app.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">Trade<span>OS</span></div>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title">Calculator</div>
+      <div class="page-sub">Size your position before entering.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Inputs</div>
+      <div class="grid-2">
+        <div class="field"><label>Entry (bot) $</label><input type="number" id="bot" value="1.19" step="0.01" oninput="calc()"></div>
+        <div class="field"><label>Shares</label><input type="number" id="shares" value="100" step="1" oninput="calc()"></div>
+        <div class="field"><label>Stop / Low $</label><input type="number" id="low" value="1.05" step="0.01" oninput="calc()"></div>
+        <div class="field"><label>Target / High $</label><input type="number" id="high" value="3.89" step="0.01" oninput="calc()"></div>
+      </div>
+      <div class="field"><label>Exit (sold) $</label><input type="number" id="sold" value="3.18" step="0.01" oninput="calc()"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">P&L scenarios</div>
+      <table class="calc-table">
+        <thead><tr>
+          <th style="text-align:left">Scenario</th>
+          <th>1x <span class="mult-pill" id="h1">100</span></th>
+          <th>2x <span class="mult-pill" id="h2">200</span></th>
+          <th>5x <span class="mult-pill" id="h3">500</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="row-label">Cost</td><td id="cost1" class="calc-neutral"></td><td id="cost2" class="calc-neutral"></td><td id="cost3" class="calc-neutral"></td></tr>
+          <tr><td class="row-label" style="color:#ef4565">Stop</td><td id="loss1"></td><td id="loss2"></td><td id="loss3"></td></tr>
+          <tr><td class="row-label" style="color:#2cb67d">Target</td><td id="gain1" class="calc-pos"></td><td id="gain2" class="calc-pos"></td><td id="gain3" class="calc-pos"></td></tr>
+          <tr><td class="row-label">Actual</td><td id="exit1"></td><td id="exit2"></td><td id="exit3"></td></tr>
+          <tr><td class="row-label" style="color:rgba(255,255,255,0.35)">R/R</td><td id="rr1" style="color:rgba(255,255,255,0.4);font-size:13px"></td><td id="rr2" style="color:rgba(255,255,255,0.4);font-size:13px"></td><td id="rr3" style="color:rgba(255,255,255,0.4);font-size:13px"></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+
+  <script src="/tradeos/js/nav.js"></script>
+  <script>
+    renderNav('calculator');
+    const MULTS = [1, 2, 5];
+
+    function calc() {
+      const bot = parseFloat(document.getElementById('bot').value) || 0;
+      const base = parseInt(document.getElementById('shares').value) || 0;
+      const low = parseFloat(document.getElementById('low').value) || 0;
+      const high = parseFloat(document.getElementById('high').value) || 0;
+      const sold = parseFloat(document.getElementById('sold').value) || 0;
+
+      MULTS.forEach((m, i) => {
+        const n = i + 1, q = base * m;
+        document.getElementById('h' + n).textContent = q + ' sh';
+        const cost = (bot * q).toFixed(2);
+        const loss = ((low - bot) * q).toFixed(2);
+        const gain = ((high - bot) * q).toFixed(2);
+        const exitPnl = ((sold - bot) * q).toFixed(2);
+        const riskAmt = Math.abs(bot - low) * q;
+        const rewardAmt = (high - bot) * q;
+        const rr = riskAmt > 0 ? '1:' + (rewardAmt / riskAmt).toFixed(1) : '—';
+
+        document.getElementById('cost' + n).textContent = '$' + cost;
+
+        const lossEl = document.getElementById('loss' + n);
+        lossEl.textContent = (parseFloat(loss) >= 0 ? '+' : '') + '$' + loss;
+        lossEl.className = parseFloat(loss) >= 0 ? 'calc-pos' : 'calc-neg';
+
+        document.getElementById('gain' + n).textContent = '+$' + gain;
+
+        const exitEl = document.getElementById('exit' + n);
+        exitEl.textContent = (parseFloat(exitPnl) >= 0 ? '+' : '') + '$' + exitPnl;
+        exitEl.className = parseFloat(exitPnl) >= 0 ? 'calc-pos' : 'calc-neg';
+
+        document.getElementById('rr' + n).textContent = rr;
+      });
+    }
+    calc();
+  </script>
+</body>
+</html>

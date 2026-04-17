@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>TradeOS — Journal</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <link rel="stylesheet" href="/tradeos/css/app.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">Trade<span>OS</span></div>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title">Journal</div>
+      <div class="page-sub">Plan before. Review after.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Pre-trade plan</div>
+      <div class="grid-2">
+        <div class="field"><label>Ticker</label><input id="ticker" placeholder="ROLR" style="text-transform:uppercase"></div>
+        <div class="field"><label>Date</label><input id="date" type="date"></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Time</label><input id="time" type="time"></div>
+        <div class="field"><label>Setup</label>
+          <select id="setup"><option value="">Select...</option><option>Gap and go</option><option>Pullback entry</option><option>Breakout</option><option>VWAP bounce</option><option>Other</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Catalyst</label><input id="catalyst" placeholder="FDA approval, partnership..."></div>
+      <div class="grid-2">
+        <div class="field"><label>Float</label><input id="float" placeholder="1.19M"></div>
+        <div class="field"><label>Rel volume</label><input id="relvol" placeholder="542x"></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Planned entry $</label><input id="plannedEntry" type="number" step="0.01"></div>
+        <div class="field"><label>Stop loss $</label><input id="stopLoss" type="number" step="0.01"></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Target $</label><input id="target" type="number" step="0.01"></div>
+        <div class="field"><label>Emotion at entry</label>
+          <select id="emotionEntry"><option value="">Select...</option><option>Calm / confident</option><option>FOMO</option><option>Rushed</option><option>Hesitant</option><option>Revenge trading</option></select>
+        </div>
+      </div>
+      <div class="field"><label>My plan</label><textarea id="plan" placeholder="Wait for VWAP pullback, enter on bounce..."></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Execution</div>
+      <div class="grid-2">
+        <div class="field"><label>Quantity</label><input id="qty" type="number" placeholder="100"></div>
+        <div class="field"><label>Actual entry $</label><input id="actualEntry" type="number" step="0.01"></div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Exit price $</label><input id="exitPrice" type="number" step="0.01"></div>
+        <div class="field"><label>Exit reason</label>
+          <select id="exitReason"><option value="">Select...</option><option>Stop hit</option><option>Target hit</option><option>Manual exit — planned</option><option>Manual exit — panic</option><option>Trailing stop triggered</option></select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>Duration</label><input id="duration" placeholder="45 min"></div>
+        <div class="field"><label>Emotion at exit</label>
+          <select id="emotionExit"><option value="">Select...</option><option>Disciplined</option><option>Relieved</option><option>Greedy — wanted more</option><option>Panic sold</option><option>Regret</option></select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field"><label>High while held $</label><input id="highHeld" type="number" step="0.01"></div>
+        <div class="field"><label>Low while held $</label><input id="lowHeld" type="number" step="0.01"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Review</div>
+      <div class="field"><label>What I did well</label><textarea id="didWell"></textarea></div>
+      <div class="field"><label>What I did poorly</label><textarea id="didPoorly"></textarea></div>
+      <div class="field"><label>How to improve</label><textarea id="howToImprove"></textarea></div>
+      <div class="field"><label>What I learned</label><textarea id="whatLearned"></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Grade</div>
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">My grade</div>
+      <div class="grade-grid" style="margin-bottom:20px">
+        <button class="grade-btn g-a" onclick="setGrade('my','A+',this)">A+<br><span style="font-weight:500;font-size:11px">Perfect</span></button>
+        <button class="grade-btn g-b" onclick="setGrade('my','B',this)">B<br><span style="font-weight:500;font-size:11px">Good</span></button>
+        <button class="grade-btn g-c" onclick="setGrade('my','C',this)">C<br><span style="font-weight:500;font-size:11px">Sloppy</span></button>
+        <button class="grade-btn g-f" onclick="setGrade('my','D/F',this)">D/F<br><span style="font-weight:500;font-size:11px">Broke rules</span></button>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Claude's grade</div>
+      <div class="grade-grid">
+        <button class="grade-btn g-a" onclick="setGrade('claude','A+',this)">A+<br><span style="font-weight:500;font-size:11px">Perfect</span></button>
+        <button class="grade-btn g-b" onclick="setGrade('claude','B',this)">B<br><span style="font-weight:500;font-size:11px">Good</span></button>
+        <button class="grade-btn g-c" onclick="setGrade('claude','C',this)">C<br><span style="font-weight:500;font-size:11px">Sloppy</span></button>
+        <button class="grade-btn g-f" onclick="setGrade('claude','D/F',this)">D/F<br><span style="font-weight:500;font-size:11px">Broke rules</span></button>
+      </div>
+      <div class="field" style="margin-top:16px"><label>Grade notes</label><textarea id="gradeNotes"></textarea></div>
+    </div>
+
+    <button class="btn-primary" onclick="submitForm()">Save Trade</button>
+    <div class="success" id="success-msg"></div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">Recent trades</div>
+      <div id="recent-trades"><div class="loading">Loading...</div></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+
+  <script src="/tradeos/js/nav.js"></script>
+  <script src="/tradeos/js/api.js"></script>
+  <script>
+    renderNav('journal');
+    const grades = { my: '', claude: '' };
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+    function setGrade(who, val, btn) {
+      grades[who] = val;
+      btn.closest('.grade-grid').querySelectorAll('.grade-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    }
+
+    function loadRecent() {
+      getTrades().then(trades => {
+        const el = document.getElementById('recent-trades');
+        if (!trades || !trades.length || trades[0]._empty) { el.innerHTML = '<div class="empty">No trades yet.</div>'; return; }
+        trades.sort((a,b) => new Date(b.date) - new Date(a.date));
+        const rows = trades.slice(0,8).map(t => {
+          const pnl = parseFloat(t.pnl)||0;
+          const color = pnl>0?'#2cb67d':pnl<0?'#ef4565':'rgba(255,255,255,0.4)';
+          let date = '—';
+          try { const d=new Date(t.date); if(!isNaN(d.getTime())) date=d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); } catch(e) {}
+          return `<tr>
+            <td style="font-weight:800;color:#e8e8f0">${t.ticker}</td>
+            <td style="color:rgba(255,255,255,0.35)">${date}</td>
+            <td style="font-weight:800;color:${color}">${pnl>=0?'+':''}$${Math.abs(pnl).toFixed(2)}</td>
+            <td>${t.grade?`<span class="pill pill-neutral">${t.grade}</span>`:'—'}</td>
+          </tr>`;
+        }).join('');
+        el.innerHTML = `<table class="recent-table"><thead><tr><th>Ticker</th><th>Date</th><th>P&L</th><th>Grade</th></tr></thead><tbody>${rows}</tbody></table>`;
+      });
+    }
+
+    async function submitForm() {
+      const ticker = document.getElementById('ticker').value.trim();
+      const actualEntry = document.getElementById('actualEntry').value;
+      const exitPrice = document.getElementById('exitPrice').value;
+      const qty = document.getElementById('qty').value;
+      if (!ticker || !actualEntry || !exitPrice || !qty) { alert('Fill in ticker, entry, exit, and quantity.'); return; }
+
+      const data = {
+        date: document.getElementById('date').value,
+        time: document.getElementById('time').value,
+        ticker: ticker.toUpperCase(),
+        setup: document.getElementById('setup').value,
+        catalyst: document.getElementById('catalyst').value,
+        float: document.getElementById('float').value,
+        relVol: document.getElementById('relvol').value,
+        plannedEntry: document.getElementById('plannedEntry').value,
+        stopLoss: document.getElementById('stopLoss').value,
+        target: document.getElementById('target').value,
+        emotionEntry: document.getElementById('emotionEntry').value,
+        plan: document.getElementById('plan').value,
+        qty, actualEntry, exitPrice,
+        exitReason: document.getElementById('exitReason').value,
+        duration: document.getElementById('duration').value,
+        highHeld: document.getElementById('highHeld').value,
+        lowHeld: document.getElementById('lowHeld').value,
+        emotionExit: document.getElementById('emotionExit').value,
+        didWell: document.getElementById('didWell').value,
+        didPoorly: document.getElementById('didPoorly').value,
+        howToImprove: document.getElementById('howToImprove').value,
+        whatLearned: document.getElementById('whatLearned').value,
+        myGrade: grades.my, claudeGrade: grades.claude,
+        gradeNotes: document.getElementById('gradeNotes').value
+      };
+
+      const result = await submitTrade(data);
+      if (result && result.success) {
+        const msg = document.getElementById('success-msg');
+        msg.style.display = 'block';
+        msg.textContent = result.winLoss + ' — P&L: $' + result.pnl.toFixed(2) + ' — Saved.';
+        document.querySelectorAll('input, select, textarea').forEach(el => el.value = '');
+        document.querySelectorAll('.grade-btn').forEach(b => b.classList.remove('selected'));
+        grades.my = ''; grades.claude = '';
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        loadRecent();
+      } else {
+        alert('Error saving trade. Check your connection.');
+      }
+    }
+
+    loadRecent();
+  </script>
+</body>
+</html>

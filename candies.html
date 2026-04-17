@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>TradeOS — Candies</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <link rel="stylesheet" href="/tradeos/css/app.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">Trade<span>OS</span></div>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title">Candies</div>
+      <div class="page-sub">Each candy = one trade.</div>
+    </div>
+
+    <div class="metric-grid" id="summary"></div>
+
+    <div class="filter-row" id="filter-row">
+      <button class="fb active" onclick="setFilter('all',this)">All</button>
+      <button class="fb" onclick="setFilter('win',this)">Wins</button>
+      <button class="fb" onclick="setFilter('loss',this)">Losses</button>
+    </div>
+    <div class="filter-row" id="sort-row">
+      <button class="fb active" onclick="setSort('date',this)">Date</button>
+      <button class="fb" onclick="setSort('pnl',this)">P&L</button>
+      <button class="fb" onclick="setSort('captured',this)">Captured</button>
+      <button class="fb" onclick="setSort('left',this)">Left on table</button>
+    </div>
+
+    <div id="candies-container"><div class="loading">Loading candies...</div></div>
+  </div>
+
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+
+  <script src="/tradeos/js/nav.js"></script>
+  <script src="/tradeos/js/api.js"></script>
+  <script>
+    renderNav('candies');
+    let allTrades = [], activeFilter = 'all', activeSort = 'date';
+
+    function formatDate(val) {
+      if (!val) return '—';
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return String(val);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function gradeClass(g) { return g==='A+'?'g-a':g==='B'?'g-b':g==='C'?'g-c':g?'g-f':''; }
+
+    function drawCandle(entry, high, low, exit, isWin) {
+      const prices = [entry, high, low, exit];
+      const minP = Math.min(...prices) * 0.94, maxP = Math.max(...prices) * 1.06, range = maxP - minP;
+      if (range === 0) return '';
+      const p = v => ((v - minP) / range * 100).toFixed(1) + '%';
+      const bL = Math.min(entry, exit), bR = Math.max(entry, exit);
+      const bW = Math.max(((bR - bL) / range * 100), 1).toFixed(1) + '%';
+      const col = isWin ? '#2cb67d' : '#ef4565', dark = isWin ? '#1a8c55' : '#c03050';
+      return `<div style="position:relative;padding-bottom:28px;margin:10px 0 6px">
+        <svg width="100%" height="44" style="overflow:visible;display:block">
+          <line x1="${p(low)}" y1="22" x2="${p(bL)}" y2="22" stroke="${col}" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="${p(bR)}" y1="22" x2="${p(high)}" y2="22" stroke="${col}" stroke-width="2.5" stroke-linecap="round"/>
+          <rect x="${p(bL)}" y="8" width="${bW}" height="28" fill="${col}" stroke="${dark}" stroke-width="1" rx="4"/>
+          <line x1="${p(entry)}" y1="2" x2="${p(entry)}" y2="42" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <line x1="${p(exit)}" y1="2" x2="${p(exit)}" y2="42" stroke="white" stroke-width="2"/>
+        </svg>
+        <div style="position:relative;height:22px;font-size:11px">
+          <span style="position:absolute;left:${p(low)};transform:translateX(-50%);color:rgba(255,255,255,0.4);white-space:nowrap">L $${low.toFixed(2)}</span>
+          <span style="position:absolute;left:${p(entry)};transform:translateX(-50%);background:${col};color:white;padding:2px 6px;border-radius:4px;white-space:nowrap;font-weight:700">E $${entry.toFixed(2)}</span>
+          <span style="position:absolute;left:${p(exit)};transform:translateX(-50%);background:${dark};color:white;padding:2px 6px;border-radius:4px;white-space:nowrap;font-weight:700">X $${exit.toFixed(2)}</span>
+          <span style="position:absolute;left:${p(high)};transform:translateX(-50%);color:rgba(255,255,255,0.4);white-space:nowrap">H $${high.toFixed(2)}</span>
+        </div>
+      </div>`;
+    }
+
+    function renderSummary() {
+      const wins = allTrades.filter(t => t.pnl > 0).length;
+      const totalPnl = allTrades.reduce((s, t) => s + t.pnl, 0);
+      const best = allTrades.length ? Math.max(...allTrades.map(t => t.pnl)) : 0;
+      const worst = allTrades.length ? Math.min(...allTrades.map(t => t.pnl)) : 0;
+      const left = allTrades.reduce((s, t) => s + t.left, 0);
+      const wr = allTrades.length ? Math.round(wins / allTrades.length * 100) : 0;
+      document.getElementById('summary').innerHTML = `
+        <div class="metric"><div class="metric-label">Trades</div><div class="metric-value">${allTrades.length}</div></div>
+        <div class="metric"><div class="metric-label">Win rate</div><div class="metric-value ${wr>=50?'green':'amber'}">${wr}%</div></div>
+        <div class="metric"><div class="metric-label">Net P&L</div><div class="metric-value ${totalPnl>=0?'green':'red'}">${totalPnl>=0?'+':''}$${Math.abs(totalPnl).toFixed(2)}</div></div>
+        <div class="metric"><div class="metric-label">Best</div><div class="metric-value green">+$${best.toFixed(2)}</div></div>
+        <div class="metric"><div class="metric-label">Worst</div><div class="metric-value red">-$${Math.abs(worst).toFixed(2)}</div></div>
+        <div class="metric"><div class="metric-label">Left on table</div><div class="metric-value amber">$${left.toFixed(2)}</div></div>`;
+    }
+
+    function render() {
+      let trades = [...allTrades].filter(t => {
+        if (activeFilter === 'win') return t.pnl > 0;
+        if (activeFilter === 'loss') return t.pnl <= 0;
+        return true;
+      });
+      if (activeSort === 'pnl') trades.sort((a,b) => b.pnl - a.pnl);
+      else if (activeSort === 'captured') trades.sort((a,b) => b.captured - a.captured);
+      else if (activeSort === 'left') trades.sort((a,b) => b.left - a.left);
+      else trades.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+      const container = document.getElementById('candies-container');
+      if (!trades.length) { container.innerHTML = '<div class="empty">No trades match.</div>'; return; }
+
+      container.innerHTML = trades.map(t => {
+        const isWin = t.pnl > 0;
+        const capColor = t.captured >= 70 ? '#2cb67d' : t.captured >= 40 ? '#f4b942' : '#ef4565';
+        return `<div class="candle-card">
+          <div class="ch">
+            <div>
+              <div class="cticker">${t.ticker}${t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : ''}</div>
+              <div class="cdate">${formatDate(t.date)}</div>
+            </div>
+            <div class="cpnl ${isWin?'win':'loss'}">${isWin?'+':''}$${Math.abs(t.pnl).toFixed(2)}</div>
+          </div>
+          ${drawCandle(t.entry, t.high, t.low, t.exit, isWin)}
+          <div class="cstats">
+            <div class="cs"><div class="cs-label">Shares</div><div class="cs-value">${t.shares}</div></div>
+            <div class="cs"><div class="cs-label">Move</div><div class="cs-value">${((t.high-t.entry)/t.entry*100).toFixed(1)}%</div></div>
+            <div class="cs"><div class="cs-label">Held</div><div class="cs-value" style="color:#7f5af0">${t.duration||'—'}</div></div>
+            <div class="cs"><div class="cs-label">Captured</div><div class="cs-value" style="color:${capColor}">${t.captured}%</div></div>
+            <div class="cs"><div class="cs-label">Left $</div><div class="cs-value" style="color:#f4b942">$${t.left.toFixed(2)}</div></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function setFilter(f, btn) {
+      activeFilter = f;
+      document.querySelectorAll('#filter-row .fb').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active'); render();
+    }
+    function setSort(s, btn) {
+      activeSort = s;
+      document.querySelectorAll('#sort-row .fb').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active'); render();
+    }
+
+    getTrades().then(trades => {
+      if (!trades || !trades.length || trades[0]._empty) {
+        document.getElementById('candies-container').innerHTML = '<div class="empty">No trades yet.</div>';
+        return;
+      }
+      allTrades = trades.map(t => {
+        const entry = parseFloat(t.entry)||0, exit = parseFloat(t.exit)||0;
+        const high = parseFloat(t.high)||exit, low = parseFloat(t.low)||entry;
+        const shares = parseInt(t.shares)||0;
+        const pnl = parseFloat(t.pnl)||(exit-entry)*shares;
+        const maxPossible = shares*(high-entry);
+        const captured = maxPossible>0 ? Math.round((pnl/maxPossible)*100) : (pnl>0?100:0);
+        const left = Math.max(0, shares*(high-exit));
+        return { ...t, entry, exit, high, low, shares, pnl, captured, left };
+      }).filter(t => t.ticker && t.entry && t.exit);
+      renderSummary();
+      render();
+    });
+  </script>
+</body>
+</html>

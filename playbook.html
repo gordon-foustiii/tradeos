@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>TradeOS — Playbook</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <link rel="stylesheet" href="/tradeos/css/app.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">Trade<span>OS</span></div>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title">Playbook</div>
+      <div class="page-sub">Rules, routines, order types. Know these cold.</div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Daily rules</div>
+      <div class="play-item"><span class="rule-num">1</span><span>Cut losses quickly — always. No exceptions.</span></div>
+      <div class="play-item"><span class="rule-num">2</span><span>Only trade stocks with a real catalyst — news, deal, FDA, earnings beat.</span></div>
+      <div class="play-item"><span class="rule-num">3</span><span>Set stop loss before entering — always. Know your exit before your entry.</span></div>
+      <div class="play-item"><span class="rule-num">4</span><span>Max loss per trade: $50. Use the Calculator first.</span></div>
+      <div class="play-item"><span class="rule-num">5</span><span>Primary window: 9:30–10:30am. After 10:30 only if volume + catalyst + VWAP confirm.</span></div>
+      <div class="play-item"><span class="rule-num">6</span><span>No averaging down — ever.</span></div>
+      <div class="play-item"><span class="rule-num">7</span><span>Never underestimate a stock. Movement creates movement.</span></div>
+      <div class="play-item"><span class="rule-num">8</span><span>Never trust a stock. It doesn't owe you anything.</span></div>
+      <div class="play-item"><span class="rule-num">9</span><span>Log every trade in the journal — win or lose.</span></div>
+      <div class="play-item"><span class="rule-num">10</span><span>No trade day is still a good day. Patience is a position.</span></div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Morning routine</div>
+      <div class="play-item"><span class="check">7:00</span><span>Benzinga pre-market gainers — top 3-5 movers.</span></div>
+      <div class="play-item"><span class="check">7:15</span><span>Google catalyst on anything up 20%+. Real news only.</span></div>
+      <div class="play-item"><span class="check">7:30</span><span>Pull charts. Identify support, resistance, VWAP.</span></div>
+      <div class="play-item"><span class="check">8:00</span><span>Scanner on. Confirm volume building on watchlist.</span></div>
+      <div class="play-item"><span class="check">9:20</span><span>Watchlist locked. Calculator run on each setup.</span></div>
+      <div class="play-item"><span class="check">9:30</span><span>Market open — watch first 5-10 min. Do not trade immediately.</span></div>
+      <div class="play-item"><span class="check">9:40</span><span>First clean pullback setup = entry window opens.</span></div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Entry checklist</div>
+      <div class="play-item"><span class="check">✓</span><span>Real catalyst confirmed — googled and verified</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Float under 20M — lower is better</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Relative volume 2x+ — real buying interest</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Price above VWAP — momentum confirmed</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Clean pullback to support — not chasing the spike</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Stop loss set — know your exit before entering</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Calculator run — position sized, risk under $50</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Emotional state checked — calm and confident only</span></div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Exit checklist</div>
+      <div class="play-item"><span class="check">✓</span><span>Stop hit → exit immediately, no argument</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Target hit → take at least partial profit</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Volume fading + price stalling → consider exit</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Price breaks below key support → exit</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Loss approaching $50 → exit, no averaging down</span></div>
+      <div class="play-item"><span class="check">✓</span><span>After 10:30 and momentum gone → exit</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Log the trade immediately after exit</span></div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Order types — ThinkorSwim</div>
+      <div class="order-grid">
+        <div class="order-type"><div class="name">Market</div><div class="desc">Fills immediately at current price. Wide spreads pre-market.</div><div class="use">Regular hours, liquid stocks</div></div>
+        <div class="order-type"><div class="name">Limit</div><div class="desc">Fills at your price or better. May not fill if price moves away.</div><div class="use">Pre-market, all entries</div></div>
+        <div class="order-type"><div class="name">Buy Stop</div><div class="desc">Triggers a buy when price rises to your level.</div><div class="use">Breakout entries</div></div>
+        <div class="order-type"><div class="name">Stop Market</div><div class="desc">Triggers sell when price drops to your level.</div><div class="use">Stop loss on open positions</div></div>
+        <div class="order-type"><div class="name">Trailing Stop</div><div class="desc">Stop moves up as stock rises. Locks in profit.</div><div class="use">Locking gains on runners</div></div>
+        <div class="order-type"><div class="name">Stop Limit</div><div class="desc">Triggers at stop, fills at limit or better.</div><div class="use">When exact fill matters</div></div>
+      </div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Mental rules</div>
+      <div class="play-item"><span class="check">→</span><span>Missed trade ≠ bad trader. The next setup is always coming.</span></div>
+      <div class="play-item"><span class="check">→</span><span>FOMO from one miss causes bad entries on the next setup. Reset between trades.</span></div>
+      <div class="play-item"><span class="check">→</span><span>Cutting a loss quickly is not a bad trade — it's discipline.</span></div>
+      <div class="play-item"><span class="check">→</span><span>Singles add up. Consistent wins build the account.</span></div>
+      <div class="play-item"><span class="check">→</span><span>The stock doesn't know you own it. It doesn't owe you a recovery.</span></div>
+      <div class="play-item"><span class="check">→</span><span>1% better every day. Compound the improvement, not just the money.</span></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+  <script src="/tradeos/js/nav.js"></script>
+  <script>renderNav('playbook');</script>
+</body>
+</html>

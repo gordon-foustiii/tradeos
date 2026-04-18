@@ -80,21 +80,39 @@
       </div>`;
     }
 
-    function renderSummary() {
-      const wins = allTrades.filter(t => t.pnl > 0).length;
-      const totalPnl = allTrades.reduce((s, t) => s + t.pnl, 0);
-      const best = allTrades.length ? Math.max(...allTrades.map(t => t.pnl)) : 0;
-      const worst = allTrades.length ? Math.min(...allTrades.map(t => t.pnl)) : 0;
-      const left = allTrades.reduce((s, t) => s + t.left, 0);
-      const wr = allTrades.length ? Math.round(wins / allTrades.length * 100) : 0;
-      document.getElementById('summary').innerHTML = `
+    function renderSummary(){
+      const wins=allTrades.filter(t=>t.pnl>0).length;
+      const totalPnl=allTrades.reduce((s,t)=>s+t.pnl,0);
+      const best=allTrades.length?Math.max(...allTrades.map(t=>t.pnl)):0;
+      const worst=allTrades.length?Math.min(...allTrades.map(t=>t.pnl)):0;
+      const left=allTrades.filter(t=>t.pnl>0).reduce((s,t)=>s+t.left,0);
+      const saved=allTrades.filter(t=>t.pnl<0).reduce((s,t)=>s+t.savedFromLoss,0);
+      const wr=allTrades.length?Math.round(wins/allTrades.length*100):0;
+
+      const pnlColor = totalPnl >= 0 ? '#2cb67d' : '#ef4565';
+      const sign = totalPnl >= 0 ? '+' : '-';
+      const absVal = Math.abs(totalPnl).toFixed(2);
+      const [dollars, cents] = absVal.split('.');
+      const padded = dollars.padStart(9, '0');
+      const firstSig = padded.search(/[^0]/);
+      let odometer = sign + '$';
+      for (let i = 0; i < padded.length; i++) {
+        const dim = i < firstSig;
+        odometer += `<span style="color:${dim ? 'rgba(255,255,255,0.15)' : pnlColor}">${padded[i]}</span>`;
+        if (i === 2) odometer += `<span style="color:rgba(255,255,255,0.15)">,</span>`;
+        if (i === 5) odometer += `<span style="color:rgba(255,255,255,0.15)">,</span>`;
+      }
+      odometer += `<span style="color:${pnlColor}">.</span>`;
+      odometer += `<span style="color:${pnlColor}">${cents}</span>`;
+
+      document.getElementById('summary').innerHTML=`
         <div class="metric"><div class="metric-label">Trades</div><div class="metric-value">${allTrades.length}</div></div>
         <div class="metric"><div class="metric-label">Win rate</div><div class="metric-value ${wr>=50?'green':'amber'}">${wr}%</div></div>
-        <div class="metric"><div class="metric-label">Net P&L</div><div class="metric-value ${totalPnl>=0?'green':'red'}">${totalPnl>=0?'+':''}$${Math.abs(totalPnl).toFixed(2)}</div></div>
+        <div class="metric"><div class="metric-label">Worst</div><div class="metric-value red">$${Math.abs(worst).toFixed(2)}</div></div>
         <div class="metric"><div class="metric-label">Best</div><div class="metric-value green">+$${best.toFixed(2)}</div></div>
-        <div class="metric"><div class="metric-label">Worst</div><div class="metric-value red">-$${Math.abs(worst).toFixed(2)}</div></div>
+        <div class="metric"><div class="metric-label">Saved from loss</div><div class="metric-value green">$${saved.toFixed(2)}</div></div>
         <div class="metric"><div class="metric-label">Left on table</div><div class="metric-value amber">$${left.toFixed(2)}</div></div>
-        <div class="metric"><div class="metric-label">Saved from loss</div><div class="metric-value green">$${allTrades.reduce((s,t)=>s+t.savedFromLoss,0).toFixed(2)}</div></div>`;
+        <div class="metric" style="grid-column:span 2"><div class="metric-label">Net P&L</div><div style="font-size:28px;font-weight:800;letter-spacing:-1px;color:${pnlColor}">${odometer}</div></div>`;
     }
 
     function render() {

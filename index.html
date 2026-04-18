@@ -107,7 +107,7 @@
         if (i === 2) odometer += `<span style="color:rgba(255,255,255,0.15)">,</span>`;
         if (i === 5) odometer += `<span style="color:rgba(255,255,255,0.15)">,</span>`;
       }
-      odometer += `<span style="color:rgba(255,255,255,0.15)">.</span>`;
+      odometer += `<span style="color:${pnlColor}">.</span>`;
       odometer += `<span style="color:${pnlColor}">${cents}</span>`;
       pnlEl.style.color = pnlColor;
       pnlEl.innerHTML = odometer;

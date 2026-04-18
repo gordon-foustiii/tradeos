@@ -93,7 +93,8 @@
         <div class="metric"><div class="metric-label">Net P&L</div><div class="metric-value ${totalPnl>=0?'green':'red'}">${totalPnl>=0?'+':''}$${Math.abs(totalPnl).toFixed(2)}</div></div>
         <div class="metric"><div class="metric-label">Best</div><div class="metric-value green">+$${best.toFixed(2)}</div></div>
         <div class="metric"><div class="metric-label">Worst</div><div class="metric-value red">-$${Math.abs(worst).toFixed(2)}</div></div>
-        <div class="metric"><div class="metric-label">Left on table</div><div class="metric-value amber">$${left.toFixed(2)}</div></div>`;
+        <div class="metric"><div class="metric-label">Left on table</div><div class="metric-value amber">$${left.toFixed(2)}</div></div>
+        <div class="metric"><div class="metric-label">Saved from loss</div><div class="metric-value green">$${allTrades.reduce((s,t)=>s+t.savedFromLoss,0).toFixed(2)}</div></div>`;
     }
 
     function render() {
@@ -127,7 +128,7 @@
             <div class="cs"><div class="cs-label">Move</div><div class="cs-value">${((t.high-t.entry)/t.entry*100).toFixed(1)}%</div></div>
             <div class="cs"><div class="cs-label">Held</div><div class="cs-value" style="color:#7f5af0">${t.duration||'—'}</div></div>
             <div class="cs"><div class="cs-label">Captured</div><div class="cs-value" style="color:${capColor}">${t.captured}%</div></div>
-            <div class="cs"><div class="cs-label">Left $</div><div class="cs-value" style="color:#f4b942">$${t.left.toFixed(2)}</div></div>
+            ${t.pnl > 0 ? `<div class="cs"><div class="cs-label">Left $</div><div class="cs-value" style="color:#f4b942">$${t.left.toFixed(2)}</div></div>` : `<div class="cs"><div class="cs-label">Saved $</div><div class="cs-value" style="color:#2cb67d">$${t.savedFromLoss.toFixed(2)}</div></div>`}
           </div>
         </div>`;
       }).join('');
@@ -156,9 +157,11 @@
         const pnl = parseFloat(t.pnl)||(exit-entry)*shares;
         const maxPossible = shares*(high-entry);
         const captured = maxPossible>0 ? Math.round((pnl/maxPossible)*100) : (pnl>0?100:0);
-        const left = Math.max(0, shares*(high-exit));
-        return { ...t, entry, exit, high, low, shares, pnl, captured, left };
-      }).filter(t => t.ticker && t.entry && t.exit);
+	const left = pnl > 0 ? Math.max(0, shares*(high-exit)) : 0;
+	const savedFromLoss = pnl < 0 ? Math.max(0, shares*(exit-low)) : 0;
+	const hasRealWicks = high>exit || low<entry;
+	return { ...t, entry, exit, high, low, shares, pnl, captured, left, savedFromLoss };
+	}).filter(t => t.ticker && t.entry && t.exit);
       renderSummary();
       render();
     });

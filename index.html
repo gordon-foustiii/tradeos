@@ -33,6 +33,9 @@
       <div class="metric"><div class="metric-label">Avg win</div><div class="metric-value green" id="s-avgwin">—</div></div>
       <div class="metric"><div class="metric-label">Avg loss</div><div class="metric-value red" id="s-avgloss">—</div></div>
       <div class="metric"><div class="metric-label">Best trade</div><div class="metric-value purple" id="s-best">—</div></div>
+      <div class="metric"><div class="metric-label">Total made</div><div class="metric-value green" id="s-made">—</div></div>
+      <div class="metric"><div class="metric-label">Total lost</div><div class="metric-value red" id="s-lost">—</div></div>
+      <div class="metric"><div class="metric-label">Avg per day</div><div class="metric-value" id="s-avgday">—</div></div>
     </div>
 
     <div class="card">
@@ -94,6 +97,12 @@
       document.getElementById('s-avgwin').textContent = '$' + (stats.avgWin || 0).toFixed(2);
       document.getElementById('s-avgloss').textContent = '$' + Math.abs(stats.avgLoss || 0).toFixed(2);
       document.getElementById('s-best').textContent = '$' + (stats.best || 0).toFixed(2);
+      document.getElementById('s-made').textContent = '+$' + (stats.totalMade || 0).toFixed(2);
+      document.getElementById('s-lost').textContent = '-$' + Math.abs(stats.totalLost || 0).toFixed(2);
+      const avgDay = stats.avgPerDay || 0;
+      const avgDayEl = document.getElementById('s-avgday');
+      avgDayEl.textContent = (avgDay >= 0 ? '+' : '') + '$' + Math.abs(avgDay).toFixed(2);
+      avgDayEl.className = 'metric-value ' + (avgDay >= 0 ? 'green' : 'red');
     });
   </script>
 </body>

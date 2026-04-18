@@ -29,10 +29,10 @@
       <button class="fb" onclick="setFilter('loss',this)">Losses</button>
     </div>
     <div class="filter-row" id="sort-row">
-      <button class="fb active" onclick="setSort('date',this)">Date</button>
-      <button class="fb" onclick="setSort('pnl',this)">P&L</button>
-      <button class="fb" onclick="setSort('captured',this)">Captured</button>
-      <button class="fb" onclick="setSort('left',this)">Left on table</button>
+      <button class="fb active" data-sort="date" onclick="setSort('date',this)">Date</button>
+      <button class="fb" data-sort="pnl" onclick="setSort('pnl',this)">P&L ↓</button>
+      <button class="fb" data-sort="captured" onclick="setSort('captured',this)">Captured</button>
+      <button class="fb" data-sort="left" onclick="setSort('left',this)">Left on table</button>
     </div>
 
     <div id="candies-container"><div class="loading">Loading candies...</div></div>
@@ -40,11 +40,110 @@
 
   <nav class="bottom-nav" id="bottom-nav"></nav>
 
+  <!-- Trade Detail Modal -->
+  <div id="trade-modal" onclick="if(event.target===this)closeModal()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 0 40px">
+    <div style="max-width:480px;margin:0 auto;padding:0 16px">
+      <div style="background:#1a1a2e;border-radius:16px;border:1px solid rgba(255,255,255,0.08);overflow:hidden">
+        <div id="modal-header" style="padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.06)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+            <div>
+              <div id="modal-ticker" style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:#e8e8f0"></div>
+              <div id="modal-date" style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:3px"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+              <div id="modal-pnl" style="font-size:22px;font-weight:800"></div>
+              <button onclick="closeModal()" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.6);width:34px;height:34px;border-radius:8px;font-size:20px;cursor:pointer;font-family:inherit;line-height:1;padding:0">×</button>
+            </div>
+          </div>
+        </div>
+        <div id="modal-candle" style="padding:16px 20px 0"></div>
+        <div id="modal-stats" style="padding:8px 20px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
+        <div id="modal-body" style="padding:0 20px 24px;display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+    </div>
+  </div>
+
   <script src="/tradeos/js/nav.js"></script>
   <script src="/tradeos/js/api.js"></script>
   <script>
     renderNav('candies');
-    let allTrades = [], activeFilter = 'all', activeSort = 'date';
+
+    function openModal(t) {
+      const isWin = t.pnl > 0;
+      const pnlColor = isWin ? '#2cb67d' : '#ef4565';
+      const capColor = t.captured >= 70 ? '#2cb67d' : t.captured >= 40 ? '#f4b942' : '#ef4565';
+
+      document.getElementById('modal-ticker').innerHTML = t.ticker +
+        (t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : '');
+      document.getElementById('modal-date').textContent = formatDate(t.date) + (t.time ? '  ·  ' + t.time : '');
+      const pnlEl = document.getElementById('modal-pnl');
+      pnlEl.style.color = pnlColor;
+      pnlEl.textContent = (isWin ? '+' : '') + '$' + Math.abs(t.pnl).toFixed(2);
+      document.getElementById('modal-header').style.background = isWin ? 'rgba(44,182,125,0.06)' : 'rgba(239,69,101,0.06)';
+      document.getElementById('modal-candle').innerHTML = drawCandle(t.entry, t.high, t.low, t.exit, isWin);
+
+      const statItems = [
+        { label: 'Shares', value: t.shares },
+        { label: 'Entry $', value: '$' + t.entry.toFixed(2) },
+        { label: 'Exit $', value: '$' + t.exit.toFixed(2) },
+        { label: 'HOD', value: '$' + t.high.toFixed(2), dim: true },
+        { label: 'LOD', value: '$' + t.low.toFixed(2), dim: true },
+        { label: 'Move', value: ((t.high - t.entry) / t.entry * 100).toFixed(1) + '%' },
+        { label: 'Captured', value: t.captured + '%', color: capColor },
+        { label: 'Duration', value: t.duration || '—', color: '#7f5af0' },
+        isWin
+          ? { label: 'Left $', value: '$' + t.left.toFixed(2), color: '#f4b942' }
+          : { label: 'Saved $', value: '$' + t.savedFromLoss.toFixed(2), color: '#2cb67d' },
+      ];
+      document.getElementById('modal-stats').innerHTML = statItems.map(s =>
+        `<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${s.label}</div>
+          <div style="font-size:14px;font-weight:800;color:${s.color || (s.dim ? 'rgba(255,255,255,0.45)' : '#e8e8f0')}">${s.value}</div>
+        </div>`
+      ).join('');
+
+      const sections = [
+        { label: 'Setup', value: t.setup },
+        { label: 'Catalyst', value: t.catalyst },
+        { label: 'Float', value: t.float },
+        { label: 'Rel Volume', value: t.relVol },
+        { label: 'Planned Entry', value: t.plannedEntry ? '$' + parseFloat(t.plannedEntry).toFixed(2) : null },
+        { label: 'Stop Loss', value: t.stopLoss ? '$' + parseFloat(t.stopLoss).toFixed(2) : null },
+        { label: 'Target', value: t.target ? '$' + parseFloat(t.target).toFixed(2) : null },
+        { label: 'Emotion at Entry', value: t.emotionEntry },
+        { label: 'Plan', value: t.plan },
+        { label: 'Exit Reason', value: t.exitReason },
+        { label: 'Emotion at Exit', value: t.emotionExit },
+        { label: 'Did Well', value: t.didWell },
+        { label: 'Did Poorly', value: t.didPoorly },
+        { label: 'How to Improve', value: t.howToImprove },
+        { label: 'What I Learned', value: t.whatLearned },
+        { label: 'Grade Notes', value: t.gradeNotes || t.notes },
+      ].filter(s => s.value && String(s.value).trim());
+
+      document.getElementById('modal-body').innerHTML = sections.length
+        ? sections.map(s =>
+            `<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:12px 14px">
+              <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">${s.label}</div>
+              <div style="font-size:14px;color:#e8e8f0;line-height:1.5">${s.value}</div>
+            </div>`
+          ).join('')
+        : '<div style="color:rgba(255,255,255,0.25);font-size:13px;text-align:center;padding:8px 0">No additional details logged.</div>';
+
+      const modal = document.getElementById('trade-modal');
+      modal.style.display = 'block';
+      modal.scrollTop = 0;
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('trade-modal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    let allTrades = [], activeFilter = 'all', activeSort = 'date', pnlSortDir = 'desc';
 
     function formatDate(val) {
       if (!val) return '—';
@@ -121,7 +220,7 @@
         if (activeFilter === 'loss') return t.pnl <= 0;
         return true;
       });
-      if (activeSort === 'pnl') trades.sort((a,b) => b.pnl - a.pnl);
+      if (activeSort === 'pnl') trades.sort((a,b) => pnlSortDir === 'desc' ? b.pnl - a.pnl : a.pnl - b.pnl);
       else if (activeSort === 'captured') trades.sort((a,b) => b.captured - a.captured);
       else if (activeSort === 'left') trades.sort((a,b) => b.left - a.left);
       else trades.sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -132,7 +231,8 @@
       container.innerHTML = trades.map(t => {
         const isWin = t.pnl > 0;
         const capColor = t.captured >= 70 ? '#2cb67d' : t.captured >= 40 ? '#f4b942' : '#ef4565';
-        return `<div class="candle-card">
+        const globalIdx = allTrades.findIndex(x => x.id === t.id || (x.ticker === t.ticker && x.date === t.date && x.entry === t.entry && x.exit === t.exit));
+        return `<div class="candle-card" onclick="openModal(allTrades[${globalIdx}])" style="cursor:pointer" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.4)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
           <div class="ch">
             <div>
               <div class="cticker">${t.ticker}${t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : ''}</div>
@@ -148,6 +248,7 @@
             <div class="cs"><div class="cs-label">Captured</div><div class="cs-value" style="color:${capColor}">${t.captured}%</div></div>
             ${t.pnl > 0 ? `<div class="cs"><div class="cs-label">Left $</div><div class="cs-value" style="color:#f4b942">$${t.left.toFixed(2)}</div></div>` : `<div class="cs"><div class="cs-label">Saved $</div><div class="cs-value" style="color:#2cb67d">$${t.savedFromLoss.toFixed(2)}</div></div>`}
           </div>
+          <div style="text-align:center;font-size:11px;color:rgba(255,255,255,0.18);margin-top:6px;letter-spacing:.04em">tap for details</div>
         </div>`;
       }).join('');
     }
@@ -158,9 +259,19 @@
       btn.classList.add('active'); render();
     }
     function setSort(s, btn) {
-      activeSort = s;
-      document.querySelectorAll('#sort-row .fb').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active'); render();
+      if (s === 'pnl' && activeSort === 'pnl') {
+        pnlSortDir = pnlSortDir === 'desc' ? 'asc' : 'desc';
+        btn.textContent = pnlSortDir === 'desc' ? 'P&L ↓' : 'P&L ↑';
+      } else {
+        activeSort = s;
+        document.querySelectorAll('#sort-row .fb').forEach(b => {
+          b.classList.remove('active');
+          if (b.dataset.sort === 'pnl') b.textContent = 'P&L ↓';
+        });
+        btn.classList.add('active');
+        if (s === 'pnl') { pnlSortDir = 'desc'; btn.textContent = 'P&L ↓'; }
+      }
+      render();
     }
 
     getTrades().then(trades => {

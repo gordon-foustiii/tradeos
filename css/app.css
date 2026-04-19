@@ -77,9 +77,10 @@ body {
 .metric {
   background: #1a1a2e; border-radius: 14px;
   padding: 16px 14px; border: 1px solid rgba(255,255,255,0.07);
+  min-width: 0;
 }
 .metric-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 8px; font-weight: 500; }
-.metric-value { font-size: 26px; font-weight: 800; color: #e8e8f0; letter-spacing: -0.5px; }
+.metric-value { font-size: clamp(17px, 4.5vw, 26px); font-weight: 800; color: #e8e8f0; letter-spacing: -0.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .metric-value.green { color: #2cb67d; }
 .metric-value.red { color: #ef4565; }
 .metric-value.amber { color: #f4b942; }

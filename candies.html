@@ -69,7 +69,7 @@
     renderNav('candies');
 
     function openModal(t) {
-      const isWin = t.pnl > 0;
+      const isWin = t.winLoss === 'WIN';
       const pnlColor = isWin ? '#2cb67d' : '#ef4565';
       const capColor = t.captured >= 70 ? '#2cb67d' : t.captured >= 40 ? '#f4b942' : '#ef4565';
 
@@ -179,7 +179,7 @@
     }
 
     function renderSummary(){
-      const wins=allTrades.filter(t=>t.pnl>0).length;
+      const wins=allTrades.filter(t=>t.winLoss==='WIN').length;
       const totalPnl=allTrades.reduce((s,t)=>s+t.pnl,0);
       const best=allTrades.length?Math.max(...allTrades.map(t=>t.pnl)):0;
       const worst=allTrades.length?Math.min(...allTrades.map(t=>t.pnl)):0;
@@ -215,8 +215,8 @@
 
     function render() {
       let trades = [...allTrades].filter(t => {
-        if (activeFilter === 'win') return t.pnl > 0;
-        if (activeFilter === 'loss') return t.pnl <= 0;
+        if (activeFilter === 'win') return t.winLoss === 'WIN';
+        if (activeFilter === 'loss') return t.winLoss !== 'WIN';
         return true;
       });
       if (activeSort === 'pnl') trades.sort((a,b) => pnlSortDir === 'desc' ? b.pnl - a.pnl : a.pnl - b.pnl);
@@ -228,7 +228,7 @@
       if (!trades.length) { container.innerHTML = '<div class="empty">No trades match.</div>'; return; }
 
       container.innerHTML = trades.map(t => {
-        const isWin = t.pnl > 0;
+        const isWin = t.winLoss === 'WIN';
         const capColor = t.captured >= 70 ? '#2cb67d' : t.captured >= 40 ? '#f4b942' : '#ef4565';
         const globalIdx = allTrades.findIndex(x => x.id === t.id || (x.ticker === t.ticker && x.date === t.date && x.entry === t.entry && x.exit === t.exit));
         return `<div class="candle-card" onclick="openModal(allTrades[${globalIdx}])" style="cursor:pointer" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.4)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">

@@ -242,6 +242,7 @@
           ${drawCandle(t.entry, t.high, t.low, t.exit, isWin)}
           <div class="cstats">
             <div class="cs"><div class="cs-label">Saved $</div><div class="cs-value" style="color:#2cb67d">$${t.savedFromLoss.toFixed(2)}</div></div>
+            <div class="cs"><div class="cs-label">Shares</div><div class="cs-value">${t.shares}</div></div>
             <div class="cs"><div class="cs-label">Move</div><div class="cs-value">${((t.high-t.entry)/t.entry*100).toFixed(1)}%</div></div>
             <div class="cs"><div class="cs-label">Captured</div><div class="cs-value" style="color:${capColor}">${t.captured}%</div></div>
             <div class="cs"><div class="cs-label">Left $</div><div class="cs-value" style="color:#f4b942">$${t.left.toFixed(2)}</div></div>

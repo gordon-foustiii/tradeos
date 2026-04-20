@@ -16,10 +16,11 @@
     .cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px; }
     .cal-dow { text-align:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;padding:6px 0; }
     .cal-day {
-      aspect-ratio:1;border-radius:8px;padding:4px;
+      border-radius:8px;padding:3px 2px;
       background:#13131f;border:1px solid rgba(255,255,255,0.05);
       display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-      cursor:default;position:relative;overflow:hidden;min-height:48px;
+      cursor:default;position:relative;overflow:hidden;
+      min-height:0;height:54px;
     }
     .cal-day.empty { background:transparent;border-color:transparent; }
     .cal-day.today { border-color:#7f5af0;border-width:2px; }
@@ -109,6 +110,22 @@
   <script src="/tradeos/js/nav.js"></script>
   <script src="/tradeos/js/api.js"></script>
   <script>
+    // Normalize any date format to YYYY-MM-DD
+    function normalizeDate(raw) {
+      if (!raw) return '';
+      raw = String(raw).trim();
+      // Already YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+      // M/D/YY or M/D/YYYY
+      const parts = raw.split('/');
+      if (parts.length === 3) {
+        let [m, d, y] = parts.map(p => p.trim());
+        if (y.length === 2) y = '20' + y;
+        return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+      }
+      return raw;
+    }
+
     renderNav('calendar');
 
     const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -274,7 +291,7 @@
       allTrades = (trades && !trades[0]?._empty) ? trades.map(t => ({
         ...t,
         pnl: parseFloat(t.pnl) || 0,
-        date: t.date || ''
+        date: normalizeDate(t.date)
       })) : [];
       allHabits = habits || [];
       renderCalendar();

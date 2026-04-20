@@ -27,8 +27,9 @@ function signOut() {
 
 function apiGet(action) {
   if (!requireAuth()) return Promise.resolve(null);
-  return fetch(BASE_URL + '?action=' + action, {
-    headers: { 'Authorization': 'Bearer ' + getToken() }
+  return fetch(BASE_URL + '?action=' + action + '&_=' + Date.now(), {
+    headers: { 'Authorization': 'Bearer ' + getToken() },
+    cache: 'no-store'
   })
     .then(function(res) { return res.json(); })
     .catch(function(e) { console.error('API error:', e); return null; });

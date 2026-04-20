@@ -155,6 +155,10 @@
       try {
         const result = await apiPost('updateTrade', {
           id: t.id,
+          ticker: t.ticker,
+          date: t.date,
+          originalEntry: t.entry,
+          originalExit: t.exit,
           actualEntry: document.getElementById('e-entry').value,
           exitPrice: document.getElementById('e-exit').value,
           highHeld: document.getElementById('e-hod').value,

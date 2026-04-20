@@ -25,15 +25,28 @@ function signOut() {
   window.location.href = '/tradeos/login.html';
 }
 
+var _apiCache = {};
+var _apiCacheTTL = 30000; // 30 seconds
+
 function apiGet(action) {
   if (!requireAuth()) return Promise.resolve(null);
-  return fetch(BASE_URL + '?action=' + action + '&_=' + Date.now(), {
+  const now = Date.now();
+  if (_apiCache[action] && (now - _apiCache[action].ts) < _apiCacheTTL) {
+    return Promise.resolve(_apiCache[action].data);
+  }
+  return fetch(BASE_URL + '?action=' + action + '&_=' + now, {
     headers: { 'Authorization': 'Bearer ' + getToken() },
     cache: 'no-store'
   })
     .then(function(res) { return res.json(); })
+    .then(function(data) {
+      _apiCache[action] = { ts: Date.now(), data: data };
+      return data;
+    })
     .catch(function(e) { console.error('API error:', e); return null; });
 }
+
+function clearApiCache() { _apiCache = {}; }
 
 function apiPost(action, payload) {
   if (!requireAuth()) return Promise.resolve(null);

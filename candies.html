@@ -230,8 +230,8 @@
       container.innerHTML = trades.map(t => {
         const isWin = t.winLoss === 'WIN';
         const capColor = t.captured >= 70 ? '#2cb67d' : t.captured >= 40 ? '#f4b942' : '#ef4565';
-        const globalIdx = allTrades.findIndex(x => x.id === t.id || (x.ticker === t.ticker && x.date === t.date && x.entry === t.entry && x.exit === t.exit));
-        return `<div class="candle-card" onclick="openModal(allTrades[${globalIdx}])" style="cursor:pointer" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.4)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
+        const safeKey = t._key.replace(/'/g, "\\'");
+        return `<div class="candle-card" onclick="openModal(tradeMap['${safeKey}'])" style="cursor:pointer" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.4)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
           <div class="ch">
             <div>
               <div class="cticker">${t.ticker}${t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : ''}</div>
@@ -273,23 +273,30 @@
       render();
     }
 
+    let tradeMap = {};
+
     getTrades().then(trades => {
       if (!trades || !trades.length || trades[0]._empty) {
         document.getElementById('candies-container').innerHTML = '<div class="empty">No trades yet.</div>';
         return;
       }
-      allTrades = trades.map(t => {
+      allTrades = trades.map((t, i) => {
         const entry = parseFloat(t.entry)||0, exit = parseFloat(t.exit)||0;
         const high = parseFloat(t.high)||exit, low = parseFloat(t.low)||entry;
         const shares = parseInt(t.shares)||0;
         const pnl = parseFloat(t.pnl)||(exit-entry)*shares;
         const maxPossible = shares*(high-entry);
         const captured = maxPossible>0 ? Math.round((pnl/maxPossible)*100) : (pnl>0?100:0);
-	const left = Math.max(0, shares*(high - Math.max(entry, exit)));
-	const savedFromLoss = Math.max(0, shares*(Math.min(entry, exit) - low));
-	const hasRealWicks = high>exit || low<entry;
-	return { ...t, entry, exit, high, low, shares, pnl, captured, left, savedFromLoss };
-	}).filter(t => t.ticker && t.entry && t.exit);
+        const left = Math.max(0, shares*(high - Math.max(entry, exit)));
+        const savedFromLoss = Math.max(0, shares*(Math.min(entry, exit) - low));
+        const _key = t.id ? String(t.id) : `${t.ticker}_${t.date}_${entry}_${exit}_${i}`;
+        return { ...t, entry, exit, high, low, shares, pnl, captured, left, savedFromLoss, _key };
+      }).filter(t => t.ticker && t.entry && t.exit);
+
+      // Build lookup map
+      tradeMap = {};
+      allTrades.forEach(t => { tradeMap[t._key] = t; });
+
       renderSummary();
       render();
     });

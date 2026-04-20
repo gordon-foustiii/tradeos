@@ -11,10 +11,30 @@
   <title>TradeOS</title>
   <link rel="manifest" href="/tradeos/manifest.json">
   <link rel="stylesheet" href="/tradeos/css/app.css">
+  <style>
+    .habit-item { display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;user-select:none; }
+    .habit-item:last-of-type { border-bottom:none; }
+    .habit-cb { width:22px;height:22px;border-radius:6px;border:2px solid rgba(255,255,255,0.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s; }
+    .habit-cb.checked { background:#7f5af0;border-color:#7f5af0; }
+    .habit-cb.checked::after { content:'✓';color:white;font-size:13px;font-weight:800; }
+    .habit-time { font-size:11px;font-weight:700;color:#7f5af0;min-width:36px;letter-spacing:.04em; }
+    .habit-text { font-size:14px;color:rgba(255,255,255,0.75);line-height:1.4;flex:1; }
+    .habit-text.done { color:rgba(255,255,255,0.3);text-decoration:line-through; }
+    .habit-submit { width:100%;margin-top:14px;padding:13px;background:#7f5af0;border:none;border-radius:10px;color:white;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity 0.15s; }
+    .habit-submit:disabled { opacity:0.4;cursor:default; }
+    .habit-score { text-align:center;font-size:13px;color:rgba(255,255,255,0.4);margin-top:8px; }
+    .history-row { display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px; }
+    .history-row:last-child { border-bottom:none; }
+    .history-date { color:rgba(255,255,255,0.45); }
+    .history-bar-wrap { flex:1;margin:0 12px;height:6px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden; }
+    .history-bar { height:100%;border-radius:4px; }
+    .history-pct { font-weight:800;min-width:36px;text-align:right; }
+    .today-badge { font-size:10px;background:rgba(127,90,240,0.2);color:#7f5af0;padding:2px 7px;border-radius:4px;font-weight:700;margin-left:6px;vertical-align:middle; }
+  </style>
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-brand">Trade<span>OS</span></div>
+    <a href="/tradeos/index.html" class="topbar-brand" style="text-decoration:none">Trade<span>OS</span></a>
     <button onclick="signOut()" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit">Sign out</button>
   </div>
 
@@ -24,7 +44,7 @@
       <div class="page-sub">1% better every day.</div>
     </div>
 
-<div class="metric-grid" id="stats-grid">
+    <div class="metric-grid" id="stats-grid">
       <div class="metric"><div class="metric-label">Trades</div><div class="metric-value" id="s-total">—</div></div>
       <div class="metric"><div class="metric-label">Win rate</div><div class="metric-value" id="s-wr">—</div></div>
       <div class="metric"><div class="metric-label">Avg loss</div><div class="metric-value red" id="s-avgloss">—</div></div>
@@ -33,7 +53,7 @@
       <div class="metric"><div class="metric-label">Best trade</div><div class="metric-value purple" id="s-best">—</div></div>
       <div class="metric"><div class="metric-label">Total lost</div><div class="metric-value red" id="s-lost">—</div></div>
       <div class="metric"><div class="metric-label">Total made</div><div class="metric-value green" id="s-made">—</div></div>
-      <div class="metric" style="grid-column: span 2;">
+      <div class="metric" style="grid-column:span 2">
         <div class="metric-label">Net P&L</div>
         <div id="s-pnl" style="font-size:28px;font-weight:800;letter-spacing:-1px;font-family:inherit;margin-top:6px">—</div>
       </div>
@@ -45,7 +65,7 @@
         <a href="/tradeos/journal.html" class="qa-btn qa-journal">Log trade</a>
         <a href="/tradeos/candies.html" class="qa-btn qa-candies">Candies</a>
         <a href="/tradeos/calculator.html" class="qa-btn qa-calc">Calculator</a>
-        <a href="/tradeos/playbook.html" class="qa-btn qa-playbook">Playbook</a>
+        <a href="/tradeos/calendar.html" class="qa-btn qa-playbook">Calendar</a>
       </div>
     </div>
 
@@ -53,10 +73,74 @@
       <div class="card-title">Daily rules</div>
       <div id="rules-list"></div>
     </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Morning routine <span id="today-badge"></span></div>
+      <div class="habit-item" onclick="toggle(0)"><div class="habit-cb" id="cb-0"></div><span class="habit-time">7:00</span><span class="habit-text" id="ht-0">Benzinga pre-market gainers — top 3-5 movers.</span></div>
+      <div class="habit-item" onclick="toggle(1)"><div class="habit-cb" id="cb-1"></div><span class="habit-time">7:15</span><span class="habit-text" id="ht-1">Google catalyst on anything up 20%+. Real news only.</span></div>
+      <div class="habit-item" onclick="toggle(2)"><div class="habit-cb" id="cb-2"></div><span class="habit-time">7:30</span><span class="habit-text" id="ht-2">Pull charts. Identify support, resistance, VWAP.</span></div>
+      <div class="habit-item" onclick="toggle(3)"><div class="habit-cb" id="cb-3"></div><span class="habit-time">8:00</span><span class="habit-text" id="ht-3">Scanner on. Confirm volume building on watchlist.</span></div>
+      <div class="habit-item" onclick="toggle(4)"><div class="habit-cb" id="cb-4"></div><span class="habit-time">9:20</span><span class="habit-text" id="ht-4">Watchlist locked. Calculator run on each setup.</span></div>
+      <div class="habit-item" onclick="toggle(5)"><div class="habit-cb" id="cb-5"></div><span class="habit-time">9:30</span><span class="habit-text" id="ht-5">Market open — watch first 5-10 min. Do not trade immediately.</span></div>
+      <div class="habit-item" onclick="toggle(6)"><div class="habit-cb" id="cb-6"></div><span class="habit-time">9:40</span><span class="habit-text" id="ht-6">First clean pullback setup = entry window opens.</span></div>
+      <div class="habit-score">Completed: <span id="score-display">0 / 7</span></div>
+      <button class="habit-submit" id="submit-btn" onclick="submitHabits()" disabled>Log Morning Routine</button>
+      <div id="submit-status" style="text-align:center;font-size:12px;color:rgba(255,255,255,0.35);margin-top:8px;min-height:16px"></div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Routine history</div>
+      <div id="habit-history"><div style="color:rgba(255,255,255,0.25);font-size:13px;text-align:center;padding:8px 0">Loading...</div></div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Entry checklist</div>
+      <div class="play-item"><span class="check">✓</span><span>Real catalyst confirmed — googled and verified</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Float under 20M — lower is better</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Relative volume 2x+ — real buying interest</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Price above VWAP — momentum confirmed</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Clean pullback to support — not chasing the spike</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Stop loss set — know your exit before entering</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Calculator run — position sized, risk under $50</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Emotional state checked — calm and confident only</span></div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Exit checklist</div>
+      <div class="play-item"><span class="check">✓</span><span>Stop hit → exit immediately, no argument</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Target hit → take at least partial profit</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Volume fading + price stalling → consider exit</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Price breaks below key support → exit</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Loss approaching $50 → exit, no averaging down</span></div>
+      <div class="play-item"><span class="check">✓</span><span>After 10:30 and momentum gone → exit</span></div>
+      <div class="play-item"><span class="check">✓</span><span>Log the trade immediately after exit</span></div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Order types — ThinkorSwim</div>
+      <div class="order-grid">
+        <div class="order-type"><div class="name">Market</div><div class="desc">Fills immediately at current price. Wide spreads pre-market.</div><div class="use">Regular hours, liquid stocks</div></div>
+        <div class="order-type"><div class="name">Limit</div><div class="desc">Fills at your price or better. May not fill if price moves away.</div><div class="use">Pre-market, all entries</div></div>
+        <div class="order-type"><div class="name">Buy Stop</div><div class="desc">Triggers a buy when price rises to your level.</div><div class="use">Breakout entries</div></div>
+        <div class="order-type"><div class="name">Stop Market</div><div class="desc">Triggers sell when price drops to your level.</div><div class="use">Stop loss on open positions</div></div>
+        <div class="order-type"><div class="name">Trailing Stop</div><div class="desc">Stop moves up as stock rises. Locks in profit.</div><div class="use">Locking gains on runners</div></div>
+        <div class="order-type"><div class="name">Stop Limit</div><div class="desc">Triggers at stop, fills at limit or better.</div><div class="use">When exact fill matters</div></div>
+      </div>
+    </div>
+
+    <div class="play-card">
+      <div class="play-card-title">Mental rules</div>
+      <div class="play-item"><span class="check">→</span><span>Missed trade ≠ bad trader. The next setup is always coming.</span></div>
+      <div class="play-item"><span class="check">→</span><span>FOMO from one miss causes bad entries on the next setup. Reset between trades.</span></div>
+      <div class="play-item"><span class="check">→</span><span>Cutting a loss quickly is not a bad trade — it's discipline.</span></div>
+      <div class="play-item"><span class="check">→</span><span>Singles add up. Consistent wins build the account.</span></div>
+      <div class="play-item"><span class="check">→</span><span>The stock doesn't know you own it. It doesn't owe you a recovery.</span></div>
+      <div class="play-item"><span class="check">→</span><span>1% better every day. Compound the improvement, not just the money.</span></div>
+    </div>
+
   </div>
 
   <nav class="bottom-nav" id="bottom-nav"></nav>
-
   <script src="/tradeos/js/nav.js"></script>
   <script src="/tradeos/js/api.js"></script>
   <script>
@@ -121,6 +205,95 @@
       avgDayEl.textContent = (avgDay >= 0 ? '+' : '') + '$' + Math.abs(avgDay).toFixed(2);
       avgDayEl.className = 'metric-value ' + (avgDay >= 0 ? 'green' : 'red');
     });
+
+    // ── HABIT TRACKER ──
+    const TOTAL = 7;
+    const checked = new Array(TOTAL).fill(false);
+    const today = new Date().toISOString().slice(0, 10);
+    let alreadyLogged = false;
+
+    function toggle(i) {
+      if (alreadyLogged) return;
+      checked[i] = !checked[i];
+      document.getElementById('cb-' + i).classList.toggle('checked', checked[i]);
+      document.getElementById('ht-' + i).classList.toggle('done', checked[i]);
+      const count = checked.filter(Boolean).length;
+      document.getElementById('score-display').textContent = count + ' / ' + TOTAL;
+      document.getElementById('submit-btn').disabled = count === 0;
+    }
+
+    async function submitHabits() {
+      const count = checked.filter(Boolean).length;
+      const score = Math.round((count / TOTAL) * 100);
+      const btn = document.getElementById('submit-btn');
+      const status = document.getElementById('submit-status');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      try {
+        const result = await apiPost('saveHabits', { date: today, type: 'morning', items: checked, score });
+        if (result && result.success) {
+          alreadyLogged = true;
+          btn.textContent = 'Logged ✓';
+          status.textContent = score + '% — ' + count + ' of ' + TOTAL + ' completed';
+          status.style.color = score === 100 ? '#2cb67d' : score >= 70 ? '#f4b942' : '#ef4565';
+          document.getElementById('today-badge').innerHTML = '<span class="today-badge">logged</span>';
+          loadHistory();
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Log Morning Routine';
+          status.textContent = 'Save failed — try again';
+        }
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Log Morning Routine';
+        status.textContent = 'Error — check connection';
+      }
+    }
+
+    async function loadHistory() {
+      const el = document.getElementById('habit-history');
+      try {
+        const data = await apiGet('getHabits');
+        if (!data || !data.length) {
+          el.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:13px;text-align:center;padding:8px 0">No history yet.</div>';
+          return;
+        }
+        el.innerHTML = data.slice(0, 14).map(h => {
+          const isToday = h.date === today;
+          const pct = h.score || 0;
+          const barColor = pct === 100 ? '#2cb67d' : pct >= 70 ? '#f4b942' : '#ef4565';
+          const label = new Date(h.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          return `<div class="history-row">
+            <span class="history-date">${label}${isToday ? ' <span class="today-badge">today</span>' : ''}</span>
+            <div class="history-bar-wrap"><div class="history-bar" style="width:${pct}%;background:${barColor}"></div></div>
+            <span class="history-pct" style="color:${barColor}">${pct}%</span>
+          </div>`;
+        }).join('');
+        if (data.some(h => h.date === today)) {
+          alreadyLogged = true;
+          const todayData = data.find(h => h.date === today);
+          document.getElementById('submit-btn').textContent = 'Logged ✓';
+          document.getElementById('submit-btn').disabled = true;
+          document.getElementById('today-badge').innerHTML = '<span class="today-badge">logged</span>';
+          document.getElementById('submit-status').textContent = todayData.score + '% completed today';
+          document.getElementById('submit-status').style.color = 'rgba(255,255,255,0.35)';
+          if (todayData.items) {
+            todayData.items.forEach((v, i) => {
+              if (v) {
+                checked[i] = true;
+                document.getElementById('cb-' + i).classList.add('checked');
+                document.getElementById('ht-' + i).classList.add('done');
+              }
+            });
+            document.getElementById('score-display').textContent = checked.filter(Boolean).length + ' / ' + TOTAL;
+          }
+        }
+      } catch (e) {
+        el.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:13px;text-align:center;padding:8px 0">Could not load history.</div>';
+      }
+    }
+
+    loadHistory();
   </script>
 </body>
 </html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>TradeOS — Calendar</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <link rel="stylesheet" href="/tradeos/css/app.css">
+  <style>
+    .cal-nav { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
+    .cal-nav-btn { background:rgba(255,255,255,0.07);border:none;color:#e8e8f0;width:36px;height:36px;border-radius:8px;font-size:18px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center; }
+    .cal-month { font-size:18px;font-weight:800;color:#e8e8f0;letter-spacing:-0.3px; }
+    .cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px; }
+    .cal-dow { text-align:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;padding:6px 0; }
+    .cal-day {
+      aspect-ratio:1;border-radius:8px;padding:4px;
+      background:#13131f;border:1px solid rgba(255,255,255,0.05);
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+      cursor:default;position:relative;overflow:hidden;min-height:48px;
+    }
+    .cal-day.empty { background:transparent;border-color:transparent; }
+    .cal-day.today { border-color:#7f5af0;border-width:2px; }
+    .cal-day.has-trades { cursor:pointer; }
+    .cal-day.has-trades:active { opacity:0.8; }
+    .cal-day.win { background:rgba(44,182,125,0.12);border-color:rgba(44,182,125,0.25); }
+    .cal-day.loss { background:rgba(239,69,101,0.12);border-color:rgba(239,69,101,0.25); }
+    .cal-day-num { font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);line-height:1;margin-bottom:2px; }
+    .cal-day.today .cal-day-num { color:#7f5af0; }
+    .cal-day-pnl { font-size:9px;font-weight:800;line-height:1;margin-top:2px; }
+    .cal-day-pnl.pos { color:#2cb67d; }
+    .cal-day-pnl.neg { color:#ef4565; }
+    .cal-day-count { font-size:8px;color:rgba(255,255,255,0.3);margin-top:2px;line-height:1; }
+    .cal-habit-dot { width:5px;height:5px;border-radius:50%;margin-top:3px; }
+
+    /* Day detail panel */
+    .day-detail { background:#1a1a2e;border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid rgba(255,255,255,0.08);display:none; }
+    .day-detail.visible { display:block; }
+    .day-detail-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:12px; }
+    .day-detail-date { font-size:15px;font-weight:800;color:#e8e8f0; }
+    .day-detail-pnl { font-size:18px;font-weight:800; }
+    .day-detail-meta { display:flex;gap:16px;margin-bottom:12px;font-size:12px;color:rgba(255,255,255,0.4); }
+    .day-detail-meta span { font-weight:700;color:rgba(255,255,255,0.7); }
+    .day-trade-row { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:14px; }
+    .day-trade-row:last-child { border-bottom:none; }
+    .day-trade-ticker { font-weight:800;color:#e8e8f0; }
+    .day-trade-pnl { font-weight:800; }
+
+    /* Month summary */
+    .month-summary { display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px; }
+    .month-stat { background:#1a1a2e;border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.07);text-align:center; }
+    .month-stat-label { font-size:10px;color:rgba(255,255,255,0.35);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px; }
+    .month-stat-value { font-size:18px;font-weight:800;color:#e8e8f0; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="/tradeos/index.html" class="topbar-brand" style="text-decoration:none">Trade<span>OS</span></a>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title">Calendar</div>
+      <div class="page-sub">Daily P&L, trades, and routine scores.</div>
+    </div>
+
+    <!-- Month nav -->
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="changeMonth(-1)">&#8249;</button>
+      <div class="cal-month" id="cal-month-label">—</div>
+      <button class="cal-nav-btn" onclick="changeMonth(1)">&#8250;</button>
+    </div>
+
+    <!-- Month summary stats -->
+    <div class="month-summary">
+      <div class="month-stat"><div class="month-stat-label">Net P&L</div><div class="month-stat-value" id="m-pnl">—</div></div>
+      <div class="month-stat"><div class="month-stat-label">Trade days</div><div class="month-stat-value" id="m-days">—</div></div>
+      <div class="month-stat"><div class="month-stat-label">Win days</div><div class="month-stat-value" id="m-windays">—</div></div>
+    </div>
+
+    <!-- Calendar grid -->
+    <div class="card" style="padding:12px">
+      <div class="cal-grid" id="cal-dow-row"></div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+
+    <!-- Legend -->
+    <div style="display:flex;gap:16px;margin-bottom:14px;padding:0 4px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.4)"><div style="width:10px;height:10px;border-radius:3px;background:rgba(44,182,125,0.3)"></div>Profit day</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.4)"><div style="width:10px;height:10px;border-radius:3px;background:rgba(239,69,101,0.3)"></div>Loss day</div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.4)"><div style="width:5px;height:5px;border-radius:50%;background:#2cb67d"></div>Routine logged</div>
+    </div>
+
+    <!-- Day detail panel -->
+    <div class="day-detail" id="day-detail">
+      <div class="day-detail-header">
+        <div class="day-detail-date" id="dd-date">—</div>
+        <div class="day-detail-pnl" id="dd-pnl">—</div>
+      </div>
+      <div class="day-detail-meta" id="dd-meta"></div>
+      <div id="dd-trades"></div>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+  <script src="/tradeos/js/nav.js"></script>
+  <script src="/tradeos/js/api.js"></script>
+  <script>
+    renderNav('calendar');
+
+    const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let allTrades = [], allHabits = [];
+    let viewYear, viewMonth;
+    let selectedDate = null;
+
+    const now = new Date();
+    viewYear = now.getFullYear();
+    viewMonth = now.getMonth();
+    const todayStr = now.toISOString().slice(0, 10);
+
+    // Render day-of-week headers once
+    document.getElementById('cal-dow-row').innerHTML = DAYS.map(d =>
+      `<div class="cal-dow">${d}</div>`
+    ).join('');
+
+    function changeMonth(dir) {
+      viewMonth += dir;
+      if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+      if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+      selectedDate = null;
+      document.getElementById('day-detail').classList.remove('visible');
+      renderCalendar();
+    }
+
+    function buildDayMap() {
+      const map = {};
+      allTrades.forEach(t => {
+        if (!t.date) return;
+        if (!map[t.date]) map[t.date] = { trades: [], pnl: 0 };
+        map[t.date].trades.push(t);
+        map[t.date].pnl += t.pnl;
+      });
+      return map;
+    }
+
+    function buildHabitMap() {
+      const map = {};
+      allHabits.forEach(h => { map[h.date] = h.score; });
+      return map;
+    }
+
+    function renderCalendar() {
+      const label = new Date(viewYear, viewMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      document.getElementById('cal-month-label').textContent = label;
+
+      const dayMap = buildDayMap();
+      const habitMap = buildHabitMap();
+
+      // Month summary
+      const monthDays = Object.keys(dayMap).filter(d => {
+        const [y, m] = d.split('-').map(Number);
+        return y === viewYear && m === viewMonth + 1;
+      });
+      const monthPnl = monthDays.reduce((s, d) => s + dayMap[d].pnl, 0);
+      const winDays = monthDays.filter(d => dayMap[d].pnl > 0).length;
+      const pnlColor = monthPnl >= 0 ? '#2cb67d' : '#ef4565';
+      document.getElementById('m-pnl').textContent = (monthPnl >= 0 ? '+' : '') + '$' + Math.abs(monthPnl).toFixed(2);
+      document.getElementById('m-pnl').style.color = pnlColor;
+      document.getElementById('m-days').textContent = monthDays.length;
+      document.getElementById('m-windays').textContent = winDays;
+
+      // Build calendar cells
+      const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      let cells = '';
+
+      // Empty cells before first day
+      for (let i = 0; i < firstDay; i++) {
+        cells += `<div class="cal-day empty"></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${viewYear}-${String(viewMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dayData = dayMap[dateStr];
+        const habitScore = habitMap[dateStr];
+        const isToday = dateStr === todayStr;
+        const hasTrades = !!dayData;
+
+        let cls = 'cal-day';
+        if (isToday) cls += ' today';
+        if (hasTrades) {
+          cls += ' has-trades';
+          cls += dayData.pnl >= 0 ? ' win' : ' loss';
+        }
+
+        let inner = `<div class="cal-day-num">${d}</div>`;
+
+        if (hasTrades) {
+          const sign = dayData.pnl >= 0 ? '+' : '-';
+          const pnlClass = dayData.pnl >= 0 ? 'pos' : 'neg';
+          const abs = Math.abs(dayData.pnl).toFixed(0);
+          inner += `<div class="cal-day-pnl ${pnlClass}">${sign}$${abs}</div>`;
+          inner += `<div class="cal-day-count">${dayData.trades.length}t</div>`;
+        }
+
+        if (habitScore !== undefined) {
+          const dotColor = habitScore === 100 ? '#2cb67d' : habitScore >= 70 ? '#f4b942' : '#ef4565';
+          inner += `<div class="cal-habit-dot" style="background:${dotColor}"></div>`;
+        }
+
+        const click = hasTrades ? `onclick="selectDay('${dateStr}')"` : '';
+        cells += `<div class="${cls}" ${click}>${inner}</div>`;
+      }
+
+      document.getElementById('cal-grid').innerHTML = cells;
+
+      // Re-select if previously selected
+      if (selectedDate && dayMap[selectedDate]) {
+        showDayDetail(selectedDate, dayMap[selectedDate], habitMap[selectedDate]);
+      }
+    }
+
+    function selectDay(dateStr) {
+      const dayMap = buildDayMap();
+      const habitMap = buildHabitMap();
+      if (selectedDate === dateStr) {
+        selectedDate = null;
+        document.getElementById('day-detail').classList.remove('visible');
+        return;
+      }
+      selectedDate = dateStr;
+      showDayDetail(dateStr, dayMap[dateStr], habitMap[dateStr]);
+    }
+
+    function showDayDetail(dateStr, dayData, habitScore) {
+      const panel = document.getElementById('day-detail');
+      const label = new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+      const pnl = dayData.pnl;
+      const pnlColor = pnl >= 0 ? '#2cb67d' : '#ef4565';
+      const sign = pnl >= 0 ? '+' : '';
+
+      document.getElementById('dd-date').textContent = label;
+      const pnlEl = document.getElementById('dd-pnl');
+      pnlEl.textContent = sign + '$' + pnl.toFixed(2);
+      pnlEl.style.color = pnlColor;
+
+      const wins = dayData.trades.filter(t => t.winLoss === 'WIN').length;
+      const losses = dayData.trades.length - wins;
+      const habitText = habitScore !== undefined ? `Routine: ${habitScore}%` : 'No routine logged';
+      document.getElementById('dd-meta').innerHTML =
+        `<div>${dayData.trades.length} trade${dayData.trades.length !== 1 ? 's' : ''} &nbsp;·&nbsp; <span>${wins}W / ${losses}L</span></div><div>${habitText}</div>`;
+
+      document.getElementById('dd-trades').innerHTML = dayData.trades.map(t => {
+        const tc = t.pnl >= 0 ? '#2cb67d' : '#ef4565';
+        const ts = t.pnl >= 0 ? '+' : '';
+        return `<div class="day-trade-row">
+          <div>
+            <div class="day-trade-ticker">${t.ticker}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.35)">${t.setup || '—'}</div>
+          </div>
+          <div class="day-trade-pnl" style="color:${tc}">${ts}$${Math.abs(t.pnl).toFixed(2)}</div>
+        </div>`;
+      }).join('');
+
+      panel.classList.add('visible');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Load data
+    Promise.all([getTrades(), apiGet('getHabits')]).then(([trades, habits]) => {
+      allTrades = (trades && !trades[0]?._empty) ? trades.map(t => ({
+        ...t,
+        pnl: parseFloat(t.pnl) || 0,
+        date: t.date || ''
+      })) : [];
+      allHabits = habits || [];
+      renderCalendar();
+    });
+  </script>
+</body>
+</html>

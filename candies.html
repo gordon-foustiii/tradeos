@@ -432,10 +432,11 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
         });
 
         const data = await response.json();
-        console.log('AI proxy response:', JSON.stringify(data));
-        if (!data.content || !data.content[0]) {
-          throw new Error('Bad response: ' + JSON.stringify(data));
-        }
+        console.log('Muninn response:', JSON.stringify(data));
+
+        if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+        if (!data.content || !data.content[0]) throw new Error('Empty response: ' + JSON.stringify(data));
+
         const text = data.content[0].text.trim();
         const gradeMatch = text.match(/GRADE:\s*([A-F][+-]?)/i);
         const reasonMatch = text.match(/REASONING:\s*([\s\S]+)/i);
@@ -454,8 +455,9 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
       } catch(e) {
         letterEl.textContent = '!';
         letterEl.style.color = '#ef4565';
-        reasoningEl.textContent = 'Grading failed — ' + e.message;
+        reasoningEl.textContent = 'Error: ' + e.message;
         resultDiv.style.display = 'block';
+        console.error('autoGrade error:', e);
       }
       btn.textContent = 'Grade';
       btn.disabled = false;

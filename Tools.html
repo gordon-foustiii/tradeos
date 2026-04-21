@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>TradeOS — Tools</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <link rel="stylesheet" href="/tradeos/css/app.css">
+  <style>
+    .timer-display { text-align:center;padding:20px 0 8px; }
+    .timer-clock { font-size:52px;font-weight:900;letter-spacing:-2px;color:#e8e8f0;line-height:1; }
+    .timer-clock.warning { color:#f4b942; }
+    .timer-clock.closed { color:#ef4565; }
+    .timer-clock.open { color:#2cb67d; }
+    .timer-label { font-size:12px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:.08em;margin-top:6px; }
+    .timer-bar-wrap { height:6px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;margin:12px 0 4px; }
+    .timer-bar { height:100%;border-radius:4px;transition:width .5s linear,background .5s; }
+    .window-badges { display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap; }
+    .wbadge { font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.35); }
+    .wbadge.active { background:rgba(44,182,125,0.15);color:#2cb67d; }
+    .wbadge.warning { background:rgba(244,185,66,0.15);color:#f4b942; }
+    .wbadge.closed { background:rgba(239,69,101,0.1);color:#ef4565; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">Trade<span>OS</span></div>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title">Tools</div>
+      <div class="page-sub">Trade smarter.</div>
+    </div>
+
+    <!-- Trade Timer -->
+    <div class="card">
+      <div class="card-title">Trade Window Timer</div>
+      <div class="timer-display">
+        <div class="timer-clock" id="timer-clock">--:--</div>
+        <div class="timer-label" id="timer-label">Loading...</div>
+        <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+        <div class="window-badges">
+          <div class="wbadge" id="badge-pre">Pre-market</div>
+          <div class="wbadge" id="badge-open">9:30 Open</div>
+          <div class="wbadge" id="badge-prime">9:45 Prime</div>
+          <div class="wbadge" id="badge-warn">10:15 ⚠️</div>
+          <div class="wbadge" id="badge-close">10:30 Close</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Position Calculator -->
+    <div class="card">
+      <div class="card-title">Position Calculator</div>
+      <div class="grid-2">
+        <div class="field"><label>Entry (bot) $</label><input type="number" id="bot" value="1.19" step="0.01" oninput="calc()"></div>
+        <div class="field"><label>Shares</label><input type="number" id="shares" value="100" step="1" oninput="calc()"></div>
+        <div class="field"><label>Stop / Low $</label><input type="number" id="low" value="1.05" step="0.01" oninput="calc()"></div>
+        <div class="field"><label>Target / High $</label><input type="number" id="high" value="3.89" step="0.01" oninput="calc()"></div>
+      </div>
+      <div class="field"><label>Exit (sold) $</label><input type="number" id="sold" value="3.18" step="0.01" oninput="calc()"></div>
+
+      <div class="card-title" style="margin-top:16px">P&L Scenarios</div>
+      <table class="calc-table">
+        <thead><tr>
+          <th style="text-align:left">Scenario</th>
+          <th>1x <span class="mult-pill" id="h1">100</span></th>
+          <th>2x <span class="mult-pill" id="h2">200</span></th>
+          <th>5x <span class="mult-pill" id="h3">500</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="row-label">Cost</td><td id="cost1" class="calc-neutral"></td><td id="cost2" class="calc-neutral"></td><td id="cost3" class="calc-neutral"></td></tr>
+          <tr><td class="row-label" style="color:#ef4565">Stop</td><td id="loss1"></td><td id="loss2"></td><td id="loss3"></td></tr>
+          <tr><td class="row-label" style="color:#2cb67d">Target</td><td id="gain1" class="calc-pos"></td><td id="gain2" class="calc-pos"></td><td id="gain3" class="calc-pos"></td></tr>
+          <tr><td class="row-label">Actual</td><td id="exit1"></td><td id="exit2"></td><td id="exit3"></td></tr>
+          <tr><td class="row-label" style="color:rgba(255,255,255,0.35)">R/R</td><td id="rr1" style="color:rgba(255,255,255,0.4);font-size:13px"></td><td id="rr2" style="color:rgba(255,255,255,0.4);font-size:13px"></td><td id="rr3" style="color:rgba(255,255,255,0.4);font-size:13px"></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+  <script src="/tradeos/js/nav.js"></script>
+  <script src="/tradeos/js/muninn-widget.js"></script>
+  <script>
+    renderNav('tools');
+
+    // ── TRADE TIMER ──────────────────────────────────────────────────────────
+    function updateTimer() {
+      const now = new Date();
+      const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const h = et.getHours(), m = et.getMinutes(), s = et.getSeconds();
+      const totalMins = h * 60 + m;
+
+      const clock = document.getElementById('timer-clock');
+      const label = document.getElementById('timer-label');
+      const bar = document.getElementById('timer-bar');
+
+      const OPEN  = 9 * 60 + 30;   // 9:30
+      const PRIME = 9 * 60 + 45;   // 9:45
+      const WARN  = 10 * 60 + 15;  // 10:15
+      const CLOSE = 10 * 60 + 30;  // 10:30
+
+      // Badge states
+      document.getElementById('badge-pre').className   = 'wbadge' + (totalMins < OPEN ? ' active' : '');
+      document.getElementById('badge-open').className  = 'wbadge' + (totalMins >= OPEN && totalMins < PRIME ? ' active' : '');
+      document.getElementById('badge-prime').className = 'wbadge' + (totalMins >= PRIME && totalMins < WARN ? ' active' : '');
+      document.getElementById('badge-warn').className  = 'wbadge' + (totalMins >= WARN && totalMins < CLOSE ? ' warning' : '');
+      document.getElementById('badge-close').className = 'wbadge' + (totalMins >= CLOSE ? ' closed' : '');
+
+      function fmt(secs) {
+        const mm = Math.floor(Math.abs(secs) / 60);
+        const ss = Math.abs(secs) % 60;
+        return (secs < 0 ? '-' : '') + String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+      }
+
+      const secNow = totalMins * 60 + s;
+      const secOpen  = OPEN  * 60;
+      const secPrime = PRIME * 60;
+      const secWarn  = WARN  * 60;
+      const secClose = CLOSE * 60;
+
+      if (totalMins < OPEN) {
+        // Pre-market: count down to open
+        const diff = secOpen - secNow;
+        clock.textContent = fmt(diff);
+        clock.className = 'timer-clock';
+        label.textContent = 'Until market open';
+        const pct = Math.max(0, Math.min(100, 100 - (diff / (4 * 3600)) * 100));
+        bar.style.width = pct + '%';
+        bar.style.background = '#7f5af0';
+      } else if (totalMins < PRIME) {
+        // 9:30–9:45 watch window
+        const diff = secPrime - secNow;
+        clock.textContent = fmt(diff);
+        clock.className = 'timer-clock open';
+        label.textContent = 'Watch only — no entry yet';
+        const pct = 100 - (diff / (15 * 60)) * 100;
+        bar.style.width = pct + '%';
+        bar.style.background = '#2cb67d';
+      } else if (totalMins < WARN) {
+        // 9:45–10:15 prime window
+        const diff = secWarn - secNow;
+        clock.textContent = fmt(diff);
+        clock.className = 'timer-clock open';
+        label.textContent = 'Prime trading window';
+        const pct = 100 - (diff / (30 * 60)) * 100;
+        bar.style.width = pct + '%';
+        bar.style.background = '#2cb67d';
+      } else if (totalMins < CLOSE) {
+        // 10:15–10:30 warning
+        const diff = secClose - secNow;
+        clock.textContent = fmt(diff);
+        clock.className = 'timer-clock warning';
+        label.textContent = '⚠️ Window closing — tighten stops';
+        const pct = 100 - (diff / (15 * 60)) * 100;
+        bar.style.width = pct + '%';
+        bar.style.background = '#f4b942';
+      } else {
+        // After 10:30
+        const elapsed = secNow - secClose;
+        clock.textContent = '+' + fmt(elapsed);
+        clock.className = 'timer-clock closed';
+        label.textContent = 'Primary window closed';
+        bar.style.width = '100%';
+        bar.style.background = '#ef4565';
+      }
+    }
+
+    updateTimer();
+    setInterval(updateTimer, 1000);
+
+    // ── CALCULATOR ───────────────────────────────────────────────────────────
+    const MULTS = [1, 2, 5];
+
+    function calc() {
+      const bot   = parseFloat(document.getElementById('bot').value)    || 0;
+      const base  = parseInt(document.getElementById('shares').value)    || 0;
+      const low   = parseFloat(document.getElementById('low').value)     || 0;
+      const high  = parseFloat(document.getElementById('high').value)    || 0;
+      const sold  = parseFloat(document.getElementById('sold').value)    || 0;
+
+      MULTS.forEach((m, i) => {
+        const n = i + 1, q = base * m;
+        document.getElementById('h' + n).textContent = q + ' sh';
+        const cost    = (bot * q).toFixed(2);
+        const loss    = ((low  - bot) * q).toFixed(2);
+        const gain    = ((high - bot) * q).toFixed(2);
+        const exitPnl = ((sold - bot) * q).toFixed(2);
+        const riskAmt   = Math.abs(bot - low) * q;
+        const rewardAmt = (high - bot) * q;
+        const rr = riskAmt > 0 ? '1:' + (rewardAmt / riskAmt).toFixed(1) : '—';
+
+        document.getElementById('cost' + n).textContent = '$' + cost;
+
+        const lossEl = document.getElementById('loss' + n);
+        lossEl.textContent = (parseFloat(loss) >= 0 ? '+' : '') + '$' + loss;
+        lossEl.className = parseFloat(loss) >= 0 ? 'calc-pos' : 'calc-neg';
+
+        document.getElementById('gain' + n).textContent = '+$' + gain;
+
+        const exitEl = document.getElementById('exit' + n);
+        exitEl.textContent = (parseFloat(exitPnl) >= 0 ? '+' : '') + '$' + exitPnl;
+        exitEl.className = parseFloat(exitPnl) >= 0 ? 'calc-pos' : 'calc-neg';
+
+        document.getElementById('rr' + n).textContent = rr;
+      });
+    }
+    calc();
+  </script>
+</body>
+</html>

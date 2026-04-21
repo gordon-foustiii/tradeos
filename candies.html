@@ -327,8 +327,9 @@
       // TradingView chart
       const tvTicker = t.ticker ? t.ticker.toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
       window._tvTicker = tvTicker;
+      window._tvDate = t.date || null;
       window._tvInterval = window._tvInterval || '5';
-      loadTVChart(tvTicker, window._tvInterval);
+      loadTVChart(tvTicker, window._tvInterval, window._tvDate);
       const tvLink = document.getElementById('tv-link');
       tvLink.href = `https://www.tradingview.com/chart/?symbol=${tvTicker}`;
 
@@ -338,16 +339,25 @@
       });
     }
 
-    function loadTVChart(ticker, interval) {
+    function loadTVChart(ticker, interval, dateStr) {
       const iframe = document.getElementById('tv-iframe');
-      iframe.src = `https://www.tradingview.com/widgetembed/?symbol=${ticker}&interval=${interval}&theme=dark&style=1&locale=en&hide_side_toolbar=0&allow_symbol_change=0&save_image=0&details=0&hotlist=0&calendar=0`;
+      let rangeParams = '';
+      if (dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        if (!isNaN(d)) {
+          const from = Math.floor((d.getTime() / 1000) - 86400);
+          const to   = Math.floor((d.getTime() / 1000) + 2 * 86400);
+          rangeParams = '&from=' + from + '&to=' + to;
+        }
+      }
+      iframe.src = 'https://www.tradingview.com/widgetembed/?symbol=' + ticker + '&interval=' + interval + '&theme=dark&style=1&locale=en&hide_side_toolbar=1&allow_symbol_change=0&save_image=0&details=0&hotlist=0&calendar=0' + rangeParams;
     }
 
     function setTVInterval(interval, btn) {
       window._tvInterval = interval;
       document.querySelectorAll('.tv-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      loadTVChart(window._tvTicker || '', interval);
+      loadTVChart(window._tvTicker || '', interval, window._tvDate || null);
     }
 
     function closeModal() {

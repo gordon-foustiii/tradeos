@@ -53,7 +53,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
               <div id="modal-pnl" style="font-size:22px;font-weight:800"></div>
-              <button id="grade-btn" onclick="autoGrade()" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);color:#f4b942;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Grade</button>
+              <button id="grade-btn" onclick="autoGrade()" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);color:#f4b942;padding:6px 8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🪶</button>
               <button id="edit-btn" onclick="openEditForm()" style="background:rgba(127,90,240,0.15);border:1px solid rgba(127,90,240,0.3);color:#7f5af0;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Edit</button>
               <button onclick="closeModal()" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.6);width:34px;height:34px;border-radius:8px;font-size:20px;cursor:pointer;font-family:inherit;line-height:1;padding:0">×</button>
             </div>
@@ -256,7 +256,8 @@
       const capColor = t.captured >= 70 ? '#2cb67d' : t.captured >= 40 ? '#f4b942' : '#ef4565';
 
       document.getElementById('modal-ticker').innerHTML = t.ticker +
-        (t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : '');
+        (t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : '') +
+        (t.claudeGrade ? ` <span class="pill" style="font-size:11px;vertical-align:middle;background:rgba(244,185,66,0.15);color:#f4b942;border:1px solid rgba(244,185,66,0.3)">🪶${t.claudeGrade}</span>` : '');
       document.getElementById('modal-date').textContent = formatDate(t.date) + (t.time ? '  ·  ' + t.time : '');
       const pnlEl = document.getElementById('modal-pnl');
       pnlEl.style.color = pnlColor;
@@ -300,14 +301,14 @@
         { label: 'How to Improve', value: t.howToImprove },
         { label: 'What I Learned', value: t.whatLearned },
         { label: 'Grade Notes', value: t.gradeNotes || t.notes },
-        { label: "Muninn's Grade", value: t.claudeGrade ? (t.claudeGrade + (t.mununNotes ? ' — ' + t.mununNotes : '')) : null },
+        { label: "Muninn's Grade", value: t.claudeGrade ? (t.claudeGrade + (t.mununNotes ? '\n' + t.mununNotes : '')) : null },
       ].filter(s => s.value && String(s.value).trim());
 
       document.getElementById('modal-body').innerHTML = sections.length
         ? sections.map(s =>
             `<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:12px 14px">
               <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">${s.label}</div>
-              <div style="font-size:14px;color:#e8e8f0;line-height:1.5">${s.value}</div>
+              <div style="font-size:14px;color:#e8e8f0;line-height:1.5;white-space:pre-wrap">${s.value}</div>
             </div>`
           ).join('')
         : '<div style="color:rgba(255,255,255,0.25);font-size:13px;text-align:center;padding:8px 0">No additional details logged.</div>';
@@ -488,6 +489,15 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
           btn.style.color = '#2cb67d';
           btn.style.borderColor = 'rgba(44,182,125,0.4)';
           btn.style.background = 'rgba(44,182,125,0.1)';
+          // Update in-memory trade so next grade in same session works
+          if (_currentEditTrade) {
+            _currentEditTrade.claudeGrade = _gradeData.grade;
+            _currentEditTrade.mununNotes = _gradeData.reasoning;
+            if (tradeMap[_currentEditTrade._key]) {
+              tradeMap[_currentEditTrade._key].claudeGrade = _gradeData.grade;
+              tradeMap[_currentEditTrade._key].mununNotes = _gradeData.reasoning;
+            }
+          }
         } else {
           btn.textContent = 'Save failed — try again';
           btn.disabled = false;
@@ -597,7 +607,7 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
         return `<div class="candle-card" onclick="openModal(tradeMap['${safeKey}'])" style="cursor:pointer" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.4)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
           <div class="ch">
             <div>
-              <div class="cticker">${t.ticker}${t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : ''}</div>
+              <div class="cticker">${t.ticker}${t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : (t.claudeGrade ? ` <span class="pill g-m" style="font-size:11px;vertical-align:middle;background:rgba(244,185,66,0.15);color:#f4b942;border:1px solid rgba(244,185,66,0.3)">🪶${t.claudeGrade}</span>` : '')}</div>
               <div class="cdate">${formatDate(t.date)}</div>
             </div>
             <div class="cpnl ${isWin?'win':'loss'}">${isWin?'+':''}$${Math.abs(t.pnl).toFixed(2)}</div>

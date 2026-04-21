@@ -617,7 +617,7 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
         return `<div class="candle-card" onclick="openModal(tradeMap['${safeKey}'])" style="cursor:pointer" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.4)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
           <div class="ch">
             <div>
-              <div class="cticker">${t.ticker}${t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : (t.claudeGrade ? ` <span class="pill g-m" style="font-size:11px;vertical-align:middle;background:rgba(244,185,66,0.15);color:#f4b942;border:1px solid rgba(244,185,66,0.3)">🪶${t.claudeGrade}</span>` : '')}</div>
+              <div class="cticker">${t.ticker}${t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : ''}${t.claudeGrade ? ` <span class="pill g-m" style="font-size:11px;vertical-align:middle;background:rgba(244,185,66,0.15);color:#f4b942;border:1px solid rgba(244,185,66,0.3)">🪶${t.claudeGrade}</span>` : ''}</div>
               <div class="cdate">${formatDate(t.date)}</div>
             </div>
             <div class="cpnl ${isWin?'win':'loss'}">${isWin?'+':''}$${Math.abs(t.pnl).toFixed(2)}</div>

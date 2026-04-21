@@ -9,6 +9,13 @@
   <title>TradeOS — Notes</title>
   <link rel="manifest" href="/tradeos/manifest.json">
   <link rel="stylesheet" href="/tradeos/css/app.css">
+  <style>
+    .note-body { display: none; margin-top: 10px; }
+    .note-card.open .note-body { display: block; }
+    .note-title { cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .note-title::after { content: '+'; color: rgba(255,255,255,0.3); font-size: 18px; font-weight: 300; flex-shrink: 0; margin-left: 8px; }
+    .note-card.open .note-title::after { content: '−'; }
+  </style>
 </head>
 <body>
   <div class="topbar">
@@ -123,6 +130,13 @@
 
   <nav class="bottom-nav" id="bottom-nav"></nav>
   <script src="/tradeos/js/nav.js"></script>
-  <script>renderNav('notes');</script>
+  <script>
+    renderNav('notes');
+    document.querySelectorAll('.note-card').forEach(card => {
+      card.querySelector('.note-title').addEventListener('click', () => {
+        card.classList.toggle('open');
+      });
+    });
+  </script>
 </body>
 </html>

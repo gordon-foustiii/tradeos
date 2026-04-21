@@ -344,7 +344,7 @@
       img.src = '';
       img.onload = function() { img.style.display = 'block'; err.style.display = 'none'; };
       img.onerror = function() { img.style.display = 'none'; err.style.display = 'block'; };
-      img.src = 'https://finviz.com/chart.ashx?t=' + ticker + '&ty=c&ta=1&p=' + period;
+      img.src = 'https://tradeos-proxy.gordon-foustiii.workers.dev/chart?t=' + ticker + '&p=' + period;
     }
 
     function setTVInterval(period, btn) {

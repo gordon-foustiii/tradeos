@@ -87,8 +87,8 @@
               <button class="tv-btn" data-interval="D" onclick="setTVInterval('D',this)">D</button>
             </div>
           </div>
-          <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);height:320px;background:#131722">
-            <iframe id="tv-iframe" style="width:100%;height:100%;border:none;display:block" allowtransparency="true" scrolling="no"></iframe>
+          <div id="tv-widget-wrap" style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);height:320px;background:#131722">
+            <div id="tv-widget-container" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"></div>
           </div>
           <div style="text-align:right;margin-top:4px">
             <a id="tv-link" href="#" target="_blank" rel="noopener" style="font-size:10px;color:rgba(255,255,255,0.25);text-decoration:none">Open in TradingView ↗</a>
@@ -340,17 +340,20 @@
     }
 
     function loadTVChart(ticker, interval, dateStr) {
-      const iframe = document.getElementById('tv-iframe');
-      let rangeParams = '';
-      if (dateStr) {
-        const d = new Date(dateStr + 'T00:00:00');
-        if (!isNaN(d)) {
-          const from = Math.floor((d.getTime() / 1000) - 86400);
-          const to   = Math.floor((d.getTime() / 1000) + 2 * 86400);
-          rangeParams = '&from=' + from + '&to=' + to;
-        }
-      }
-      iframe.src = 'https://www.tradingview.com/widgetembed/?symbol=' + ticker + '&interval=' + interval + '&theme=dark&style=1&locale=en&hide_side_toolbar=1&hide_top_toolbar=1&allow_symbol_change=0&save_image=0&details=0&hotlist=0&calendar=0' + rangeParams;
+      const container = document.getElementById('tv-widget-container');
+
+      // Map our intervals to Finviz period param
+      // Finviz supports: i1, i3, i5, i15, i30, h (hourly), d (daily), w, m
+      const periodMap = { '1': 'i1', '5': 'i5', '15': 'i15', 'D': 'd' };
+      const period = periodMap[interval] || 'i5';
+
+      const src = 'https://finviz.com/chart.ashx?t=' + ticker + '&ty=c&ta=1&p=' + period;
+
+      container.innerHTML = '<img id="finviz-chart" src="' + src + '" '
+        + 'style="width:100%;height:100%;object-fit:contain;display:block;'
+        + 'filter:invert(1) hue-rotate(180deg);border-radius:10px" '
+        + 'onerror="this.style.display='none';document.getElementById('tv-chart-err').style.display='block'" />'
+        + '<div id="tv-chart-err" style="display:none;color:rgba(255,255,255,0.3);font-size:12px;text-align:center;padding:40px 20px">Chart unavailable for this ticker</div>';
     }
 
     function setTVInterval(interval, btn) {

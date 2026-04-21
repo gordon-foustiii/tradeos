@@ -314,8 +314,17 @@
         : '<div style="color:rgba(255,255,255,0.25);font-size:13px;text-align:center;padding:8px 0">No additional details logged.</div>';
 
       document.getElementById('grade-result').style.display = 'none';
-      document.getElementById('grade-save-btn').style.display = 'none';
       _gradeData = null;
+      const gBtn = document.getElementById('grade-btn');
+      gBtn.textContent = '🪶';
+      gBtn.disabled = false;
+      const sBtn = document.getElementById('grade-save-btn');
+      sBtn.style.display = 'none';
+      sBtn.textContent = 'Save Grade to Journal';
+      sBtn.disabled = false;
+      sBtn.style.color = '#f4b942';
+      sBtn.style.borderColor = 'rgba(244,185,66,0.3)';
+      sBtn.style.background = 'rgba(244,185,66,0.15)';
 
       const modal = document.getElementById('trade-modal');
       modal.style.display = 'block';

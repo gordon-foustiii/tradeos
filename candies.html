@@ -76,19 +76,20 @@
         </div>
         <div id="modal-candle" style="padding:16px 20px 0"></div>
 
-        <!-- TradingView Chart -->
+        <!-- Chart -->
         <div id="modal-tv-chart" style="padding:12px 20px 0">
           <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:8px">
-            <span>TradingView Chart</span>
+            <span>Chart</span>
             <div id="tv-interval-row" style="display:flex;gap:4px;margin-left:auto">
-              <button class="tv-btn active" data-interval="1" onclick="setTVInterval('1',this)">1m</button>
-              <button class="tv-btn" data-interval="5" onclick="setTVInterval('5',this)">5m</button>
-              <button class="tv-btn" data-interval="15" onclick="setTVInterval('15',this)">15m</button>
-              <button class="tv-btn" data-interval="D" onclick="setTVInterval('D',this)">D</button>
+              <button class="tv-btn" data-interval="i1" onclick="setTVInterval('i1',this)">1m</button>
+              <button class="tv-btn active" data-interval="i5" onclick="setTVInterval('i5',this)">5m</button>
+              <button class="tv-btn" data-interval="i15" onclick="setTVInterval('i15',this)">15m</button>
+              <button class="tv-btn" data-interval="d" onclick="setTVInterval('d',this)">D</button>
             </div>
           </div>
-          <div id="tv-widget-wrap" style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);height:320px;background:#131722">
-            <div id="tv-widget-container" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"></div>
+          <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);background:#131722;min-height:220px;display:flex;align-items:center;justify-content:center">
+            <img id="finviz-chart" style="width:100%;display:block;filter:invert(1) hue-rotate(180deg)" />
+            <div id="chart-err" style="display:none;color:rgba(255,255,255,0.3);font-size:12px;padding:40px 20px;text-align:center">Chart unavailable for this ticker</div>
           </div>
           <div style="text-align:right;margin-top:4px">
             <a id="tv-link" href="#" target="_blank" rel="noopener" style="font-size:10px;color:rgba(255,255,255,0.25);text-decoration:none">Open in TradingView ↗</a>
@@ -324,43 +325,33 @@
       modal.scrollTop = 0;
       document.body.style.overflow = 'hidden';
 
-      // TradingView chart
+      // Chart
       const tvTicker = t.ticker ? t.ticker.toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
       window._tvTicker = tvTicker;
-      window._tvDate = t.date || null;
-      window._tvInterval = window._tvInterval || '5';
-      loadTVChart(tvTicker, window._tvInterval, window._tvDate);
-      const tvLink = document.getElementById('tv-link');
-      tvLink.href = `https://www.tradingview.com/chart/?symbol=${tvTicker}`;
-
-      // Reset interval buttons to current selection
-      document.querySelectorAll('.tv-btn').forEach(b => {
+      window._tvInterval = window._tvInterval || 'i5';
+      loadChart(tvTicker, window._tvInterval);
+      document.getElementById('tv-link').href = 'https://www.tradingview.com/chart/?symbol=' + tvTicker;
+      document.querySelectorAll('.tv-btn').forEach(function(b) {
         b.classList.toggle('active', b.dataset.interval === window._tvInterval);
       });
     }
 
-    function loadTVChart(ticker, interval, dateStr) {
-      const container = document.getElementById('tv-widget-container');
-
-      // Map our intervals to Finviz period param
-      // Finviz supports: i1, i3, i5, i15, i30, h (hourly), d (daily), w, m
-      const periodMap = { '1': 'i1', '5': 'i5', '15': 'i15', 'D': 'd' };
-      const period = periodMap[interval] || 'i5';
-
-      const src = 'https://finviz.com/chart.ashx?t=' + ticker + '&ty=c&ta=1&p=' + period;
-
-      container.innerHTML = '<img id="finviz-chart" src="' + src + '" '
-        + 'style="width:100%;height:100%;object-fit:contain;display:block;'
-        + 'filter:invert(1) hue-rotate(180deg);border-radius:10px" '
-        + 'onerror="this.style.display='none';document.getElementById('tv-chart-err').style.display='block'" />'
-        + '<div id="tv-chart-err" style="display:none;color:rgba(255,255,255,0.3);font-size:12px;text-align:center;padding:40px 20px">Chart unavailable for this ticker</div>';
+    function loadChart(ticker, period) {
+      var img = document.getElementById('finviz-chart');
+      var err = document.getElementById('chart-err');
+      img.style.display = 'block';
+      err.style.display = 'none';
+      img.src = '';
+      img.onload = function() { img.style.display = 'block'; err.style.display = 'none'; };
+      img.onerror = function() { img.style.display = 'none'; err.style.display = 'block'; };
+      img.src = 'https://finviz.com/chart.ashx?t=' + ticker + '&ty=c&ta=1&p=' + period;
     }
 
-    function setTVInterval(interval, btn) {
-      window._tvInterval = interval;
-      document.querySelectorAll('.tv-btn').forEach(b => b.classList.remove('active'));
+    function setTVInterval(period, btn) {
+      window._tvInterval = period;
+      document.querySelectorAll('.tv-btn').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      loadTVChart(window._tvTicker || '', interval, window._tvDate || null);
+      loadChart(window._tvTicker || '', period);
     }
 
     function closeModal() {
@@ -368,7 +359,7 @@
       document.body.style.overflow = '';
     }
 
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
 
     let allTrades = [], activeFilter = 'all', activeSort = 'date', pnlSortDir = 'desc';
 
@@ -521,7 +512,6 @@
         return { ...t, entry, exit, high, low, shares, pnl, captured, left, savedFromLoss, _key };
       }).filter(t => t.ticker && t.entry && t.exit);
 
-      // Build lookup map
       tradeMap = {};
       allTrades.forEach(t => { tradeMap[t._key] = t; });
 

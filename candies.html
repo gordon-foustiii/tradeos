@@ -9,23 +9,7 @@
   <title>TradeOS — Candies</title>
   <link rel="manifest" href="/tradeos/manifest.json">
   <link rel="stylesheet" href="/tradeos/css/app.css">
-  <style>
-    .tv-btn {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: rgba(255,255,255,0.4);
-      padding: 2px 7px;
-      border-radius: 5px;
-      font-size: 10px;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      letter-spacing: .04em;
-      transition: all .15s;
-    }
-    .tv-btn:hover { background: rgba(127,90,240,0.15); color: #7f5af0; border-color: rgba(127,90,240,0.3); }
-    .tv-btn.active { background: rgba(127,90,240,0.2); color: #a78bfa; border-color: rgba(127,90,240,0.5); }
-  </style>
+
 </head>
 <body>
   <div class="topbar">
@@ -78,14 +62,8 @@
 
         <!-- Chart -->
         <div id="modal-tv-chart" style="padding:12px 20px 0">
-          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:8px">
-            <span>Chart</span>
-            <div id="tv-interval-row" style="display:flex;gap:4px;margin-left:auto">
-              <button class="tv-btn" data-interval="i1" onclick="setTVInterval('i1',this)">1m</button>
-              <button class="tv-btn active" data-interval="i5" onclick="setTVInterval('i5',this)">5m</button>
-              <button class="tv-btn" data-interval="i15" onclick="setTVInterval('i15',this)">15m</button>
-              <button class="tv-btn" data-interval="d" onclick="setTVInterval('d',this)">D</button>
-            </div>
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">
+            <span>Chart — Daily</span>
           </div>
           <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);background:#131722;min-height:220px;display:flex;align-items:center;justify-content:center">
             <img id="finviz-chart" style="width:100%;display:block;filter:invert(1) hue-rotate(180deg)" />
@@ -328,12 +306,8 @@
       // Chart
       const tvTicker = t.ticker ? t.ticker.toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
       window._tvTicker = tvTicker;
-      window._tvInterval = window._tvInterval || 'i5';
-      loadChart(tvTicker, window._tvInterval);
+      loadChart(tvTicker, 'd');
       document.getElementById('tv-link').href = 'https://www.tradingview.com/chart/?symbol=' + tvTicker;
-      document.querySelectorAll('.tv-btn').forEach(function(b) {
-        b.classList.toggle('active', b.dataset.interval === window._tvInterval);
-      });
     }
 
     function loadChart(ticker, period) {
@@ -347,12 +321,6 @@
       img.src = 'https://tradeos-proxy.gordon-foustiii.workers.dev/chart?t=' + ticker + '&p=' + period;
     }
 
-    function setTVInterval(period, btn) {
-      window._tvInterval = period;
-      document.querySelectorAll('.tv-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      loadChart(window._tvTicker || '', period);
-    }
 
     function closeModal() {
       document.getElementById('trade-modal').style.display = 'none';

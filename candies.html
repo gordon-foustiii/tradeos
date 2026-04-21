@@ -424,7 +424,7 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-sonnet-4-5',
             max_tokens: 300,
             system: MUNINN_SYSTEM,
             messages: [{ role: 'user', content: tradeContext }]

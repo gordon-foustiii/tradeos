@@ -4,7 +4,7 @@
 // before </body> on any page to enable the chat widget.
 // ============================================================
 
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
 
 const WORKER = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
 
@@ -293,4 +293,4 @@ window._muninnSend = async function() {
   document.getElementById('muninn-messages').scrollTop = 99999;
 };
 
-})();
+});

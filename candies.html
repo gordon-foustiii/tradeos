@@ -40,47 +40,8 @@
   </div>
 
   <nav class="bottom-nav" id="bottom-nav"></nav>
-
-  <!-- Trade Detail Modal -->
-  <div id="trade-modal" onclick="if(event.target===this)closeModal()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 0 40px">
-    <div style="max-width:480px;margin:0 auto;padding:0 16px">
-      <div style="background:#1a1a2e;border-radius:16px;border:1px solid rgba(255,255,255,0.08);overflow:hidden">
-        <div id="modal-header" style="padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.06)">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
-            <div>
-              <div id="modal-ticker" style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:#e8e8f0"></div>
-              <div id="modal-date" style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:3px"></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-              <div id="modal-pnl" style="font-size:22px;font-weight:800"></div>
-              <button id="edit-btn" onclick="openEditForm()" style="background:rgba(127,90,240,0.15);border:1px solid rgba(127,90,240,0.3);color:#7f5af0;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Edit</button>
-              <button onclick="closeModal()" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.6);width:34px;height:34px;border-radius:8px;font-size:20px;cursor:pointer;font-family:inherit;line-height:1;padding:0">×</button>
-            </div>
-          </div>
-        </div>
-        <div id="modal-candle" style="padding:10px 20px 0"></div>
-
-        <!-- Chart -->
-        <div id="modal-tv-chart" style="padding:6px 20px 0">
-          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">
-            <span>Chart — Daily</span>
-          </div>
-          <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);background:#131722">
-            <img id="finviz-chart" style="width:100%;height:auto;display:block;filter:invert(1) hue-rotate(180deg)" />
-            <div id="chart-err" style="display:none;color:rgba(255,255,255,0.3);font-size:12px;padding:40px 20px;text-align:center">Chart unavailable for this ticker</div>
-          </div>
-          <div style="text-align:right;margin-top:2px">
-            <a id="tv-link" href="#" target="_blank" rel="noopener" style="font-size:10px;color:rgba(255,255,255,0.25);text-decoration:none">Open in TradingView ↗</a>
-          </div>
-        </div>
-
-        <div id="modal-stats" style="padding:6px 20px 12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
-        <div id="modal-body" style="padding:0 20px 24px;display:flex;flex-direction:column;gap:10px"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Edit Trade Modal -->
+  
+ <!-- Edit Trade Modal -->
   <div id="edit-modal" onclick="if(event.target===this)closeEditModal()" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 0 40px">
     <div style="max-width:480px;margin:0 auto;padding:0 16px">
       <div style="background:#1a1a2e;border-radius:16px;border:1px solid rgba(255,255,255,0.08);overflow:hidden">
@@ -123,7 +84,46 @@
     </div>
   </div>
 
-  <script src="/tradeos/js/nav.js"></script>
+  <!-- Trade Detail Modal -->
+  <div id="trade-modal" onclick="if(event.target===this)closeModal()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 0 40px">
+    <div style="max-width:480px;margin:0 auto;padding:0 16px">
+      <div style="background:#1a1a2e;border-radius:16px;border:1px solid rgba(255,255,255,0.08);overflow:hidden">
+        <div id="modal-header" style="padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.06)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+            <div>
+              <div id="modal-ticker" style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:#e8e8f0"></div>
+              <div id="modal-date" style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:3px"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+              <div id="modal-pnl" style="font-size:22px;font-weight:800"></div>
+              <button id="edit-btn" onclick="openEditForm()" style="background:rgba(127,90,240,0.15);border:1px solid rgba(127,90,240,0.3);color:#7f5af0;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Edit</button>
+              <button onclick="closeModal()" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.6);width:34px;height:34px;border-radius:8px;font-size:20px;cursor:pointer;font-family:inherit;line-height:1;padding:0">×</button>
+            </div>
+          </div>
+        </div>
+        <div id="modal-candle" style="padding:10px 20px 0"></div>
+
+        <!-- Chart -->
+        <div id="modal-tv-chart" style="padding:6px 20px 0">
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">
+            <span>Chart — Daily</span>
+          </div>
+          <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);background:#131722">
+            <img id="finviz-chart" style="width:100%;height:auto;display:block;filter:invert(1) hue-rotate(180deg)" />
+            <div id="chart-err" style="display:none;color:rgba(255,255,255,0.3);font-size:12px;padding:40px 20px;text-align:center">Chart unavailable for this ticker</div>
+          </div>
+          <div style="text-align:right;margin-top:2px">
+            <a id="tv-link" href="#" target="_blank" rel="noopener" style="font-size:10px;color:rgba(255,255,255,0.25);text-decoration:none">Open in TradingView ↗</a>
+          </div>
+        </div>
+
+        <div id="modal-stats" style="padding:6px 20px 12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
+        <div id="modal-body" style="padding:0 20px 24px;display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+    </div>
+  </div>
+
+   <script src="/tradeos/js/nav.js"></script>
   <script src="/tradeos/js/api.js"></script>
   <script>
     let _currentEditTrade = null;

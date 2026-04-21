@@ -43,19 +43,19 @@ const styles = `
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #f4b942, #c8860a);
+    background: linear-gradient(135deg, #7f5af0, #5a3eb8);
     border: none;
     color: white;
     font-size: 20px;
     cursor: pointer;
     z-index: 998;
-    box-shadow: 0 4px 20px rgba(244,185,66,0.5);
+    box-shadow: 0 4px 20px rgba(127,90,240,0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     transition: transform .15s, box-shadow .15s;
   }
-  #muninn-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(244,185,66,0.7); }
+  #muninn-fab:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(127,90,240,0.7); }
   #muninn-fab.open { background: rgba(255,255,255,0.1); box-shadow: none; font-size: 16px; }
 
   #muninn-panel {

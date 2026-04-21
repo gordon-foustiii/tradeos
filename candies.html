@@ -311,6 +311,10 @@
           ).join('')
         : '<div style="color:rgba(255,255,255,0.25);font-size:13px;text-align:center;padding:8px 0">No additional details logged.</div>';
 
+      document.getElementById('grade-result').style.display = 'none';
+      document.getElementById('grade-save-btn').style.display = 'none';
+      _gradeData = null;
+
       const modal = document.getElementById('trade-modal');
       modal.style.display = 'block';
       modal.scrollTop = 0;
@@ -432,10 +436,8 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
         });
 
         const data = await response.json();
-        console.log('Muninn response:', JSON.stringify(data));
-
         if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-        if (!data.content || !data.content[0]) throw new Error('Empty response: ' + JSON.stringify(data));
+        if (!data.content || !data.content[0]) throw new Error('Empty response');
 
         const text = data.content[0].text.trim();
         const gradeMatch = text.match(/GRADE:\s*([A-F][+-]?)/i);
@@ -457,7 +459,6 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
         letterEl.style.color = '#ef4565';
         reasoningEl.textContent = 'Error: ' + e.message;
         resultDiv.style.display = 'block';
-        console.error('autoGrade error:', e);
       }
       btn.textContent = 'Grade';
       btn.disabled = false;
@@ -466,22 +467,23 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
     async function saveGrade() {
       if (!_gradeData || !_currentEditTrade) return;
       const t = _currentEditTrade;
+      if (!t.id) {
+        alert('Cannot save grade — trade has no ID.');
+        return;
+      }
       const btn = document.getElementById('grade-save-btn');
       btn.textContent = 'Saving...';
       btn.disabled = true;
       try {
         const result = await apiPost('updateTrade', {
-          id: t.id, ticker: t.ticker, date: t.date,
-          originalEntry: t.entry, originalExit: t.exit,
-          actualEntry: t.entry, exitPrice: t.exit,
-          highHeld: t.high, lowHeld: t.low, qty: t.shares,
-          duration: t.duration || '', catalyst: t.catalyst || '',
-          float: t.float || '', relVol: t.relVol || '',
-          stopLoss: t.stopLoss || '', target: t.target || '',
-          didWell: t.didWell || '', didPoorly: t.didPoorly || '',
-          howToImprove: t.howToImprove || '', whatLearned: t.whatLearned || '',
-          gradeNotes: _gradeData.reasoning,
+          id: t.id,
+          ticker: t.ticker,
+          date: t.date,
+          originalEntry: t.entry,
+          originalExit: t.exit,
+          gradeOnly: true,
           claudeGrade: _gradeData.grade,
+          gradeNotes: _gradeData.reasoning,
         });
         if (result && result.success) {
           btn.textContent = 'Saved \u2713';

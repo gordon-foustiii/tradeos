@@ -9,6 +9,23 @@
   <title>TradeOS — Candies</title>
   <link rel="manifest" href="/tradeos/manifest.json">
   <link rel="stylesheet" href="/tradeos/css/app.css">
+  <style>
+    .tv-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.4);
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: .04em;
+      transition: all .15s;
+    }
+    .tv-btn:hover { background: rgba(127,90,240,0.15); color: #7f5af0; border-color: rgba(127,90,240,0.3); }
+    .tv-btn.active { background: rgba(127,90,240,0.2); color: #a78bfa; border-color: rgba(127,90,240,0.5); }
+  </style>
 </head>
 <body>
   <div class="topbar">
@@ -58,6 +75,26 @@
           </div>
         </div>
         <div id="modal-candle" style="padding:16px 20px 0"></div>
+
+        <!-- TradingView Chart -->
+        <div id="modal-tv-chart" style="padding:12px 20px 0">
+          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+            <span>TradingView Chart</span>
+            <div id="tv-interval-row" style="display:flex;gap:4px;margin-left:auto">
+              <button class="tv-btn active" data-interval="1" onclick="setTVInterval('1',this)">1m</button>
+              <button class="tv-btn" data-interval="5" onclick="setTVInterval('5',this)">5m</button>
+              <button class="tv-btn" data-interval="15" onclick="setTVInterval('15',this)">15m</button>
+              <button class="tv-btn" data-interval="D" onclick="setTVInterval('D',this)">D</button>
+            </div>
+          </div>
+          <div style="border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);height:320px;background:#131722">
+            <iframe id="tv-iframe" style="width:100%;height:100%;border:none;display:block" allowtransparency="true" scrolling="no"></iframe>
+          </div>
+          <div style="text-align:right;margin-top:4px">
+            <a id="tv-link" href="#" target="_blank" rel="noopener" style="font-size:10px;color:rgba(255,255,255,0.25);text-decoration:none">Open in TradingView ↗</a>
+          </div>
+        </div>
+
         <div id="modal-stats" style="padding:8px 20px 16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
         <div id="modal-body" style="padding:0 20px 24px;display:flex;flex-direction:column;gap:10px"></div>
       </div>
@@ -286,6 +323,31 @@
       modal.style.display = 'block';
       modal.scrollTop = 0;
       document.body.style.overflow = 'hidden';
+
+      // TradingView chart
+      const tvTicker = t.ticker ? t.ticker.toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
+      window._tvTicker = tvTicker;
+      window._tvInterval = window._tvInterval || '5';
+      loadTVChart(tvTicker, window._tvInterval);
+      const tvLink = document.getElementById('tv-link');
+      tvLink.href = `https://www.tradingview.com/chart/?symbol=${tvTicker}`;
+
+      // Reset interval buttons to current selection
+      document.querySelectorAll('.tv-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.interval === window._tvInterval);
+      });
+    }
+
+    function loadTVChart(ticker, interval) {
+      const iframe = document.getElementById('tv-iframe');
+      iframe.src = `https://www.tradingview.com/widgetembed/?symbol=${ticker}&interval=${interval}&theme=dark&style=1&locale=en&hide_side_toolbar=0&allow_symbol_change=0&save_image=0&details=0&hotlist=0&calendar=0`;
+    }
+
+    function setTVInterval(interval, btn) {
+      window._tvInterval = interval;
+      document.querySelectorAll('.tv-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadTVChart(window._tvTicker || '', interval);
     }
 
     function closeModal() {

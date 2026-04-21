@@ -432,6 +432,10 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
         });
 
         const data = await response.json();
+        console.log('AI proxy response:', JSON.stringify(data));
+        if (!data.content || !data.content[0]) {
+          throw new Error('Bad response: ' + JSON.stringify(data));
+        }
         const text = data.content[0].text.trim();
         const gradeMatch = text.match(/GRADE:\s*([A-F][+-]?)/i);
         const reasonMatch = text.match(/REASONING:\s*([\s\S]+)/i);

@@ -6,15 +6,42 @@
   <meta name="theme-color" content="#1a1a2e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>TradeOS — Notes</title>
+  <title>TradeOS — Scanner</title>
   <link rel="manifest" href="/tradeos/manifest.json">
   <link rel="stylesheet" href="/tradeos/css/app.css">
   <style>
-    .note-body { display: none; margin-top: 10px; }
-    .note-card.open .note-body { display: block; }
-    .note-title { cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-    .note-title::after { content: '+'; color: rgba(255,255,255,0.3); font-size: 18px; font-weight: 300; flex-shrink: 0; margin-left: 8px; }
-    .note-card.open .note-title::after { content: '−'; }
+    .scan-header { display:flex;justify-content:space-between;align-items:center;margin-bottom:12px; }
+    .scan-btn { background:#7f5af0;border:none;color:white;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .15s; }
+    .scan-btn:disabled { opacity:.4;cursor:default; }
+    .scan-btn.running { background:rgba(127,90,240,0.3);color:#a78bfa; }
+    .last-scan { font-size:11px;color:rgba(255,255,255,0.3); }
+    .ticker-card { background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;margin-bottom:8px; }
+    .ticker-top { display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+    .ticker-sym { font-size:20px;font-weight:900;color:#e8e8f0;letter-spacing:-.5px; }
+    .ticker-change { font-size:16px;font-weight:800; }
+    .ticker-change.up { color:#2cb67d; }
+    .ticker-change.down { color:#ef4565; }
+    .ticker-meta { display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px; }
+    .tm { background:rgba(255,255,255,0.04);border-radius:8px;padding:7px 10px; }
+    .tm-label { font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px; }
+    .tm-value { font-size:13px;font-weight:800;color:#e8e8f0; }
+    .scan-empty { text-align:center;color:rgba(255,255,255,0.25);font-size:13px;padding:32px 0; }
+    .history-section { margin-top:4px; }
+    .history-run { background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;margin-bottom:6px;cursor:pointer; }
+    .history-run-header { display:flex;justify-content:space-between;align-items:center; }
+    .history-run-time { font-size:12px;font-weight:700;color:rgba(255,255,255,0.5); }
+    .history-run-count { font-size:11px;background:rgba(127,90,240,0.2);color:#a78bfa;padding:2px 8px;border-radius:4px;font-weight:700; }
+    .history-tickers { margin-top:8px;display:flex;flex-wrap:wrap;gap:5px; }
+    .history-ticker { font-size:11px;font-weight:800;background:rgba(255,255,255,0.06);color:#e8e8f0;padding:3px 8px;border-radius:5px; }
+    .history-ticker .ht-price { color:rgba(255,255,255,0.4);font-weight:500;margin-left:3px; }
+    .ticker-history-btn { font-size:10px;color:rgba(127,90,240,0.7);cursor:pointer;margin-top:4px;display:inline-block; }
+    .appearances { font-size:10px;color:#f4b942;font-weight:700;margin-left:6px; }
+    .tab-row { display:flex;gap:6px;margin-bottom:12px; }
+    .tab { flex:1;padding:8px;text-align:center;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);background:transparent;font-family:inherit; }
+    .tab.active { background:rgba(127,90,240,0.2);color:#a78bfa;border-color:rgba(127,90,240,0.4); }
+    .status-dot { width:7px;height:7px;border-radius:50%;background:#ef4565;display:inline-block;margin-right:5px; }
+    .status-dot.live { background:#2cb67d;animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
   </style>
 </head>
 <body>
@@ -24,119 +51,183 @@
 
   <div class="container">
     <div class="page-header">
-      <div class="page-title">Strategy Notes</div>
-      <div class="page-sub">Living document. Updated as the edge evolves.</div>
+      <div class="page-title">Scanner</div>
+      <div class="page-sub">Price $1–20 · Change >10% · Float ≤20M · RelVol >2x · Vol >500K</div>
     </div>
 
-    <div class="note-card">
-      <div class="note-date">Apr 16, 2026</div>
-      <div class="note-title">EGFIII Investment Solutions — Three Tier Strategy</div>
-      <div class="note-body">
-        <p>Three risk tiers to serve different client profiles:</p>
-        <ul>
-          <li><strong>Low Risk — Dividend Capture:</strong> Stable, income-focused. Minimal market exposure.</li>
-          <li><strong>Medium Risk — Long Term Positions:</strong> Fundamentals-based. Longer holding periods.</li>
-          <li><strong>High Risk — Small Cap Momentum:</strong> Active trading, catalyst-driven. High reward.</li>
-        </ul>
-        <p>Building the track record now through personal trading before managing client capital.</p>
-      </div>
+    <div class="tab-row">
+      <button class="tab active" onclick="setTab('live',this)">Live Results</button>
+      <button class="tab" onclick="setTab('history',this)">Run History</button>
+      <button class="tab" onclick="setTab('tickers',this)">Ticker History</button>
     </div>
 
-    <div class="note-card">
-      <div class="note-date">Apr 16, 2026</div>
-      <div class="note-title">Dividend Capture Strategy</div>
-      <div class="note-body">
-        <p>Buy before ex-dividend date, collect dividend, sell after. Net gain = dividend minus price slippage on exit.</p>
-        <ul>
-          <li>Enter 1-2 days before ex-dividend date</li>
-          <li>Collect the dividend</li>
-          <li>Exit shortly after — stock typically drops by dividend amount on ex-date</li>
-          <li>Select large cap, stable dividend payers with low volatility</li>
-        </ul>
+    <!-- Live Results -->
+    <div id="tab-live">
+      <div class="scan-header">
+        <div class="last-scan"><span class="status-dot" id="status-dot"></span><span id="last-scan-time">Never scanned</span></div>
+        <button class="scan-btn" id="scan-btn" onclick="runScan()">Run Scan</button>
       </div>
+      <div id="live-results"><div class="scan-empty">Hit "Run Scan" to check the market.</div></div>
     </div>
 
-    <div class="note-card">
-      <div class="note-date">Apr 16, 2026</div>
-      <div class="note-title">The Delayed Data Cascade Theory</div>
-      <div class="note-body">
-        <p>Real-time traders see the spike first and act. 15-min delayed traders see it later and act — creating a second spike. Each wave of delayed info = new wave of buyers.</p>
-        <p>The edge: real-time data puts you in before the delayed crowd even knows the move started. The delayed crowd becomes your exit liquidity.</p>
-      </div>
+    <!-- Run History -->
+    <div id="tab-history" style="display:none">
+      <div id="history-list"><div class="scan-empty">No scan history yet.</div></div>
     </div>
 
-    <div class="note-card">
-      <div class="note-date">Apr 16, 2026</div>
-      <div class="note-title">Core Theory — Movement Creates Movement</div>
-      <div class="note-body">
-        <p>If a stock can go from $1 to $2, it can double again to $5. Each leg feeds the next. The only factors that stop it are supply, sentiment shift, or catalyst exhaustion.</p>
-        <p>Ride the momentum, cut quickly if it turns. You can't win if you're not in the trade.</p>
-      </div>
-    </div>
-
-    <div class="note-card">
-      <div class="note-date">Apr 16, 2026</div>
-      <div class="note-title">The AI Amplification Theory</div>
-      <div class="note-body">
-        <ul>
-          <li>Humans find the stock first — scanner, news, instinct</li>
-          <li>AI traders detect the pattern once it's moving and pile in simultaneously</li>
-          <li>Consensus AI short signals create short squeeze fuel</li>
-          <li>The human who finds it early captures the full move — AI becomes exit liquidity</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="note-card">
-      <div class="note-date">Apr 16, 2026</div>
-      <div class="note-title">Short Squeeze Mechanics</div>
-      <div class="note-body">
-        <p>Low float + rising price + shorts underwater = forced covering = more upside. The lower the float the more violent the squeeze.</p>
-        <ul>
-          <li>Stock spikes on catalyst → shorts pile in thinking it's topping</li>
-          <li>Shorts forced to cover → adds fuel → squeeze intensifies</li>
-          <li>Repeat until actual top</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="note-card">
-      <div class="note-date">Apr 16, 2026</div>
-      <div class="note-title">Risk Management Philosophy</div>
-      <div class="note-body">
-        <ul>
-          <li>Cut losses quickly — it's not a bad trade, just bad luck</li>
-          <li>You can't win if you're not in the trade</li>
-          <li>Missing a move entirely is worse than a small loss</li>
-          <li>Size small on uncertain setups, bigger as conviction grows</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="note-card">
-      <div class="note-date">Apr 16, 2026</div>
-      <div class="note-title">Trade Window Rules</div>
-      <div class="note-body">
-        <p>Before 10:30am — trade momentum freely within criteria.</p>
-        <p>After 10:30am — only if all three conditions are met:</p>
-        <ul>
-          <li>Volume is increasing — not fading</li>
-          <li>Catalyst is still fresh or new catalyst dropped</li>
-          <li>Price is holding or reclaiming VWAP</li>
-        </ul>
-      </div>
+    <!-- Ticker History -->
+    <div id="tab-tickers" style="display:none">
+      <div id="ticker-history-list"><div class="scan-empty">No ticker history yet.</div></div>
     </div>
   </div>
 
   <nav class="bottom-nav" id="bottom-nav"></nav>
   <script src="/tradeos/js/nav.js"></script>
+  <script src="/tradeos/js/api.js"></script>
   <script>
     renderNav('notes');
-    document.querySelectorAll('.note-card').forEach(card => {
-      card.querySelector('.note-title').addEventListener('click', () => {
-        card.classList.toggle('open');
-      });
-    });
+
+    const WORKER = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
+    let activeTab = 'live';
+
+    function setTab(tab, btn) {
+      activeTab = tab;
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-live').style.display = tab === 'live' ? '' : 'none';
+      document.getElementById('tab-history').style.display = tab === 'history' ? '' : 'none';
+      document.getElementById('tab-tickers').style.display = tab === 'tickers' ? '' : 'none';
+      if (tab === 'history') loadHistory();
+      if (tab === 'tickers') loadTickerHistory();
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '—';
+      const d = new Date(ts);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' +
+             d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+
+    function renderTickerCard(t) {
+      const chg = parseFloat(t.change) || 0;
+      return `<div class="ticker-card">
+        <div class="ticker-top">
+          <div>
+            <span class="ticker-sym">${t.ticker}</span>
+            ${t.appearances > 1 ? `<span class="appearances">🔁 ${t.appearances}x</span>` : ''}
+          </div>
+          <span class="ticker-change ${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span>
+        </div>
+        <div class="ticker-meta">
+          <div class="tm"><div class="tm-label">Price</div><div class="tm-value">$${parseFloat(t.price||0).toFixed(2)}</div></div>
+          <div class="tm"><div class="tm-label">Volume</div><div class="tm-value">${formatVol(t.volume)}</div></div>
+          <div class="tm"><div class="tm-label">Rel Vol</div><div class="tm-value">${t.relVolume || '—'}</div></div>
+          <div class="tm"><div class="tm-label">Float</div><div class="tm-value">${t.float || '—'}</div></div>
+          <div class="tm"><div class="tm-label">Mkt Cap</div><div class="tm-value">${t.marketCap || '—'}</div></div>
+          <div class="tm"><div class="tm-label">Scanned</div><div class="tm-value" style="font-size:10px;color:rgba(255,255,255,0.4)">${formatTime(t.scannedAt)}</div></div>
+        </div>
+      </div>`;
+    }
+
+    function formatVol(v) {
+      if (!v) return '—';
+      const n = parseFloat(v);
+      if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n/1000).toFixed(0) + 'K';
+      return String(n);
+    }
+
+    async function runScan() {
+      const btn = document.getElementById('scan-btn');
+      const dot = document.getElementById('status-dot');
+      const timeEl = document.getElementById('last-scan-time');
+      btn.disabled = true;
+      btn.textContent = 'Scanning...';
+      btn.classList.add('running');
+      dot.className = 'status-dot';
+      timeEl.textContent = 'Scanning...';
+
+      try {
+        const res = await fetch(WORKER + '/scan', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.error) throw new Error(data.error);
+
+        dot.classList.add('live');
+        timeEl.textContent = 'Last scan: ' + formatTime(data.scannedAt);
+
+        const container = document.getElementById('live-results');
+        if (!data.results || !data.results.length) {
+          container.innerHTML = '<div class="scan-empty">No tickers hit your criteria right now.</div>';
+        } else {
+          container.innerHTML = data.results.map(renderTickerCard).join('');
+        }
+      } catch(e) {
+        document.getElementById('live-results').innerHTML = `<div class="scan-empty">Scan failed — ${e.message}</div>`;
+        dot.className = 'status-dot';
+        timeEl.textContent = 'Scan failed';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Run Scan';
+      btn.classList.remove('running');
+    }
+
+    async function loadHistory() {
+      const el = document.getElementById('history-list');
+      el.innerHTML = '<div class="scan-empty">Loading...</div>';
+      try {
+        const res = await fetch(WORKER + '/scan/history');
+        const data = await res.json();
+        if (!data.runs || !data.runs.length) {
+          el.innerHTML = '<div class="scan-empty">No scan history yet.</div>';
+          return;
+        }
+        el.innerHTML = data.runs.map(run => `
+          <div class="history-run">
+            <div class="history-run-header">
+              <span class="history-run-time">${formatTime(run.scannedAt)}</span>
+              <span class="history-run-count">${run.count} hit${run.count !== 1 ? 's' : ''}</span>
+            </div>
+            ${run.tickers && run.tickers.length ? `<div class="history-tickers">${run.tickers.map(t =>
+              `<span class="history-ticker">${t.ticker}<span class="ht-price">$${parseFloat(t.price||0).toFixed(2)}</span></span>`
+            ).join('')}</div>` : ''}
+          </div>`).join('');
+      } catch(e) {
+        el.innerHTML = `<div class="scan-empty">Failed to load history</div>`;
+      }
+    }
+
+    async function loadTickerHistory() {
+      const el = document.getElementById('ticker-history-list');
+      el.innerHTML = '<div class="scan-empty">Loading...</div>';
+      try {
+        const res = await fetch(WORKER + '/scan/tickers');
+        const data = await res.json();
+        if (!data.tickers || !data.tickers.length) {
+          el.innerHTML = '<div class="scan-empty">No ticker history yet.</div>';
+          return;
+        }
+        // Sort by appearances desc
+        data.tickers.sort((a,b) => (b.appearances||0) - (a.appearances||0));
+        el.innerHTML = data.tickers.map(t => renderTickerCard(t)).join('');
+      } catch(e) {
+        el.innerHTML = `<div class="scan-empty">Failed to load ticker history</div>`;
+      }
+    }
+
+    // Load latest scan on page load
+    (async () => {
+      try {
+        const res = await fetch(WORKER + '/scan/latest');
+        const data = await res.json();
+        if (data && data.results && data.results.length) {
+          document.getElementById('status-dot').classList.add('live');
+          document.getElementById('last-scan-time').textContent = 'Last scan: ' + formatTime(data.scannedAt);
+          document.getElementById('live-results').innerHTML = data.results.map(renderTickerCard).join('');
+        }
+      } catch(e) {}
+    })();
   </script>
 </body>
 </html>

@@ -300,6 +300,7 @@
         { label: 'How to Improve', value: t.howToImprove },
         { label: 'What I Learned', value: t.whatLearned },
         { label: 'Grade Notes', value: t.gradeNotes || t.notes },
+        { label: "Muninn's Grade", value: t.claudeGrade ? (t.claudeGrade + (t.mununNotes ? ' — ' + t.mununNotes : '')) : null },
       ].filter(s => s.value && String(s.value).trim());
 
       document.getElementById('modal-body').innerHTML = sections.length
@@ -467,10 +468,7 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
     async function saveGrade() {
       if (!_gradeData || !_currentEditTrade) return;
       const t = _currentEditTrade;
-      if (!t.id) {
-        alert('Cannot save grade — trade has no ID.');
-        return;
-      }
+      if (!t.id) { alert('Cannot save grade — trade has no ID.'); return; }
       const btn = document.getElementById('grade-save-btn');
       btn.textContent = 'Saving...';
       btn.disabled = true;
@@ -483,7 +481,7 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
           originalExit: t.exit,
           gradeOnly: true,
           claudeGrade: _gradeData.grade,
-          gradeNotes: _gradeData.reasoning,
+          mununNotes: _gradeData.reasoning,
         });
         if (result && result.success) {
           btn.textContent = 'Saved \u2713';

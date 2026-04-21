@@ -498,7 +498,7 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
           btn.style.color = '#2cb67d';
           btn.style.borderColor = 'rgba(44,182,125,0.4)';
           btn.style.background = 'rgba(44,182,125,0.1)';
-          // Update in-memory trade so next grade in same session works
+          // Update in-memory trade and re-render cards immediately
           if (_currentEditTrade) {
             _currentEditTrade.claudeGrade = _gradeData.grade;
             _currentEditTrade.mununNotes = _gradeData.reasoning;
@@ -506,6 +506,7 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
               tradeMap[_currentEditTrade._key].claudeGrade = _gradeData.grade;
               tradeMap[_currentEditTrade._key].mununNotes = _gradeData.reasoning;
             }
+            render();
           }
         } else {
           btn.textContent = 'Save failed — try again';

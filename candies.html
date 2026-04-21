@@ -53,6 +53,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
               <div id="modal-pnl" style="font-size:22px;font-weight:800"></div>
+              <button id="grade-btn" onclick="autoGrade()" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);color:#f4b942;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Grade</button>
               <button id="edit-btn" onclick="openEditForm()" style="background:rgba(127,90,240,0.15);border:1px solid rgba(127,90,240,0.3);color:#7f5af0;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Edit</button>
               <button onclick="closeModal()" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.6);width:34px;height:34px;border-radius:8px;font-size:20px;cursor:pointer;font-family:inherit;line-height:1;padding:0">×</button>
             </div>
@@ -76,6 +77,18 @@
 
         <div id="modal-stats" style="padding:6px 20px 12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
         <div id="modal-body" style="padding:0 20px 24px;display:flex;flex-direction:column;gap:10px"></div>
+
+        <!-- Auto Grade Result -->
+        <div id="grade-result" style="display:none;padding:0 20px 20px">
+          <div style="background:rgba(244,185,66,0.08);border:1px solid rgba(244,185,66,0.2);border-radius:12px;padding:14px 16px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em">Muninn Grade</div>
+              <div id="grade-letter" style="font-size:20px;font-weight:900;color:#f4b942;margin-left:auto"></div>
+            </div>
+            <div id="grade-reasoning" style="font-size:13px;color:rgba(255,255,255,0.7);line-height:1.6"></div>
+            <button id="grade-save-btn" onclick="saveGrade()" style="display:none;margin-top:12px;width:100%;padding:10px;background:rgba(244,185,66,0.15);border:1px solid rgba(244,185,66,0.3);color:#f4b942;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Save Grade to Journal</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -321,6 +334,184 @@
       img.src = 'https://tradeos-proxy.gordon-foustiii.workers.dev/chart?t=' + ticker + '&p=' + period;
     }
 
+
+    const MUNINN_SYSTEM = `You are Muninn — the AI grading oracle of The Den of Wisdom, Gordon Foust III's trading system.
+
+You grade trades based strictly on Gordon's rules and methodology. Be direct, honest, and specific. Do not flatter.
+
+GORDON'S NON-NEGOTIABLE RULES:
+1. Catalyst required — no catalyst = automatic F
+2. Stop market orders ONLY — never stop limit
+3. No averaging down — ever
+4. No trades before 9:45am
+5. Candle must break resistance before entry
+6. No revenge trading
+7. $50 max loss per trade — losses over $50 are a rule violation
+8. Log every trade
+
+ENTRY CHECKLIST (each missed item costs a grade):
+- Real catalyst confirmed
+- Float under 20M (lower is better)
+- Relative volume 2x+
+- Clean pullback to support — not chasing the spike
+- Stop loss set before entry
+- Risk under $50 calculated before entry
+- Emotional state: calm and confident
+
+GRADING SCALE:
+A+ — Followed every rule, captured 70%+ of the move, clean entry and exit
+A  — Followed all major rules, captured 50%+ of move, minor timing issues only
+B  — Followed most rules, had a plan, captured 30-50%, one small mistake
+C  — Had a catalyst, took the trade, but missed 1-2 key rules or gave back gains
+D  — Broke 2+ rules, poor timing, chased, or held through a clear exit signal
+F  — No catalyst, averaged down, ignored stop, or lost more than $50
+
+RESPOND IN THIS EXACT FORMAT — nothing else:
+GRADE: [letter]
+REASONING: [2-3 sentences max. Be specific about what was done right and what rule was broken. Reference the actual numbers.]`;
+
+    let _gradeData = null;
+
+    async function autoGrade() {
+      const t = _currentEditTrade;
+      if (!t) return;
+
+      const btn = document.getElementById('grade-btn');
+      const resultDiv = document.getElementById('grade-result');
+      const letterEl = document.getElementById('grade-letter');
+      const reasoningEl = document.getElementById('grade-reasoning');
+      const saveBtn = document.getElementById('grade-save-btn');
+
+      btn.textContent = 'Grading...';
+      btn.disabled = true;
+      resultDiv.style.display = 'none';
+      saveBtn.style.display = 'none';
+      _gradeData = null;
+
+      const maxLoss = t.pnl < 0 ? Math.abs(t.pnl) : 0;
+      const move = ((t.high - t.entry) / t.entry * 100).toFixed(1);
+
+      const tradeContext = [
+        'TRADE DATA:',
+        'Ticker: ' + t.ticker,
+        'Date: ' + t.date + (t.time ? ' at ' + t.time : ''),
+        'Entry: $' + t.entry.toFixed(2),
+        'Exit: $' + t.exit.toFixed(2),
+        'Shares: ' + t.shares,
+        'P&L: $' + t.pnl.toFixed(2) + ' (' + (t.winLoss || 'UNKNOWN') + ')',
+        'HOD: $' + t.high.toFixed(2),
+        'LOD: $' + t.low.toFixed(2),
+        'Move from entry to HOD: ' + move + '%',
+        'Captured: ' + t.captured + '% of the move',
+        'Left on table: $' + t.left.toFixed(2),
+        'Duration: ' + (t.duration || 'not logged'),
+        'Catalyst: ' + (t.catalyst || 'not logged'),
+        'Float: ' + (t.float || 'not logged'),
+        'Rel Volume: ' + (t.relVol || 'not logged'),
+        'Stop Loss set: ' + (t.stopLoss ? '$' + parseFloat(t.stopLoss).toFixed(2) : 'not logged'),
+        'Target set: ' + (t.target || 'not logged'),
+        'Setup type: ' + (t.setup || 'not logged'),
+        'Plan logged: ' + (t.plan ? 'YES' : 'NO'),
+        'Emotion at entry: ' + (t.emotionEntry || 'not logged'),
+        'Emotion at exit: ' + (t.emotionExit || 'not logged'),
+        'Did well: ' + (t.didWell || 'not logged'),
+        'Did poorly: ' + (t.didPoorly || 'not logged'),
+        'Exit reason: ' + (t.exitReason || 'not logged'),
+        'My grade: ' + (t.grade || 'not set'),
+        '',
+        'Grade this trade based on the rules. Be specific and honest.'
+      ].join('\n');
+
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 300,
+            system: MUNINN_SYSTEM,
+            messages: [{ role: 'user', content: tradeContext }]
+          })
+        });
+
+        const data = await response.json();
+        const text = data.content[0].text.trim();
+
+        // Parse GRADE: and REASONING:
+        const gradeMatch = text.match(/GRADE:\s*([A-F][+-]?)/i);
+        const reasonMatch = text.match(/REASONING:\s*(.+)/is);
+
+        const grade = gradeMatch ? gradeMatch[1].toUpperCase() : '?';
+        const reasoning = reasonMatch ? reasonMatch[1].trim() : text;
+
+        const gradeColors = { 'A+': '#2cb67d', 'A': '#2cb67d', 'B': '#5ba4cf', 'C': '#f4b942', 'D': '#ef4565', 'F': '#ef4565' };
+        const gradeColor = gradeColors[grade] || '#f4b942';
+
+        letterEl.textContent = grade;
+        letterEl.style.color = gradeColor;
+        reasoningEl.textContent = reasoning;
+        resultDiv.style.display = 'block';
+        saveBtn.style.display = 'block';
+
+        _gradeData = { grade, reasoning };
+
+        // Scroll to grade result
+        document.getElementById('trade-modal').scrollTo({ top: 99999, behavior: 'smooth' });
+
+      } catch(e) {
+        letterEl.textContent = '!';
+        reasoningEl.textContent = 'Grading failed — check connection.';
+        resultDiv.style.display = 'block';
+      }
+
+      btn.textContent = 'Grade';
+      btn.disabled = false;
+    }
+
+    async function saveGrade() {
+      if (!_gradeData || !_currentEditTrade) return;
+      const t = _currentEditTrade;
+      const btn = document.getElementById('grade-save-btn');
+      btn.textContent = 'Saving...';
+      btn.disabled = true;
+      try {
+        const result = await apiPost('updateTrade', {
+          id: t.id,
+          ticker: t.ticker,
+          date: t.date,
+          originalEntry: t.entry,
+          originalExit: t.exit,
+          actualEntry: t.entry,
+          exitPrice: t.exit,
+          highHeld: t.high,
+          lowHeld: t.low,
+          qty: t.shares,
+          duration: t.duration || '',
+          catalyst: t.catalyst || '',
+          float: t.float || '',
+          relVol: t.relVol || '',
+          stopLoss: t.stopLoss || '',
+          target: t.target || '',
+          didWell: t.didWell || '',
+          didPoorly: t.didPoorly || '',
+          howToImprove: t.howToImprove || '',
+          whatLearned: t.whatLearned || '',
+          gradeNotes: _gradeData.reasoning,
+          claudeGrade: _gradeData.grade,
+        });
+        if (result && result.success) {
+          btn.textContent = 'Saved ✓';
+          btn.style.color = '#2cb67d';
+          btn.style.borderColor = 'rgba(44,182,125,0.4)';
+        } else {
+          btn.textContent = 'Save failed';
+          btn.disabled = false;
+        }
+      } catch(e) {
+        btn.textContent = 'Error — try again';
+        btn.disabled = false;
+      }
+    }
 
     function closeModal() {
       document.getElementById('trade-modal').style.display = 'none';

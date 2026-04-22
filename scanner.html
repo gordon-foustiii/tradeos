@@ -15,7 +15,8 @@
     .scan-btn:disabled { opacity:.4;cursor:default; }
     .scan-btn.running { background:rgba(127,90,240,0.3);color:#a78bfa; }
     .last-scan { font-size:11px;color:rgba(255,255,255,0.3); }
-    .ticker-card { background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;margin-bottom:8px; }
+    .ticker-card { background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,background .15s; }
+    .ticker-card:hover { border-color:rgba(127,90,240,0.4);background:rgba(127,90,240,0.06); }
     .ticker-top { display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
     .ticker-sym { font-size:20px;font-weight:900;color:#e8e8f0;letter-spacing:-.5px; }
     .ticker-change { font-size:16px;font-weight:800; }
@@ -34,7 +35,6 @@
     .history-tickers { margin-top:8px;display:flex;flex-wrap:wrap;gap:5px; }
     .history-ticker { font-size:11px;font-weight:800;background:rgba(255,255,255,0.06);color:#e8e8f0;padding:3px 8px;border-radius:5px; }
     .history-ticker .ht-price { color:rgba(255,255,255,0.4);font-weight:500;margin-left:3px; }
-    .ticker-history-btn { font-size:10px;color:rgba(127,90,240,0.7);cursor:pointer;margin-top:4px;display:inline-block; }
     .appearances { font-size:10px;color:#f4b942;font-weight:700;margin-left:6px; }
     .tab-row { display:flex;gap:6px;margin-bottom:12px; }
     .tab { flex:1;padding:8px;text-align:center;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.4);background:transparent;font-family:inherit; }
@@ -42,6 +42,123 @@
     .status-dot { width:7px;height:7px;border-radius:50%;background:#ef4565;display:inline-block;margin-right:5px; }
     .status-dot.live { background:#2cb67d;animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display:none;position:fixed;inset:0;z-index:1000;
+      background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);
+      align-items:flex-end;justify-content:center;
+    }
+    .modal-overlay.open { display:flex; }
+    .modal-sheet {
+      background:#12121f;border:1px solid rgba(255,255,255,0.09);
+      border-radius:20px 20px 0 0;width:100%;max-width:560px;
+      max-height:92vh;overflow-y:auto;padding:0 0 80px 0;
+      animation:slideUp .25s ease;
+    }
+    @keyframes slideUp { from{transform:translateY(60px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .modal-handle { width:40px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin:12px auto 0; }
+    .modal-header {
+      display:flex;justify-content:space-between;align-items:flex-start;
+      padding:16px 18px 10px;border-bottom:1px solid rgba(255,255,255,0.07);
+    }
+    .modal-sym { font-size:28px;font-weight:900;color:#e8e8f0;letter-spacing:-.5px; }
+    .modal-change { font-size:18px;font-weight:800;margin-top:2px; }
+    .modal-close {
+      background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.5);
+      width:32px;height:32px;border-radius:8px;font-size:18px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;font-family:inherit;flex-shrink:0;
+    }
+    .modal-section { padding:14px 18px; }
+    .modal-section-title {
+      font-size:10px;font-weight:800;color:rgba(255,255,255,0.3);
+      text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;
+    }
+    .modal-grid { display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:0; }
+    .modal-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:7px; }
+
+    /* stat tiles */
+    .stat-tile { background:rgba(255,255,255,0.05);border-radius:10px;padding:9px 11px; }
+    .stat-tile .sl { font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px; }
+    .stat-tile .sv { font-size:14px;font-weight:800;color:#e8e8f0; }
+
+    /* catalyst */
+    .catalyst-row { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px; }
+    .cat-pill {
+      padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;
+      border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.35);
+      cursor:pointer;background:transparent;font-family:inherit;transition:all .12s;
+    }
+    .cat-pill.active { background:#7f5af0;border-color:#7f5af0;color:white; }
+    .cat-input {
+      width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+      border-radius:10px;padding:9px 12px;color:#e8e8f0;font-size:13px;font-family:inherit;
+      box-sizing:border-box;outline:none;
+    }
+    .cat-input:focus { border-color:rgba(127,90,240,0.5); }
+
+    /* plan inputs */
+    .plan-row { display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px; }
+    .plan-field { display:flex;flex-direction:column;gap:4px; }
+    .plan-label { font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em; }
+    .plan-input {
+      background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+      border-radius:10px;padding:9px 11px;color:#e8e8f0;font-size:14px;font-weight:700;
+      font-family:inherit;outline:none;width:100%;box-sizing:border-box;
+    }
+    .plan-input:focus { border-color:rgba(127,90,240,0.5); }
+    .plan-input.entry { border-color:rgba(127,90,240,0.4); }
+    .plan-input.stop  { border-color:rgba(239,69,101,0.4); }
+    .plan-input.target { border-color:rgba(44,182,125,0.4); }
+
+    /* risk calc */
+    .risk-bar {
+      background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;
+      display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
+    }
+    .risk-stat { text-align:center; }
+    .risk-stat .rl { font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px; }
+    .risk-stat .rv { font-size:15px;font-weight:900;color:#e8e8f0; }
+    .risk-stat .rv.danger { color:#ef4565; }
+    .risk-stat .rv.ok { color:#2cb67d; }
+
+    /* notes */
+    .plan-notes {
+      width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+      border-radius:10px;padding:10px 12px;color:#e8e8f0;font-size:13px;font-family:inherit;
+      outline:none;resize:none;box-sizing:border-box;
+    }
+    .plan-notes:focus { border-color:rgba(127,90,240,0.5); }
+
+    /* save btn */
+    .modal-save-btn {
+      width:100%;background:#7f5af0;border:none;color:white;
+      padding:14px;border-radius:12px;font-size:15px;font-weight:800;
+      cursor:pointer;font-family:inherit;transition:opacity .15s;margin-top:4px;
+    }
+    .modal-save-btn:disabled { opacity:.4;cursor:default; }
+    .modal-save-btn.saved { background:#2cb67d; }
+
+    /* plan badge on card */
+    .plan-badge {
+      font-size:9px;font-weight:800;background:rgba(44,182,125,0.2);color:#2cb67d;
+      border-radius:4px;padding:2px 6px;margin-left:6px;vertical-align:middle;
+    }
+
+    /* divider */
+    .modal-divider { height:1px;background:rgba(255,255,255,0.07);margin:0 18px; }
+
+    /* rating pills */
+    .rating-row { display:flex;gap:6px; }
+    .rating-pill {
+      flex:1;padding:7px 4px;border-radius:8px;font-size:11px;font-weight:700;
+      border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.3);
+      cursor:pointer;background:transparent;font-family:inherit;text-align:center;transition:all .12s;
+    }
+    .rating-pill.active.r-a { background:rgba(44,182,125,0.2);border-color:#2cb67d;color:#2cb67d; }
+    .rating-pill.active.r-b { background:rgba(244,185,66,0.2);border-color:#f4b942;color:#f4b942; }
+    .rating-pill.active.r-c { background:rgba(239,69,101,0.2);border-color:#ef4565;color:#ef4565; }
+    .rating-pill.active.r-skip { background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.5); }
   </style>
 </head>
 <script src="/tradeos/js/muninn-widget.js"></script>
@@ -82,6 +199,124 @@
     </div>
   </div>
 
+  <!-- ── TRADE PLAN MODAL ── -->
+  <div class="modal-overlay" id="plan-modal" onclick="handleOverlayClick(event)">
+    <div class="modal-sheet" id="modal-sheet">
+      <div class="modal-handle"></div>
+
+      <!-- Header -->
+      <div class="modal-header">
+        <div>
+          <div class="modal-sym" id="m-sym">—</div>
+          <div class="modal-change" id="m-change"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+
+      <!-- Stats (auto-pulled) -->
+      <div class="modal-section">
+        <div class="modal-section-title">Market Data</div>
+        <div class="modal-grid" id="m-stats-grid">
+          <div class="stat-tile"><div class="sl">Price</div><div class="sv" id="m-price">—</div></div>
+          <div class="stat-tile"><div class="sl">Float</div><div class="sv" id="m-float">—</div></div>
+          <div class="stat-tile"><div class="sl">Rel Vol</div><div class="sv" id="m-rvol">—</div></div>
+          <div class="stat-tile"><div class="sl">Volume</div><div class="sv" id="m-vol">—</div></div>
+          <div class="stat-tile"><div class="sl">Mkt Cap</div><div class="sv" id="m-cap">—</div></div>
+          <div class="stat-tile"><div class="sl">Change</div><div class="sv" id="m-chg-stat">—</div></div>
+        </div>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <!-- Catalyst -->
+      <div class="modal-section">
+        <div class="modal-section-title">Catalyst</div>
+        <div class="catalyst-row" id="cat-pills">
+          <button class="cat-pill" onclick="toggleCat(this,'Earnings')">Earnings</button>
+          <button class="cat-pill" onclick="toggleCat(this,'PR/News')">PR/News</button>
+          <button class="cat-pill" onclick="toggleCat(this,'FDA')">FDA</button>
+          <button class="cat-pill" onclick="toggleCat(this,'Partnership')">Partnership</button>
+          <button class="cat-pill" onclick="toggleCat(this,'Dilution Risk')">Dilution Risk</button>
+          <button class="cat-pill" onclick="toggleCat(this,'No Catalyst')">No Catalyst</button>
+        </div>
+        <input class="cat-input" id="cat-custom" placeholder="Add notes or custom catalyst…" />
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <!-- Trade Rating -->
+      <div class="modal-section">
+        <div class="modal-section-title">Setup Quality</div>
+        <div class="rating-row">
+          <button class="rating-pill r-a" onclick="setRating(this,'A')">A — Strong</button>
+          <button class="rating-pill r-b" onclick="setRating(this,'B')">B — Decent</button>
+          <button class="rating-pill r-c" onclick="setRating(this,'C')">C — Weak</button>
+          <button class="rating-pill r-skip" onclick="setRating(this,'Skip')">Skip</button>
+        </div>
+      </div>
+
+      <div class="modal-divider"></div>
+
+      <!-- Trade Plan -->
+      <div class="modal-section">
+        <div class="modal-section-title">Trade Plan</div>
+        <div class="plan-row">
+          <div class="plan-field">
+            <div class="plan-label">Entry $</div>
+            <input class="plan-input entry" id="p-entry" type="number" step="0.01" placeholder="0.00" oninput="calcRisk()" />
+          </div>
+          <div class="plan-field">
+            <div class="plan-label">Stop $</div>
+            <input class="plan-input stop" id="p-stop" type="number" step="0.01" placeholder="0.00" oninput="calcRisk()" />
+          </div>
+          <div class="plan-field">
+            <div class="plan-label">Target $</div>
+            <input class="plan-input target" id="p-target" type="number" step="0.01" placeholder="0.00" oninput="calcRisk()" />
+          </div>
+        </div>
+
+        <!-- Risk calc bar -->
+        <div class="risk-bar">
+          <div class="risk-stat">
+            <div class="rl">Risk/Share</div>
+            <div class="rv" id="rc-risk">—</div>
+          </div>
+          <div class="risk-stat">
+            <div class="rl">R:R</div>
+            <div class="rv" id="rc-rr">—</div>
+          </div>
+          <div class="risk-stat">
+            <div class="rl">Max Shares ($50)</div>
+            <div class="rv" id="rc-shares">—</div>
+          </div>
+          <div class="risk-stat">
+            <div class="rl">Max Loss</div>
+            <div class="rv" id="rc-maxloss">—</div>
+          </div>
+        </div>
+
+        <!-- Support / Resistance -->
+        <div class="modal-grid-2" style="margin-bottom:8px">
+          <div class="plan-field">
+            <div class="plan-label">Support $</div>
+            <input class="plan-input" id="p-support" type="number" step="0.01" placeholder="0.00" />
+          </div>
+          <div class="plan-field">
+            <div class="plan-label">Resistance $</div>
+            <input class="plan-input" id="p-resist" type="number" step="0.01" placeholder="0.00" />
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <textarea class="plan-notes" id="p-notes" rows="3" placeholder="Why this setup? What are you watching for?"></textarea>
+      </div>
+
+      <div class="modal-section" style="padding-top:0">
+        <button class="modal-save-btn" id="save-btn" onclick="savePlan()">Save Plan</button>
+      </div>
+    </div>
+  </div>
+
   <nav class="bottom-nav" id="bottom-nav"></nav>
   <script src="/tradeos/js/nav.js"></script>
   <script src="/tradeos/js/api.js"></script>
@@ -90,7 +325,11 @@
 
     const WORKER = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
     let activeTab = 'live';
+    let currentTicker = null; // holds full ticker object for modal
+    let selectedCats = [];
+    let selectedRating = null;
 
+    // ── TABS ──
     function setTab(tab, btn) {
       activeTab = tab;
       document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
@@ -102,6 +341,7 @@
       if (tab === 'tickers') loadTickerHistory();
     }
 
+    // ── FORMATTING ──
     function formatTime(ts) {
       if (!ts) return '—';
       const d = new Date(ts);
@@ -109,12 +349,23 @@
              d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
     }
 
+    function formatVol(v) {
+      if (!v) return '—';
+      const n = parseFloat(v);
+      if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n/1000).toFixed(0) + 'K';
+      return String(n);
+    }
+
+    // ── RENDER CARD ──
     function renderTickerCard(t) {
       const chg = parseFloat(t.change) || 0;
-      return `<div class="ticker-card">
+      const hasPlan = t.plan ? '<span class="plan-badge">PLAN ✓</span>' : '';
+      return `<div class="ticker-card" onclick="openModal(${JSON.stringify(t).replace(/"/g,'&quot;')})">
         <div class="ticker-top">
           <div>
             <span class="ticker-sym">${t.ticker}</span>
+            ${hasPlan}
             ${t.appearances > 1 ? `<span class="appearances">🔁 ${t.appearances}x</span>` : ''}
           </div>
           <span class="ticker-change ${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span>
@@ -130,14 +381,198 @@
       </div>`;
     }
 
-    function formatVol(v) {
-      if (!v) return '—';
-      const n = parseFloat(v);
-      if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
-      if (n >= 1000) return (n/1000).toFixed(0) + 'K';
-      return String(n);
+    // ── MODAL OPEN ──
+    function openModal(t) {
+      currentTicker = t;
+      selectedCats = [];
+      selectedRating = null;
+
+      // Reset UI
+      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.rating-pill').forEach(p => p.classList.remove('active'));
+      document.getElementById('cat-custom').value = '';
+      document.getElementById('p-entry').value = '';
+      document.getElementById('p-stop').value = '';
+      document.getElementById('p-target').value = '';
+      document.getElementById('p-support').value = '';
+      document.getElementById('p-resist').value = '';
+      document.getElementById('p-notes').value = '';
+      document.getElementById('save-btn').textContent = 'Save Plan';
+      document.getElementById('save-btn').classList.remove('saved');
+      document.getElementById('save-btn').disabled = false;
+      calcRisk();
+
+      // Populate header
+      const chg = parseFloat(t.change) || 0;
+      document.getElementById('m-sym').textContent = t.ticker;
+      const chgEl = document.getElementById('m-change');
+      chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
+      chgEl.className = 'modal-change ' + (chg >= 0 ? 'up' : 'down');
+
+      // Populate stats
+      document.getElementById('m-price').textContent = '$' + parseFloat(t.price||0).toFixed(2);
+      document.getElementById('m-float').textContent = t.float || '—';
+      document.getElementById('m-rvol').textContent = t.relVolume || '—';
+      document.getElementById('m-vol').textContent = formatVol(t.volume);
+      document.getElementById('m-cap').textContent = t.marketCap || '—';
+      const chgStat = document.getElementById('m-chg-stat');
+      chgStat.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
+      chgStat.style.color = chg >= 0 ? '#2cb67d' : '#ef4565';
+
+      // Pre-fill entry from current price
+      document.getElementById('p-entry').value = parseFloat(t.price||0).toFixed(2);
+      calcRisk();
+
+      // Load existing plan if any
+      if (t.plan) {
+        const p = t.plan;
+        if (p.catalysts) {
+          p.catalysts.forEach(c => {
+            document.querySelectorAll('.cat-pill').forEach(pill => {
+              if (pill.textContent === c) { pill.classList.add('active'); selectedCats.push(c); }
+            });
+          });
+        }
+        if (p.catalystNote) document.getElementById('cat-custom').value = p.catalystNote;
+        if (p.rating) {
+          document.querySelectorAll('.rating-pill').forEach(pill => {
+            if (pill.dataset.rating === p.rating || pill.textContent.startsWith(p.rating)) {
+              pill.classList.add('active'); selectedRating = p.rating;
+            }
+          });
+        }
+        if (p.entry) document.getElementById('p-entry').value = p.entry;
+        if (p.stop) document.getElementById('p-stop').value = p.stop;
+        if (p.target) document.getElementById('p-target').value = p.target;
+        if (p.support) document.getElementById('p-support').value = p.support;
+        if (p.resistance) document.getElementById('p-resist').value = p.resistance;
+        if (p.notes) document.getElementById('p-notes').value = p.notes;
+        calcRisk();
+      }
+
+      document.getElementById('plan-modal').classList.add('open');
+      document.body.style.overflow = 'hidden';
     }
 
+    function closeModal() {
+      document.getElementById('plan-modal').classList.remove('open');
+      document.body.style.overflow = '';
+      currentTicker = null;
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('plan-modal')) closeModal();
+    }
+
+    // ── CATALYST TOGGLE ──
+    function toggleCat(btn, cat) {
+      btn.classList.toggle('active');
+      if (btn.classList.contains('active')) {
+        if (!selectedCats.includes(cat)) selectedCats.push(cat);
+      } else {
+        selectedCats = selectedCats.filter(c => c !== cat);
+      }
+    }
+
+    // ── RATING ──
+    function setRating(btn, rating) {
+      document.querySelectorAll('.rating-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      selectedRating = rating;
+    }
+
+    // ── RISK CALC ──
+    function calcRisk() {
+      const entry = parseFloat(document.getElementById('p-entry').value) || 0;
+      const stop  = parseFloat(document.getElementById('p-stop').value) || 0;
+      const target = parseFloat(document.getElementById('p-target').value) || 0;
+      const MAX_LOSS = 50;
+
+      const riskPerShare = entry && stop ? Math.abs(entry - stop) : 0;
+      const reward = entry && target ? Math.abs(target - entry) : 0;
+      const rr = riskPerShare > 0 && reward > 0 ? (reward / riskPerShare).toFixed(2) : null;
+      const maxShares = riskPerShare > 0 ? Math.floor(MAX_LOSS / riskPerShare) : null;
+      const maxLoss = maxShares && riskPerShare ? (maxShares * riskPerShare).toFixed(2) : null;
+
+      document.getElementById('rc-risk').textContent = riskPerShare > 0 ? '$' + riskPerShare.toFixed(2) : '—';
+      document.getElementById('rc-rr').textContent = rr ? rr + ':1' : '—';
+
+      const sharesEl = document.getElementById('rc-shares');
+      sharesEl.textContent = maxShares !== null ? maxShares : '—';
+
+      const lossEl = document.getElementById('rc-maxloss');
+      lossEl.textContent = maxLoss !== null ? '$' + maxLoss : '—';
+      lossEl.className = 'rv ' + (maxLoss !== null ? (parseFloat(maxLoss) > MAX_LOSS ? 'danger' : 'ok') : '');
+
+      // RR color
+      const rrEl = document.getElementById('rc-rr');
+      if (rr) {
+        rrEl.className = 'rv ' + (parseFloat(rr) >= 2 ? 'ok' : parseFloat(rr) >= 1 ? '' : 'danger');
+      }
+    }
+
+    // ── SAVE PLAN ──
+    async function savePlan() {
+      if (!currentTicker) return;
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      const plan = {
+        catalysts: selectedCats,
+        catalystNote: document.getElementById('cat-custom').value.trim(),
+        rating: selectedRating,
+        entry: document.getElementById('p-entry').value,
+        stop: document.getElementById('p-stop').value,
+        target: document.getElementById('p-target').value,
+        support: document.getElementById('p-support').value,
+        resistance: document.getElementById('p-resist').value,
+        notes: document.getElementById('p-notes').value.trim(),
+        savedAt: new Date().toISOString()
+      };
+
+      try {
+        const res = await fetch(WORKER + '/scan/plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticker: currentTicker.ticker, plan })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        btn.textContent = 'Plan Saved ✓';
+        btn.classList.add('saved');
+
+        // Update local ticker object so badge shows
+        currentTicker.plan = plan;
+
+        // Refresh visible card if in live results
+        refreshCardInDOM(currentTicker);
+
+        setTimeout(() => closeModal(), 800);
+      } catch(e) {
+        btn.textContent = 'Save Failed — Retry';
+        btn.disabled = false;
+        btn.classList.remove('saved');
+        console.error(e);
+      }
+    }
+
+    function refreshCardInDOM(t) {
+      // Re-render any visible cards for this ticker
+      const containers = ['live-results', 'ticker-history-list'];
+      containers.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.querySelectorAll('.ticker-card').forEach(card => {
+          if (card.querySelector('.ticker-sym') && card.querySelector('.ticker-sym').textContent === t.ticker) {
+            card.outerHTML = renderTickerCard(t); // note: replaces in place
+          }
+        });
+      });
+    }
+
+    // ── SCAN ──
     async function runScan() {
       const btn = document.getElementById('scan-btn');
       const dot = document.getElementById('status-dot');
@@ -151,7 +586,6 @@
       try {
         const res = await fetch(WORKER + '/scan', { method: 'POST' });
         const data = await res.json();
-
         if (data.error) throw new Error(data.error);
 
         dot.classList.add('live');
@@ -174,6 +608,7 @@
       btn.classList.remove('running');
     }
 
+    // ── HISTORY ──
     async function loadHistory() {
       const el = document.getElementById('history-list');
       el.innerHTML = '<div class="scan-empty">Loading...</div>';
@@ -199,6 +634,7 @@
       }
     }
 
+    // ── TICKER HISTORY ──
     async function loadTickerHistory() {
       const el = document.getElementById('ticker-history-list');
       el.innerHTML = '<div class="scan-empty">Loading...</div>';
@@ -209,7 +645,6 @@
           el.innerHTML = '<div class="scan-empty">No ticker history yet.</div>';
           return;
         }
-        // Sort by appearances desc
         data.tickers.sort((a,b) => (b.appearances||0) - (a.appearances||0));
         el.innerHTML = data.tickers.map(t => renderTickerCard(t)).join('');
       } catch(e) {
@@ -217,7 +652,7 @@
       }
     }
 
-    // Load latest scan on page load
+    // ── LOAD LATEST ON PAGE LOAD ──
     (async () => {
       try {
         const res = await fetch(WORKER + '/scan/latest');

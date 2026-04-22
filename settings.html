@@ -176,12 +176,14 @@
     renderNav('settings');
 
     const WORKER = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
-    const SCHWAB_CLIENT_ID = 't9GQQMlvS33RM78rOOo4qFQ1tnAyUL5M4p8pbqXVkziN0FXV';
+    function getToken() {
+      return getToken() || localStorage.getItem('tradeos_id_token');
+    }
     const SCHWAB_REDIRECT = 'https://gordon-foustiii.github.io/tradeos/auth.html';
 
     // ── LOAD USER ──
     async function loadProfile() {
-      const token = localStorage.getItem('id_token');
+      const token = getToken() || localStorage.getItem('tradeos_id_token');
       if (!token) { window.location.href = '/tradeos/login.html'; return; }
 
       try {
@@ -217,7 +219,7 @@
 
       try {
         const res = await fetch(WORKER + '/schwab/status', {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('id_token') }
+          headers: { 'Authorization': 'Bearer ' + getToken() }
         });
         const data = await res.json();
 
@@ -248,7 +250,7 @@
     async function loadSchwabAccount() {
       try {
         const res = await fetch(WORKER + '/schwab/account', {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('id_token') }
+          headers: { 'Authorization': 'Bearer ' + getToken() }
         });
         const data = await res.json();
         if (data.accountValue) {
@@ -275,7 +277,7 @@
       try {
         await fetch(WORKER + '/schwab/disconnect', {
           method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('id_token') }
+          headers: { 'Authorization': 'Bearer ' + getToken() }
         });
         await checkSchwabStatus();
       } catch(e) {}

@@ -209,13 +209,7 @@
 
       <!-- Criteria Editor -->
       <div class="criteria-bar">
-        <div class="preset-row">
-          <button class="preset-btn" onclick="applyPreset('premarket',this)">Pre-Market</button>
-          <button class="preset-btn active" onclick="applyPreset('live',this)">Live Session</button>
-          <button class="preset-btn" onclick="applyPreset('custom',this)">Custom</button>
-        </div>
-        <span class="criteria-toggle" id="crit-toggle" onclick="toggleCriteria()">▼ Show Filters</span>
-        <div class="criteria-grid" id="crit-grid" style="display:none">
+        <div class="criteria-grid" id="crit-grid">
           <div class="crit-field">
             <div class="crit-label">Price Min $</div>
             <input class="crit-input" id="c-pmin" type="number" step="0.5" placeholder="no min" />
@@ -395,38 +389,6 @@
     let selectedCats = [];
     let selectedRating = null;
 
-    // ── CRITERIA PRESETS ──
-    const PRESETS = {
-      premarket: { pmin: 1, pmax: 20, chg: 3,  float: 20, rvol: 0,  vol: 0,   cap: 2000 },
-      live:      { pmin: 1, pmax: 20, chg: 10, float: 20, rvol: 2,  vol: 500, cap: 2000 },
-    };
-
-    function applyPreset(name, btn) {
-      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      if (name === 'custom') return;
-      const p = PRESETS[name];
-      document.getElementById('c-pmin').value  = p.pmin;
-      document.getElementById('c-pmax').value  = p.pmax;
-      document.getElementById('c-chg').value   = p.chg;
-      document.getElementById('c-float').value = p.float;
-      document.getElementById('c-rvol').value  = p.rvol;
-      document.getElementById('c-vol').value   = p.vol;
-      document.getElementById('c-cap').value   = p.cap;
-      const sub = document.querySelector('.page-sub');
-      if (sub) sub.textContent = name === 'premarket'
-        ? `Price $${p.pmin}–${p.pmax} · Change >${p.chg}% · Float ≤${p.float}M · Pre-Market Mode`
-        : `Price $${p.pmin}–${p.pmax} · Change >${p.chg}% · Float ≤${p.float}M · RelVol >${p.rvol}x · Vol >${p.vol}K`;
-    }
-
-    function toggleCriteria() {
-      const grid = document.getElementById('crit-grid');
-      const toggle = document.getElementById('crit-toggle');
-      const open = grid.style.display === 'none';
-      grid.style.display = open ? 'grid' : 'none';
-      toggle.textContent = open ? '▲ Hide Filters' : '▼ Show Filters';
-    }
-
     function getCriteria() {
       const v = id => document.getElementById(id).value.trim();
       return {
@@ -440,7 +402,24 @@
       };
     }
 
-    function buildFinvizFilters(c) {
+    function isMarketHours() {
+      const now = new Date();
+      const est = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const h = est.getHours(), m = est.getMinutes();
+      return (h > 9 || (h === 9 && m >= 30)) && h < 16;
+    }
+
+    function updateSubtitle(c) {
+      const parts = [];
+      if (c.pmin !== null || c.pmax !== null) parts.push(`Price ${c.pmin !== null ? '$'+c.pmin : ''}–${c.pmax !== null ? '$'+c.pmax : ''}`);
+      if (c.chg   !== null) parts.push(`Change >${c.chg}%`);
+      if (c.float !== null) parts.push(`Float ≤${c.float}M`);
+      if (c.rvol  !== null) parts.push(`RelVol >${c.rvol}x`);
+      if (c.vol   !== null) parts.push(`Vol >${c.vol}K`);
+      if (c.cap   !== null) parts.push(`MCap ≤$${c.cap}M`);
+      const sub = document.querySelector('.page-sub');
+      if (sub) sub.textContent = parts.join(' · ');
+    }
       const f = [];
       if (c.pmin  !== null) f.push(`sh_price_o${c.pmin}`);
       if (c.pmax  !== null) f.push(`sh_price_u${c.pmax}`);
@@ -489,7 +468,7 @@
           <div>
             <span class="ticker-sym">${t.ticker}</span>
             ${hasPlan}
-            ${t.appearances > 1 ? `<span class="appearances">🔁 ${t.appearances}x</span>` : ''}
+            ${t.appearances > 1 ? `<span class="appearances">${t.appearances}x</span>` : ''}
           </div>
           <span class="ticker-change ${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span>
         </div>
@@ -708,21 +687,20 @@
 
       try {
         const criteria = getCriteria();
-        const isPremarket = document.querySelector('.preset-btn.active')?.textContent.trim() === 'Pre-Market';
+        updateSubtitle(criteria);
         let res;
-        if (isPremarket) {
-          const params = new URLSearchParams({
-            pmin: criteria.pmin, pmax: criteria.pmax, chg: criteria.chg,
-            float: criteria.float, cap: criteria.cap
-          });
-          res = await fetch(WORKER + '/scan/premarket?' + params.toString());
-        } else {
+        if (isMarketHours()) {
           const filters = buildFinvizFilters(criteria);
           res = await fetch(WORKER + '/scan', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ filters })
           });
+        } else {
+          const params = new URLSearchParams(
+            Object.fromEntries(Object.entries(criteria).map(([k,v]) => [k, v ?? '']))
+          );
+          res = await fetch(WORKER + '/scan/premarket?' + params.toString());
         }
         const data = await res.json();
         if (data.error) throw new Error(data.error);
@@ -792,9 +770,6 @@
     }
 
     // ── LOAD LATEST ON PAGE LOAD ──
-    // Init preset fields
-    applyPreset('live', document.querySelector('.preset-btn.active'));
-
     (async () => {
       try {
         const res = await fetch(WORKER + '/scan/latest');

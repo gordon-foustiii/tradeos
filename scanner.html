@@ -708,12 +708,22 @@
 
       try {
         const criteria = getCriteria();
-        const filters = buildFinvizFilters(criteria);
-        const res = await fetch(WORKER + '/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filters })
-        });
+        const isPremarket = document.querySelector('.preset-btn.active')?.textContent.trim() === 'Pre-Market';
+        let res;
+        if (isPremarket) {
+          const params = new URLSearchParams({
+            pmin: criteria.pmin, pmax: criteria.pmax, chg: criteria.chg,
+            float: criteria.float, cap: criteria.cap
+          });
+          res = await fetch(WORKER + '/scan/premarket?' + params.toString());
+        } else {
+          const filters = buildFinvizFilters(criteria);
+          res = await fetch(WORKER + '/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filters })
+          });
+        }
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 

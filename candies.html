@@ -621,7 +621,7 @@ REASONING: [2-3 sentences. Be specific. Reference the actual numbers.]`;
               <div class="cticker">${t.ticker}${t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : ''}${t.claudeGrade ? ` <span class="pill g-m" style="font-size:11px;vertical-align:middle;background:rgba(244,185,66,0.15);color:#f4b942;border:1px solid rgba(244,185,66,0.3)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:2px"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>${t.claudeGrade}</span>` : ''}</div>
               <div class="cdate">${formatDate(t.date)}</div>
             </div>
-            <div class="cpnl ${isWin?'win':'loss'}">${isWin?'+':''}$${Math.abs(t.pnl).toFixed(2)}</div>
+            <div class="cpnl ${isWin?'win':'loss'}">${isWin?'+':'-'}$${Math.abs(t.pnl).toFixed(2)}</div>
           </div>
           ${drawCandle(t.entry, t.high, t.low, t.exit, isWin)}
           <div class="cstats">

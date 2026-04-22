@@ -190,7 +190,7 @@ document.body.appendChild(fab);
 document.body.appendChild(panel);
 
 let isOpen = false;
-let history = [];
+let history = JSON.parse(sessionStorage.getItem('muninn_history') || '[]');
 
 fab.addEventListener('click', () => {
   isOpen = !isOpen;
@@ -199,6 +199,31 @@ fab.addEventListener('click', () => {
   fab.innerHTML = isOpen ? '✕' : '🪶';
   if (isOpen) document.getElementById('muninn-input').focus();
 });
+
+// Restore messages from sessionStorage
+function restoreMessages() {
+  const saved = JSON.parse(sessionStorage.getItem('muninn_messages') || '[]');
+  if (!saved.length) return;
+  const msgs = document.getElementById('muninn-messages');
+  msgs.innerHTML = '';
+  saved.forEach(m => addMsg(m.role, m.text, false));
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function saveMessages() {
+  const msgs = document.getElementById('muninn-messages');
+  const saved = [];
+  msgs.querySelectorAll('.m-msg').forEach(el => {
+    const role = el.classList.contains('user') ? 'user' : 'muninn';
+    const label = el.querySelector('.m-label');
+    const text = label
+      ? el.innerHTML.replace(label.outerHTML, '').replace(/<br>/g, '\n').trim()
+      : el.textContent;
+    saved.push({ role, text });
+  });
+  sessionStorage.setItem('muninn_messages', JSON.stringify(saved));
+  sessionStorage.setItem('muninn_history', JSON.stringify(history));
+}
 
 // Auto-resize textarea
 const input = document.getElementById('muninn-input');
@@ -212,11 +237,13 @@ input.addEventListener('keydown', e => {
 
 window._muninnClear = function() {
   history = [];
+  sessionStorage.removeItem('muninn_history');
+  sessionStorage.removeItem('muninn_messages');
   document.getElementById('muninn-messages').innerHTML =
     '<div class="m-msg muninn"><div class="m-label">Muninn</div>The Den is open. What do you need?</div>';
 };
 
-function addMsg(role, text) {
+function addMsg(role, text, save = true) {
   const el = document.createElement('div');
   el.className = 'm-msg ' + role;
   if (role === 'muninn') {
@@ -227,6 +254,7 @@ function addMsg(role, text) {
   const msgs = document.getElementById('muninn-messages');
   msgs.appendChild(el);
   msgs.scrollTop = msgs.scrollHeight;
+  if (save) saveMessages();
   return el;
 }
 
@@ -261,7 +289,7 @@ window._muninnSend = async function() {
 
   history.push({ role: 'user', content: userContent });
 
-  const thinking = addMsg('muninn thinking', 'Thinking...');
+  const thinking = addMsg('muninn thinking', 'Thinking...', false);
 
   try {
     const res = await fetch(WORKER + '/ai', {
@@ -283,14 +311,18 @@ window._muninnSend = async function() {
 
     thinking.className = 'm-msg muninn';
     thinking.innerHTML = '<div class="m-label">Muninn</div>' + reply.replace(/\n/g, '<br>');
+    saveMessages();
 
   } catch(e) {
     thinking.className = 'm-msg muninn';
     thinking.innerHTML = '<div class="m-label">Muninn</div>Error: ' + e.message;
+    saveMessages();
   }
 
   send.disabled = false;
   document.getElementById('muninn-messages').scrollTop = 99999;
 };
+
+restoreMessages();
 
 });

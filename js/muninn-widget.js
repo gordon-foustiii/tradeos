@@ -191,7 +191,7 @@ document.head.appendChild(styleEl);
 // Build HTML
 const fab = document.createElement('button');
 fab.id = 'muninn-fab';
-fab.innerHTML = '🪶';
+fab.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></svg>';
 fab.title = 'Ask Muninn';
 
 const panel = document.createElement('div');
@@ -199,7 +199,7 @@ panel.id = 'muninn-panel';
 panel.innerHTML = `
   <div id="muninn-panel-header">
     <div>
-      <div class="m-title">🪶 Muninn</div>
+      <div class="m-title">Muninn</div>
       <div class="m-sub">Den of Wisdom Völva</div>
     </div>
     <button id="muninn-clear" onclick="window._muninnClear()">Clear</button>
@@ -215,7 +215,7 @@ panel.innerHTML = `
   </div>
   <div id="muninn-input-row">
     <input type="file" id="muninn-img-input" accept="image/*" capture="environment" />
-    <button id="muninn-img-btn" onclick="document.getElementById('muninn-img-input').click()" title="Attach chart">📷</button>
+    <button id="muninn-img-btn" onclick="document.getElementById('muninn-img-input').click()" title="Attach chart">+</button>
     <textarea id="muninn-input" placeholder="Ask anything..." rows="1"></textarea>
     <button id="muninn-send" onclick="window._muninnSend()">➤</button>
   </div>
@@ -255,7 +255,7 @@ fab.addEventListener('click', () => {
   isOpen = !isOpen;
   fab.classList.toggle('open', isOpen);
   panel.classList.toggle('open', isOpen);
-  fab.innerHTML = isOpen ? '✕' : '🪶';
+  fab.innerHTML = isOpen ? '✕' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></svg>';
   if (isOpen) document.getElementById('muninn-input').focus();
 });
 
@@ -343,7 +343,7 @@ function getTradeContext() {
     const ctx = document.getElementById('muninn-context-bar');
     if (ctx) {
       ctx.style.display = 'block';
-      ctx.textContent = '📊 Context: ' + t.ticker + ' · $' + (t.pnl||0).toFixed(2) + ' · ' + (t.winLoss||'');
+      ctx.textContent = 'Context: ' + t.ticker + ' · $' + (t.pnl||0).toFixed(2) + ' · ' + (t.winLoss||'');
     }
     return `\n\nCURRENT TRADE CONTEXT:\nTicker: ${t.ticker}\nDate: ${t.date}\nEntry: $${(t.entry||0).toFixed(2)}\nExit: $${(t.exit||0).toFixed(2)}\nP&L: $${(t.pnl||0).toFixed(2)} (${t.winLoss||''})\nHOD: $${(t.high||0).toFixed(2)}\nLOD: $${(t.low||0).toFixed(2)}\nCatalyst: ${t.catalyst||'not logged'}\nFloat: ${t.float||'not logged'}\nCaptures: ${t.captured||0}%`;
   }
@@ -370,7 +370,7 @@ window._muninnSend = async function() {
       { type: 'image', source: { type: 'base64', media_type: pendingImage.mediaType, data: pendingImage.base64 } },
       { type: 'text', text: userContent }
     ];
-    addMsg('user', '📷 ' + text);
+    addMsg('user', '[chart] ' + text);
     pendingImage = null;
     document.getElementById('muninn-img-preview').style.display = 'none';
     document.getElementById('muninn-img-thumb').src = '';

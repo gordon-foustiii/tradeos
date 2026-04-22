@@ -218,31 +218,31 @@
         <div class="criteria-grid" id="crit-grid" style="display:none">
           <div class="crit-field">
             <div class="crit-label">Price Min $</div>
-            <input class="crit-input" id="c-pmin" type="number" step="0.5" value="1" />
+            <input class="crit-input" id="c-pmin" type="number" step="0.5" placeholder="no min" />
           </div>
           <div class="crit-field">
             <div class="crit-label">Price Max $</div>
-            <input class="crit-input" id="c-pmax" type="number" step="1" value="20" />
+            <input class="crit-input" id="c-pmax" type="number" step="1" placeholder="no max" />
           </div>
           <div class="crit-field">
             <div class="crit-label">Change % Min</div>
-            <input class="crit-input" id="c-chg" type="number" step="1" value="10" />
+            <input class="crit-input" id="c-chg" type="number" step="1" placeholder="no min" />
           </div>
           <div class="crit-field">
             <div class="crit-label">Float Max (M)</div>
-            <input class="crit-input" id="c-float" type="number" step="1" value="20" />
+            <input class="crit-input" id="c-float" type="number" step="1" placeholder="no max" />
           </div>
           <div class="crit-field">
             <div class="crit-label">Rel Vol Min</div>
-            <input class="crit-input" id="c-rvol" type="number" step="0.5" value="2" />
+            <input class="crit-input" id="c-rvol" type="number" step="0.5" placeholder="no min" />
           </div>
           <div class="crit-field">
             <div class="crit-label">Vol Min (K)</div>
-            <input class="crit-input" id="c-vol" type="number" step="50" value="500" />
+            <input class="crit-input" id="c-vol" type="number" step="50" placeholder="no min" />
           </div>
           <div class="crit-field">
             <div class="crit-label">Mkt Cap Max (M)</div>
-            <input class="crit-input" id="c-cap" type="number" step="100" value="2000" />
+            <input class="crit-input" id="c-cap" type="number" step="100" placeholder="no max" />
           </div>
         </div>
       </div>
@@ -428,27 +428,27 @@
     }
 
     function getCriteria() {
+      const v = id => document.getElementById(id).value.trim();
       return {
-        pmin:  parseFloat(document.getElementById('c-pmin').value)  || 1,
-        pmax:  parseFloat(document.getElementById('c-pmax').value)  || 20,
-        chg:   parseFloat(document.getElementById('c-chg').value)   || 0,
-        float: parseFloat(document.getElementById('c-float').value) || 20,
-        rvol:  parseFloat(document.getElementById('c-rvol').value)  || 0,
-        vol:   parseFloat(document.getElementById('c-vol').value)   || 0,
-        cap:   parseFloat(document.getElementById('c-cap').value)   || 0,
+        pmin:  v('c-pmin')  !== '' ? parseFloat(v('c-pmin'))  : null,
+        pmax:  v('c-pmax')  !== '' ? parseFloat(v('c-pmax'))  : null,
+        chg:   v('c-chg')   !== '' ? parseFloat(v('c-chg'))   : null,
+        float: v('c-float') !== '' ? parseFloat(v('c-float')) : null,
+        rvol:  v('c-rvol')  !== '' ? parseFloat(v('c-rvol'))  : null,
+        vol:   v('c-vol')   !== '' ? parseFloat(v('c-vol'))   : null,
+        cap:   v('c-cap')   !== '' ? parseFloat(v('c-cap'))   : null,
       };
     }
 
     function buildFinvizFilters(c) {
-      const f = [
-        `sh_price_o${c.pmin}`,
-        `sh_price_u${c.pmax}`,
-        `sh_floatsh_u${c.float}`,
-      ];
-      if (c.chg > 0)  f.push(`ta_change_o${c.chg}`);
-      if (c.rvol > 0) f.push(`sh_relvol_o${c.rvol}`);
-      if (c.vol > 0)  f.push(`sh_curvol_o${c.vol}`);
-      if (c.cap > 0)  f.push(`cap_smallunder`); // Finviz cap filter — smallunder = <2B
+      const f = [];
+      if (c.pmin  !== null) f.push(`sh_price_o${c.pmin}`);
+      if (c.pmax  !== null) f.push(`sh_price_u${c.pmax}`);
+      if (c.float !== null) f.push(`sh_floatsh_u${c.float}`);
+      if (c.chg   !== null) f.push(`ta_change_o${c.chg}`);
+      if (c.rvol  !== null && c.rvol > 0) f.push(`sh_relvol_o${c.rvol}`);
+      if (c.vol   !== null && c.vol  > 0) f.push(`sh_curvol_o${c.vol}`);
+      if (c.cap   !== null) f.push(`cap_smallunder`);
       return f.join(',');
     }
 
@@ -792,6 +792,9 @@
     }
 
     // ── LOAD LATEST ON PAGE LOAD ──
+    // Init preset fields
+    applyPreset('live', document.querySelector('.preset-btn.active'));
+
     (async () => {
       try {
         const res = await fetch(WORKER + '/scan/latest');

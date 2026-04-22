@@ -1,15 +1,16 @@
-const CACHE = 'tradeos-v1';
+const CACHE = 'tradeos-v2';
 const ASSETS = [
   '/tradeos/',
   '/tradeos/index.html',
   '/tradeos/journal.html',
   '/tradeos/candies.html',
   '/tradeos/calculator.html',
-  '/tradeos/playbook.html',
-  '/tradeos/notes.html',
+  '/tradeos/tools.html',
+  '/tradeos/scanner.html',
   '/tradeos/css/app.css',
   '/tradeos/js/api.js',
   '/tradeos/js/nav.js',
+  '/tradeos/js/muninn-widget.js',
   '/tradeos/manifest.json'
 ];
 

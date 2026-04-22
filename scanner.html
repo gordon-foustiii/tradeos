@@ -43,6 +43,31 @@
     .status-dot.live { background:#2cb67d;animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 
+    /* ── CRITERIA EDITOR ── */
+    .criteria-bar { margin-bottom:12px; }
+    .preset-row { display:flex;gap:6px;margin-bottom:8px; }
+    .preset-btn {
+      flex:1;padding:7px 4px;border-radius:8px;font-size:11px;font-weight:700;
+      border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.35);
+      cursor:pointer;background:transparent;font-family:inherit;text-align:center;transition:all .12s;
+    }
+    .preset-btn.active { background:rgba(127,90,240,0.2);color:#a78bfa;border-color:rgba(127,90,240,0.4); }
+    .criteria-grid {
+      display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;
+      background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+      border-radius:10px;padding:10px;
+    }
+    .crit-field { display:flex;flex-direction:column;gap:3px; }
+    .crit-label { font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em; }
+    .crit-input {
+      background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+      border-radius:7px;padding:6px 8px;color:#e8e8f0;font-size:13px;font-weight:700;
+      font-family:inherit;outline:none;width:100%;box-sizing:border-box;
+    }
+    .crit-input:focus { border-color:rgba(127,90,240,0.5); }
+    .crit-input:disabled { opacity:.35;cursor:default; }
+    .criteria-toggle { font-size:11px;color:rgba(127,90,240,0.7);cursor:pointer;margin-bottom:6px;display:inline-block; }
+
     /* ── MODAL ── */
     .modal-overlay {
       display:none;position:fixed;inset:0;z-index:1000;
@@ -181,6 +206,43 @@
 
     <!-- Live Results -->
     <div id="tab-live">
+
+      <!-- Criteria Editor -->
+      <div class="criteria-bar">
+        <div class="preset-row">
+          <button class="preset-btn" onclick="applyPreset('premarket',this)">🌅 Pre-Market</button>
+          <button class="preset-btn active" onclick="applyPreset('live',this)">⚡ Live Session</button>
+          <button class="preset-btn" onclick="applyPreset('custom',this)">✏️ Custom</button>
+        </div>
+        <span class="criteria-toggle" id="crit-toggle" onclick="toggleCriteria()">▼ Show Filters</span>
+        <div class="criteria-grid" id="crit-grid" style="display:none">
+          <div class="crit-field">
+            <div class="crit-label">Price Min $</div>
+            <input class="crit-input" id="c-pmin" type="number" step="0.5" value="1" />
+          </div>
+          <div class="crit-field">
+            <div class="crit-label">Price Max $</div>
+            <input class="crit-input" id="c-pmax" type="number" step="1" value="20" />
+          </div>
+          <div class="crit-field">
+            <div class="crit-label">Change % Min</div>
+            <input class="crit-input" id="c-chg" type="number" step="1" value="10" />
+          </div>
+          <div class="crit-field">
+            <div class="crit-label">Float Max (M)</div>
+            <input class="crit-input" id="c-float" type="number" step="1" value="20" />
+          </div>
+          <div class="crit-field">
+            <div class="crit-label">Rel Vol Min</div>
+            <input class="crit-input" id="c-rvol" type="number" step="0.5" value="2" />
+          </div>
+          <div class="crit-field">
+            <div class="crit-label">Vol Min (K)</div>
+            <input class="crit-input" id="c-vol" type="number" step="50" value="500" />
+          </div>
+        </div>
+      </div>
+
       <div class="scan-header">
         <div class="last-scan"><span class="status-dot" id="status-dot"></span><span id="last-scan-time">Never scanned</span></div>
         <button class="scan-btn" id="scan-btn" onclick="runScan()">Run Scan</button>
@@ -325,9 +387,64 @@
 
     const WORKER = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
     let activeTab = 'live';
-    let currentTicker = null; // holds full ticker object for modal
+    let currentTicker = null;
     let selectedCats = [];
     let selectedRating = null;
+
+    // ── CRITERIA PRESETS ──
+    const PRESETS = {
+      premarket: { pmin: 1, pmax: 20, chg: 3,  float: 20, rvol: 0,  vol: 0   },
+      live:      { pmin: 1, pmax: 20, chg: 10, float: 20, rvol: 2,  vol: 500 },
+    };
+
+    function applyPreset(name, btn) {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (name === 'custom') return;
+      const p = PRESETS[name];
+      document.getElementById('c-pmin').value  = p.pmin;
+      document.getElementById('c-pmax').value  = p.pmax;
+      document.getElementById('c-chg').value   = p.chg;
+      document.getElementById('c-float').value = p.float;
+      document.getElementById('c-rvol').value  = p.rvol;
+      document.getElementById('c-vol').value   = p.vol;
+      const sub = document.querySelector('.page-sub');
+      if (sub) sub.textContent = name === 'premarket'
+        ? `Price $${p.pmin}–${p.pmax} · Change >${p.chg}% · Float ≤${p.float}M · Pre-Market Mode`
+        : `Price $${p.pmin}–${p.pmax} · Change >${p.chg}% · Float ≤${p.float}M · RelVol >${p.rvol}x · Vol >${p.vol}K`;
+    }
+
+    function toggleCriteria() {
+      const grid = document.getElementById('crit-grid');
+      const toggle = document.getElementById('crit-toggle');
+      const open = grid.style.display === 'none';
+      grid.style.display = open ? 'grid' : 'none';
+      toggle.textContent = open ? '▲ Hide Filters' : '▼ Show Filters';
+    }
+
+    function getCriteria() {
+      return {
+        pmin:  parseFloat(document.getElementById('c-pmin').value)  || 1,
+        pmax:  parseFloat(document.getElementById('c-pmax').value)  || 20,
+        chg:   parseFloat(document.getElementById('c-chg').value)   || 0,
+        float: parseFloat(document.getElementById('c-float').value) || 20,
+        rvol:  parseFloat(document.getElementById('c-rvol').value)  || 0,
+        vol:   parseFloat(document.getElementById('c-vol').value)   || 0,
+      };
+    }
+
+    function buildFinvizFilters(c) {
+      const f = [
+        `sh_price_o${c.pmin}`,
+        `sh_price_u${c.pmax}`,
+        `cap_smallunder`,
+        `sh_floatsh_u${c.float}`,
+      ];
+      if (c.chg > 0)  f.push(`ta_change_o${c.chg}`);
+      if (c.rvol > 0) f.push(`sh_relvol_o${c.rvol}`);
+      if (c.vol > 0)  f.push(`sh_curvol_o${c.vol}`);
+      return f.join(',');
+    }
 
     // ── TABS ──
     function setTab(tab, btn) {
@@ -584,7 +701,13 @@
       timeEl.textContent = 'Scanning...';
 
       try {
-        const res = await fetch(WORKER + '/scan', { method: 'POST' });
+        const criteria = getCriteria();
+        const filters = buildFinvizFilters(criteria);
+        const res = await fetch(WORKER + '/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filters })
+        });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 

@@ -128,6 +128,34 @@ const styles = `
     max-height: 100px;
   }
   #muninn-input:focus { border-color: rgba(127,90,240,0.5); }
+  #muninn-img-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-end;
+  }
+  #muninn-img-btn:hover { border-color: rgba(127,90,240,0.4); color: #a78bfa; }
+  #muninn-img-input { display: none; }
+  #muninn-img-preview {
+    padding: 6px 16px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: rgba(127,90,240,0.08);
+    border-bottom: 1px solid rgba(127,90,240,0.15);
+  }
+  #muninn-img-preview img { height: 40px; border-radius: 6px; object-fit: cover; }
+  #muninn-img-preview .img-name { font-size: 11px; color: #a78bfa; flex: 1; }
+  #muninn-img-remove { background: none; border: none; color: rgba(255,255,255,0.3); cursor: pointer; font-size: 14px; }
   #muninn-send {
     background: #7f5af0;
     border: none;
@@ -177,10 +205,17 @@ panel.innerHTML = `
     <button id="muninn-clear" onclick="window._muninnClear()">Clear</button>
   </div>
   <div id="muninn-context-bar" id="muninn-ctx"></div>
+  <div id="muninn-img-preview">
+    <img id="muninn-img-thumb" src="" />
+    <span class="img-name">Chart attached</span>
+    <button class="img-remove" onclick="window._muninnRemoveImg()">✕</button>
+  </div>
   <div id="muninn-messages">
     <div class="m-msg muninn"><div class="m-label">Muninn</div>The Den is open. What do you need?</div>
   </div>
   <div id="muninn-input-row">
+    <input type="file" id="muninn-img-input" accept="image/*" capture="environment" />
+    <button id="muninn-img-btn" onclick="document.getElementById('muninn-img-input').click()" title="Attach chart">📷</button>
     <textarea id="muninn-input" placeholder="Ask anything..." rows="1"></textarea>
     <button id="muninn-send" onclick="window._muninnSend()">➤</button>
   </div>
@@ -191,6 +226,30 @@ document.body.appendChild(panel);
 
 let isOpen = false;
 let history = JSON.parse(sessionStorage.getItem('muninn_history') || '[]');
+let pendingImage = null; // { base64, mediaType }
+
+// Image file handler
+document.getElementById('muninn-img-input').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    const base64 = dataUrl.split(',')[1];
+    const mediaType = file.type || 'image/jpeg';
+    pendingImage = { base64, mediaType };
+    document.getElementById('muninn-img-thumb').src = dataUrl;
+    document.getElementById('muninn-img-preview').style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
+
+window._muninnRemoveImg = function() {
+  pendingImage = null;
+  document.getElementById('muninn-img-preview').style.display = 'none';
+  document.getElementById('muninn-img-thumb').src = '';
+};
 
 fab.addEventListener('click', () => {
   isOpen = !isOpen;
@@ -258,6 +317,25 @@ function addMsg(role, text, save = true) {
   return el;
 }
 
+function getESTContext() {
+  const now = new Date();
+  const est = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const h = est.getHours();
+  const m = est.getMinutes();
+  const timeStr = est.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' });
+  const dateStr = est.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/New_York' });
+
+  let session = '';
+  if (h < 4)                        session = 'Overnight (market closed)';
+  else if (h < 9 || (h === 9 && m < 30)) session = 'Pre-Market';
+  else if (h < 10 || (h === 10 && m <= 30)) session = 'Live Session — Primary Window';
+  else if (h < 16)                   session = 'Live Session — Extended';
+  else if (h < 20)                   session = 'After-Hours';
+  else                               session = 'Market Closed';
+
+  return `\n\nCURRENT TIME (EST): ${timeStr} — ${dateStr}\nSESSION: ${session}`;
+}
+
 // Get trade context if available (from candies page)
 function getTradeContext() {
   if (typeof window._currentEditTrade !== 'undefined' && window._currentEditTrade) {
@@ -282,12 +360,26 @@ window._muninnSend = async function() {
   input.style.height = 'auto';
   send.disabled = true;
 
-  addMsg('user', text);
-
   const tradeContext = getTradeContext();
-  const userContent = text + tradeContext;
+  const timeContext = getESTContext();
+  const userContent = text + timeContext + tradeContext;
 
-  history.push({ role: 'user', content: userContent });
+  let msgContent;
+  if (pendingImage) {
+    msgContent = [
+      { type: 'image', source: { type: 'base64', media_type: pendingImage.mediaType, data: pendingImage.base64 } },
+      { type: 'text', text: userContent }
+    ];
+    addMsg('user', '📷 ' + text);
+    pendingImage = null;
+    document.getElementById('muninn-img-preview').style.display = 'none';
+    document.getElementById('muninn-img-thumb').src = '';
+  } else {
+    msgContent = userContent;
+    addMsg('user', text);
+  }
+
+  history.push({ role: 'user', content: msgContent });
 
   const thinking = addMsg('muninn thinking', 'Thinking...', false);
 

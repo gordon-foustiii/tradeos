@@ -46,19 +46,16 @@
   <div id="trade-modal" onclick="if(event.target===this)closeModal()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 0 40px">
     <div style="max-width:480px;margin:0 auto;padding:0 16px">
       <div style="background:#1a1a2e;border-radius:16px;border:1px solid rgba(255,255,255,0.08);overflow:hidden">
-        <div id="modal-header" style="padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.06)">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
-            <div>
-              <div id="modal-ticker" style="font-size:26px;font-weight:900;letter-spacing:-0.5px;color:#e8e8f0"></div>
-              <div id="modal-date" style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:3px"></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-              <div id="modal-pnl" style="font-size:22px;font-weight:800"></div>
-              <button id="grade-btn" onclick="autoGrade()" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);color:#f4b942;padding:6px 8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg></button>
-              <button id="edit-btn" onclick="openEditForm()" style="background:rgba(127,90,240,0.15);border:1px solid rgba(127,90,240,0.3);color:#7f5af0;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Edit</button>
-              <button onclick="closeModal()" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.6);width:34px;height:34px;border-radius:8px;font-size:20px;cursor:pointer;font-family:inherit;line-height:1;padding:0">×</button>
-            </div>
+        <div id="modal-header" style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.06)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div id="modal-ticker" style="font-size:22px;font-weight:900;letter-spacing:-0.5px;color:#e8e8f0;flex-shrink:0"></div>
+            <div id="modal-pills" style="display:flex;align-items:center;gap:5px;flex-shrink:0"></div>
+            <div id="modal-pnl" style="font-size:20px;font-weight:800;margin-left:auto;flex-shrink:0"></div>
+            <button id="grade-btn" onclick="autoGrade()" style="background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.3);color:#f4b942;padding:6px 8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg></button>
+            <button id="edit-btn" onclick="openEditForm()" style="background:rgba(127,90,240,0.15);border:1px solid rgba(127,90,240,0.3);color:#7f5af0;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Edit</button>
+            <button onclick="closeModal()" style="background:rgba(255,255,255,0.08);border:none;color:rgba(255,255,255,0.6);width:32px;height:32px;border-radius:8px;font-size:18px;cursor:pointer;font-family:inherit;line-height:1;padding:0;flex-shrink:0">×</button>
           </div>
+          <div id="modal-date" style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:6px"></div>
         </div>
         <!-- Chart -->
         <div id="modal-tv-chart" style="padding:6px 20px 0">
@@ -256,13 +253,14 @@
       const pnlColor = isWin ? '#2cb67d' : '#ef4565';
       const capColor = t.captured >= 70 ? '#2cb67d' : t.captured >= 40 ? '#f4b942' : '#ef4565';
 
-      document.getElementById('modal-ticker').innerHTML = t.ticker +
-        (t.grade ? ` <span class="pill ${gradeClass(t.grade)}" style="font-size:11px;vertical-align:middle">${t.grade}</span>` : '') +
-        (t.claudeGrade ? ` <span class="pill" style="font-size:11px;vertical-align:middle;background:rgba(244,185,66,0.15);color:#f4b942;border:1px solid rgba(244,185,66,0.3)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:2px"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>${t.claudeGrade}</span>` : '');
+      document.getElementById('modal-ticker').textContent = t.ticker;
+      document.getElementById('modal-pills').innerHTML =
+        (t.grade ? `<span class="pill ${gradeClass(t.grade)}" style="font-size:11px">${t.grade}</span>` : '') +
+        (t.claudeGrade ? `<span class="pill" style="font-size:11px;background:rgba(244,185,66,0.15);color:#f4b942;border:1px solid rgba(244,185,66,0.3)"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:2px"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>${t.claudeGrade}</span>` : '');
       document.getElementById('modal-date').textContent = formatDate(t.date) + (t.time ? '  ·  ' + t.time : '');
       const pnlEl = document.getElementById('modal-pnl');
       pnlEl.style.color = pnlColor;
-      pnlEl.textContent = (isWin ? '+' : '') + '$' + Math.abs(t.pnl).toFixed(2);
+      pnlEl.textContent = (isWin ? '+' : '-') + '$' + Math.abs(t.pnl).toFixed(2);
       document.getElementById('modal-header').style.background = isWin ? 'rgba(44,182,125,0.06)' : 'rgba(239,69,101,0.06)';
       document.getElementById('modal-candle').innerHTML = drawCandle(t.entry, t.high, t.low, t.exit, isWin);
 

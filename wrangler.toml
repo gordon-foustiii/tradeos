@@ -1,0 +1,7 @@
+name = "tradeos-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "TRADEOS_USERS"
+id = "aae1638fc4d144f0a8accd0cd956a7bc"

@@ -210,9 +210,9 @@
       <!-- Criteria Editor -->
       <div class="criteria-bar">
         <div class="preset-row">
-          <button class="preset-btn" onclick="applyPreset('premarket',this)">🌅 Pre-Market</button>
-          <button class="preset-btn active" onclick="applyPreset('live',this)">⚡ Live Session</button>
-          <button class="preset-btn" onclick="applyPreset('custom',this)">✏️ Custom</button>
+          <button class="preset-btn" onclick="applyPreset('premarket',this)">Pre-Market</button>
+          <button class="preset-btn active" onclick="applyPreset('live',this)">Live Session</button>
+          <button class="preset-btn" onclick="applyPreset('custom',this)">Custom</button>
         </div>
         <span class="criteria-toggle" id="crit-toggle" onclick="toggleCriteria()">▼ Show Filters</span>
         <div class="criteria-grid" id="crit-grid" style="display:none">
@@ -239,6 +239,10 @@
           <div class="crit-field">
             <div class="crit-label">Vol Min (K)</div>
             <input class="crit-input" id="c-vol" type="number" step="50" value="500" />
+          </div>
+          <div class="crit-field">
+            <div class="crit-label">Mkt Cap Max (M)</div>
+            <input class="crit-input" id="c-cap" type="number" step="100" value="2000" />
           </div>
         </div>
       </div>
@@ -393,8 +397,8 @@
 
     // ── CRITERIA PRESETS ──
     const PRESETS = {
-      premarket: { pmin: 1, pmax: 20, chg: 3,  float: 20, rvol: 0,  vol: 0   },
-      live:      { pmin: 1, pmax: 20, chg: 10, float: 20, rvol: 2,  vol: 500 },
+      premarket: { pmin: 1, pmax: 20, chg: 3,  float: 20, rvol: 0,  vol: 0,   cap: 2000 },
+      live:      { pmin: 1, pmax: 20, chg: 10, float: 20, rvol: 2,  vol: 500, cap: 2000 },
     };
 
     function applyPreset(name, btn) {
@@ -408,6 +412,7 @@
       document.getElementById('c-float').value = p.float;
       document.getElementById('c-rvol').value  = p.rvol;
       document.getElementById('c-vol').value   = p.vol;
+      document.getElementById('c-cap').value   = p.cap;
       const sub = document.querySelector('.page-sub');
       if (sub) sub.textContent = name === 'premarket'
         ? `Price $${p.pmin}–${p.pmax} · Change >${p.chg}% · Float ≤${p.float}M · Pre-Market Mode`
@@ -430,6 +435,7 @@
         float: parseFloat(document.getElementById('c-float').value) || 20,
         rvol:  parseFloat(document.getElementById('c-rvol').value)  || 0,
         vol:   parseFloat(document.getElementById('c-vol').value)   || 0,
+        cap:   parseFloat(document.getElementById('c-cap').value)   || 0,
       };
     }
 
@@ -437,12 +443,12 @@
       const f = [
         `sh_price_o${c.pmin}`,
         `sh_price_u${c.pmax}`,
-        `cap_smallunder`,
         `sh_floatsh_u${c.float}`,
       ];
       if (c.chg > 0)  f.push(`ta_change_o${c.chg}`);
       if (c.rvol > 0) f.push(`sh_relvol_o${c.rvol}`);
       if (c.vol > 0)  f.push(`sh_curvol_o${c.vol}`);
+      if (c.cap > 0)  f.push(`cap_smallunder`); // Finviz cap filter — smallunder = <2B
       return f.join(',');
     }
 

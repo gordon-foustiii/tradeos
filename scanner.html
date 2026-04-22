@@ -406,7 +406,7 @@
       const now = new Date();
       const est = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
       const h = est.getHours(), m = est.getMinutes();
-      return (h > 9 || (h === 9 && m >= 30)) && h < 16;
+      return (h > 9 || (h === 9 && m >= 30)) && (h < 16);
     }
 
     function updateSubtitle(c) {
@@ -700,7 +700,7 @@
           });
         } else {
           const params = new URLSearchParams(
-            Object.fromEntries(Object.entries(criteria).map(([k,v]) => [k, v ?? '']))
+            Object.fromEntries(Object.entries(criteria).filter(([k,v]) => v !== null).map(([k,v]) => [k, v]))
           );
           res = await fetch(WORKER + '/scan/premarket?' + params.toString());
         }

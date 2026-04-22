@@ -690,11 +690,19 @@
       try {
         const criteria = getCriteria();
         updateSubtitle(criteria);
+<<<<<<< HEAD
         let res;
         const params = new URLSearchParams(
           Object.fromEntries(Object.entries(criteria).filter(([k,v]) => v !== null).map(([k,v]) => [k, v]))
         );
         res = await fetch(WORKER + '/scan/premarket?' + params.toString());
+=======
+        const params = new URLSearchParams(
+          Object.fromEntries(Object.entries(criteria).filter(([k,v]) => v !== null).map(([k,v]) => [k, v]))
+        );
+        // Use Benzinga for all scans (Finviz blocks Worker requests)
+        const res = await fetch(WORKER + '/scan/premarket?' + params.toString());
+>>>>>>> 5b17829 (update)
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 

@@ -1,4 +1,4 @@
-const CACHE = 'tradeos-v2';
+const CACHE = 'tradeos-v3';
 const ASSETS = [
   '/tradeos/',
   '/tradeos/index.html',
@@ -11,6 +11,7 @@ const ASSETS = [
   '/tradeos/js/api.js',
   '/tradeos/js/nav.js',
   '/tradeos/js/muninn-widget.js',
+  '/tradeos/settings.html',
   '/tradeos/manifest.json'
 ];
 
@@ -27,7 +28,16 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('script.google.com')) return;
+  // Never cache Worker API calls or external requests
+  if (
+    e.request.url.includes('workers.dev') ||
+    e.request.url.includes('script.google.com') ||
+    e.request.url.includes('googleapis.com') ||
+    e.request.url.includes('finviz.com') ||
+    e.request.url.includes('benzinga.com') ||
+    e.request.method !== 'GET'
+  ) return;
+
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );

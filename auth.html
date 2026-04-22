@@ -25,9 +25,10 @@
       var params = new URLSearchParams(window.location.search);
       var code = params.get('code');
       var error = params.get('error');
+      var state = params.get('state');
 
       if (error) {
-        document.getElementById('status').textContent = 'Sign in failed';
+        document.getElementById('status').textContent = 'Auth failed';
         document.getElementById('sub').textContent = error;
         return;
       }
@@ -37,11 +38,48 @@
         return;
       }
 
+      // Check if this is a Schwab callback (state matches what we stored)
+      var schwabState = sessionStorage.getItem('schwab_state');
+      if (state && schwabState && state === schwabState) {
+        sessionStorage.removeItem('schwab_state');
+        await handleSchwabCallback(code);
+        return;
+      }
+
+      // Otherwise handle as Google OAuth
+      await handleGoogleCallback(code);
+    }
+
+    async function handleSchwabCallback(code) {
+      document.getElementById('status').textContent = 'Connecting Schwab...';
+      try {
+        var idToken = localStorage.getItem('id_token');
+        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/schwab/callback?code=' + encodeURIComponent(code), {
+          headers: { 'Authorization': 'Bearer ' + idToken }
+        });
+        var data = await res.json();
+        if (data.ok) {
+          document.getElementById('status').textContent = 'Schwab Connected!';
+          document.getElementById('sub').textContent = 'Redirecting to profile...';
+          setTimeout(function() { window.location.href = '/tradeos/settings.html'; }, 800);
+        } else {
+          document.getElementById('status').textContent = 'Schwab connection failed';
+          document.getElementById('sub').textContent = data.error || 'Unknown error';
+        }
+      } catch(e) {
+        document.getElementById('status').textContent = 'Schwab connection failed';
+        document.getElementById('sub').textContent = e.message;
+      }
+    }
+
+    async function handleGoogleCallback(code) {
+      document.getElementById('status').textContent = 'Signing you in...';
       try {
         var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback?code=' + code);
         var data = await res.json();
 
         if (data.id_token) {
+          localStorage.setItem('id_token', data.id_token);
           localStorage.setItem('tradeos_id_token', data.id_token);
           localStorage.setItem('tradeos_access_token', data.access_token);
           localStorage.setItem('tradeos_token_expiry', Date.now() + (data.expires_in * 1000));

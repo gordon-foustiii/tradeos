@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>TradeOS — Profile</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <link rel="stylesheet" href="/tradeos/css/app.css">
+  <style>
+    .profile-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, #7f5af0, #5a3eb8);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 900; color: white;
+      flex-shrink: 0;
+    }
+    .profile-info { flex: 1; }
+    .profile-name { font-size: 18px; font-weight: 800; color: #e8e8f0; }
+    .profile-email { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+    .profile-row { display: flex; align-items: center; gap: 14px; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+    .section-title {
+      font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.3);
+      text-transform: uppercase; letter-spacing: .1em; margin: 24px 0 10px;
+    }
+
+    .integration-card {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 16px; margin-bottom: 10px;
+    }
+    .integration-header { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+    .integration-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .integration-name { font-size: 15px; font-weight: 800; color: #e8e8f0; }
+    .integration-desc { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+    .integration-status {
+      margin-left: auto; font-size: 11px; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .status-connected { background: rgba(44,182,125,0.15); color: #2cb67d; }
+    .status-disconnected { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.3); }
+
+    .connect-btn {
+      width: 100%; margin-top: 12px; padding: 11px;
+      border-radius: 10px; font-size: 13px; font-weight: 700;
+      cursor: pointer; font-family: inherit; border: none; transition: opacity .15s;
+    }
+    .connect-btn.primary { background: #7f5af0; color: white; }
+    .connect-btn.secondary { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.1); }
+    .connect-btn:disabled { opacity: .4; cursor: default; }
+    .connect-btn.danger { background: rgba(239,69,101,0.15); color: #ef4565; border: 1px solid rgba(239,69,101,0.2); }
+
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .stat-tile { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; text-align: center; }
+    .stat-tile .sv { font-size: 16px; font-weight: 900; color: #e8e8f0; }
+    .stat-tile .sl { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+
+    .schwab-balance { font-size: 28px; font-weight: 900; color: #e8e8f0; margin: 12px 0 4px; }
+    .schwab-label { font-size: 11px; color: rgba(255,255,255,0.3); }
+
+    .sign-out-btn {
+      width: 100%; margin-top: 8px; padding: 13px;
+      border-radius: 12px; font-size: 14px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      background: rgba(239,69,101,0.1); color: #ef4565;
+      border: 1px solid rgba(239,69,101,0.2); transition: opacity .15s;
+    }
+    .sign-out-btn:hover { opacity: .8; }
+
+    .token-info { font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 8px; text-align: center; }
+  </style>
+</head>
+<script src="/tradeos/js/muninn-widget.js"></script>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">Trade<span>OS</span></div>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title">Profile</div>
+      <div class="page-sub">Account & Integrations</div>
+    </div>
+
+    <!-- User Profile -->
+    <div class="profile-row">
+      <div class="profile-avatar" id="avatar">—</div>
+      <div class="profile-info">
+        <div class="profile-name" id="user-name">Loading...</div>
+        <div class="profile-email" id="user-email"></div>
+      </div>
+    </div>
+
+    <!-- Trading Stats -->
+    <div class="section-title">Performance</div>
+    <div class="stat-row" id="perf-stats">
+      <div class="stat-tile"><div class="sv" id="stat-trades">—</div><div class="sl">Trades</div></div>
+      <div class="stat-tile"><div class="sv" id="stat-winrate">—</div><div class="sl">Win Rate</div></div>
+      <div class="stat-tile"><div class="sv" id="stat-pnl" style="color:#2cb67d">—</div><div class="sl">Net P&L</div></div>
+    </div>
+
+    <!-- Integrations -->
+    <div class="section-title">Integrations</div>
+
+    <!-- Schwab -->
+    <div class="integration-card">
+      <div class="integration-header">
+        <div class="integration-icon" style="background:rgba(0,91,168,0.2)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#005BA8" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div>
+          <div class="integration-name">Charles Schwab</div>
+          <div class="integration-desc">Live account data · Order history · Quotes</div>
+        </div>
+        <div class="integration-status" id="schwab-status-badge">—</div>
+      </div>
+      <div id="schwab-connected" style="display:none">
+        <div class="schwab-label">Account Value</div>
+        <div class="schwab-balance" id="schwab-balance">—</div>
+        <div class="stat-row">
+          <div class="stat-tile"><div class="sv" id="schwab-cash">—</div><div class="sl">Cash</div></div>
+          <div class="stat-tile"><div class="sv" id="schwab-positions">—</div><div class="sl">Positions</div></div>
+          <div class="stat-tile"><div class="sv" id="schwab-daypl">—</div><div class="sl">Day P&L</div></div>
+        </div>
+        <button class="connect-btn danger" onclick="disconnectSchwab()" style="margin-top:12px">Disconnect Schwab</button>
+      </div>
+      <div id="schwab-disconnected">
+        <button class="connect-btn primary" onclick="connectSchwab()">Connect Schwab Account</button>
+      </div>
+      <div class="token-info" id="schwab-token-info"></div>
+    </div>
+
+    <!-- Benzinga -->
+    <div class="integration-card">
+      <div class="integration-header">
+        <div class="integration-icon" style="background:rgba(244,185,66,0.15)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f4b942" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div>
+          <div class="integration-name">Benzinga</div>
+          <div class="integration-desc">Pre-market movers · News · Catalyst data</div>
+        </div>
+        <div class="integration-status status-connected">Connected</div>
+      </div>
+    </div>
+
+    <!-- Google -->
+    <div class="integration-card">
+      <div class="integration-header">
+        <div class="integration-icon" style="background:rgba(66,133,244,0.15)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4285F4" stroke-width="2"><path d="M20.283 10.356h-8.327v3.451h4.792c-.446 2.193-2.313 3.453-4.792 3.453a5.27 5.27 0 01-5.279-5.28 5.27 5.27 0 015.279-5.279c1.259 0 2.397.447 3.29 1.178l2.6-2.599c-1.584-1.381-3.615-2.233-5.89-2.233a8.908 8.908 0 00-8.934 8.934 8.907 8.907 0 008.934 8.934c4.467 0 8.529-3.249 8.529-8.934 0-.528-.081-1.097-.202-1.625z"/></svg>
+        </div>
+        <div>
+          <div class="integration-name">Google</div>
+          <div class="integration-desc">Sign-in · Trade journal sync</div>
+        </div>
+        <div class="integration-status status-connected">Connected</div>
+      </div>
+    </div>
+
+    <!-- Sign Out -->
+    <div class="section-title">Account</div>
+    <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+
+  </div>
+
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+  <script src="/tradeos/js/nav.js"></script>
+  <script src="/tradeos/js/api.js"></script>
+  <script>
+    renderNav('settings');
+
+    const WORKER = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
+    const SCHWAB_CLIENT_ID = 't9GQQMlvS33RM78rOOo4qFQ1tnAyUL5M4p8pbqXVkziN0FXV';
+    const SCHWAB_REDIRECT = 'https://gordon-foustiii.github.io/tradeos/auth.html';
+
+    // ── LOAD USER ──
+    async function loadProfile() {
+      const token = localStorage.getItem('id_token');
+      if (!token) { window.location.href = '/tradeos/login.html'; return; }
+
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const name = payload.name || payload.email;
+        document.getElementById('user-name').textContent = name;
+        document.getElementById('user-email').textContent = payload.email;
+        document.getElementById('avatar').textContent = name.charAt(0).toUpperCase();
+      } catch(e) {}
+
+      // Load stats
+      try {
+        const res = await callAPI('stats');
+        const s = await res.json();
+        document.getElementById('stat-trades').textContent = s.total || 0;
+        document.getElementById('stat-winrate').textContent = (s.winRate || 0) + '%';
+        const pnl = s.totalPnl || 0;
+        const pnlEl = document.getElementById('stat-pnl');
+        pnlEl.textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(0);
+        pnlEl.style.color = pnl >= 0 ? '#2cb67d' : '#ef4565';
+      } catch(e) {}
+
+      // Check Schwab connection
+      await checkSchwabStatus();
+    }
+
+    // ── SCHWAB ──
+    async function checkSchwabStatus() {
+      const badge = document.getElementById('schwab-status-badge');
+      const connected = document.getElementById('schwab-connected');
+      const disconnected = document.getElementById('schwab-disconnected');
+      const tokenInfo = document.getElementById('schwab-token-info');
+
+      try {
+        const res = await fetch(WORKER + '/schwab/status', {
+          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('id_token') }
+        });
+        const data = await res.json();
+
+        if (data.connected) {
+          badge.textContent = 'Connected';
+          badge.className = 'integration-status status-connected';
+          connected.style.display = '';
+          disconnected.style.display = 'none';
+          if (data.expiresAt) {
+            const exp = new Date(data.expiresAt);
+            tokenInfo.textContent = 'Token expires: ' + exp.toLocaleTimeString();
+          }
+          loadSchwabAccount();
+        } else {
+          badge.textContent = 'Not Connected';
+          badge.className = 'integration-status status-disconnected';
+          connected.style.display = 'none';
+          disconnected.style.display = '';
+        }
+      } catch(e) {
+        badge.textContent = 'Not Connected';
+        badge.className = 'integration-status status-disconnected';
+        connected.style.display = 'none';
+        disconnected.style.display = '';
+      }
+    }
+
+    async function loadSchwabAccount() {
+      try {
+        const res = await fetch(WORKER + '/schwab/account', {
+          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('id_token') }
+        });
+        const data = await res.json();
+        if (data.accountValue) {
+          document.getElementById('schwab-balance').textContent = '$' + parseFloat(data.accountValue).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+          document.getElementById('schwab-cash').textContent = '$' + parseFloat(data.cash || 0).toFixed(0);
+          document.getElementById('schwab-positions').textContent = data.positions || 0;
+          const dayPL = parseFloat(data.dayPL || 0);
+          const dayEl = document.getElementById('schwab-daypl');
+          dayEl.textContent = (dayPL >= 0 ? '+$' : '-$') + Math.abs(dayPL).toFixed(0);
+          dayEl.style.color = dayPL >= 0 ? '#2cb67d' : '#ef4565';
+        }
+      } catch(e) {}
+    }
+
+    function connectSchwab() {
+      const state = Math.random().toString(36).substring(2);
+      sessionStorage.setItem('schwab_state', state);
+      const url = `https://api.schwabapi.com/v1/oauth/authorize?client_id=${SCHWAB_CLIENT_ID}&redirect_uri=${encodeURIComponent(SCHWAB_REDIRECT)}&response_type=code&scope=readonly&state=${state}`;
+      window.location.href = url;
+    }
+
+    async function disconnectSchwab() {
+      if (!confirm('Disconnect Schwab account?')) return;
+      try {
+        await fetch(WORKER + '/schwab/disconnect', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + localStorage.getItem('id_token') }
+        });
+        await checkSchwabStatus();
+      } catch(e) {}
+    }
+
+    function signOut() {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/tradeos/login.html';
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>

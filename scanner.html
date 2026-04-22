@@ -420,6 +420,8 @@
       const sub = document.querySelector('.page-sub');
       if (sub) sub.textContent = parts.join(' · ');
     }
+
+    function buildFinvizFilters(c) {
       const f = [];
       if (c.pmin  !== null) f.push(`sh_price_o${c.pmin}`);
       if (c.pmax  !== null) f.push(`sh_price_u${c.pmax}`);

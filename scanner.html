@@ -691,19 +691,10 @@
         const criteria = getCriteria();
         updateSubtitle(criteria);
         let res;
-        if (isMarketHours()) {
-          const filters = buildFinvizFilters(criteria);
-          res = await fetch(WORKER + '/scan', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filters })
-          });
-        } else {
-          const params = new URLSearchParams(
-            Object.fromEntries(Object.entries(criteria).filter(([k,v]) => v !== null).map(([k,v]) => [k, v]))
-          );
-          res = await fetch(WORKER + '/scan/premarket?' + params.toString());
-        }
+        const params = new URLSearchParams(
+          Object.fromEntries(Object.entries(criteria).filter(([k,v]) => v !== null).map(([k,v]) => [k, v]))
+        );
+        res = await fetch(WORKER + '/scan/premarket?' + params.toString());
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 

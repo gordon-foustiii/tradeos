@@ -38,7 +38,14 @@ function apiGet(action) {
     headers: { 'Authorization': 'Bearer ' + getToken() },
     cache: 'no-store'
   })
-    .then(function(res) { return res.json(); })
+    .then(function(res) { 
+      if (res.status === 401) {
+        console.warn('Token expired, signing out');
+        signOut();
+        return null;
+      }
+      return res.json(); 
+    })
     .then(function(data) {
       _apiCache[action] = { ts: Date.now(), data: data };
       return data;
@@ -59,8 +66,23 @@ function apiPost(action, payload) {
     },
     body: JSON.stringify(payload)
   })
-    .then(function(res) { return res.json(); })
-    .catch(function(e) { console.error('API error:', e); return null; });
+    .then(function(res) { 
+      if (res.status === 401) {
+        console.warn('Token expired, signing out');
+        signOut();
+        return null;
+      }
+      if (!res.ok) {
+        return res.json().then(function(err) {
+          throw new Error(err.error || 'Request failed');
+        });
+      }
+      return res.json(); 
+    })
+    .catch(function(e) { 
+      console.error('API error:', e); 
+      return { error: e.message }; 
+    });
 }
 
 function exportTrades() {
@@ -71,3 +93,6 @@ function exportTrades() {
 function getStats() { return apiGet('stats'); }
 function getTrades() { return apiGet('trades'); }
 function submitTrade(data) { return apiPost('submit', data); }
+function updateTrade(data) { return apiPost('updateTrade', data); }
+function getHabits() { return apiGet('getHabits'); }
+function saveHabits(data) { return apiPost('saveHabits', data); }

@@ -173,6 +173,27 @@
     /* divider */
     .modal-divider { height:1px;background:rgba(255,255,255,0.07);margin:0 18px; }
 
+    /* news */
+    .news-fetch-btn {
+      background:rgba(244,185,66,0.12);border:1px solid rgba(244,185,66,0.25);
+      color:#f4b942;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;
+      cursor:pointer;font-family:inherit;transition:opacity .15s;
+    }
+    .news-fetch-btn:disabled { opacity:.4;cursor:default; }
+    .news-section-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:8px; }
+    .news-list { display:flex;flex-direction:column;gap:6px;margin-top:8px; }
+    .news-item {
+      background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);
+      border-radius:10px;padding:10px 12px;cursor:pointer;transition:border-color .15s,background .15s;
+    }
+    .news-item:hover { border-color:rgba(244,185,66,0.4);background:rgba(244,185,66,0.05); }
+    .news-item.selected { border-color:#f4b942;background:rgba(244,185,66,0.08); }
+    .news-headline { font-size:13px;font-weight:600;color:#e8e8f0;line-height:1.4;margin-bottom:4px; }
+    .news-meta { font-size:10px;color:rgba(255,255,255,0.3);display:flex;gap:8px; }
+    .news-source { font-weight:700;color:rgba(255,255,255,0.4); }
+    .news-empty { font-size:12px;color:rgba(255,255,255,0.25);text-align:center;padding:12px 0; }
+    .news-tap-hint { font-size:10px;color:rgba(255,255,255,0.2);margin-top:6px;text-align:center; }
+
     /* rating pills */
     .rating-row { display:flex;gap:6px; }
     .rating-pill {
@@ -290,16 +311,27 @@
 
       <!-- Catalyst -->
       <div class="modal-section">
-        <div class="modal-section-title">Catalyst</div>
-        <div class="catalyst-row" id="cat-pills">
+        <div class="news-section-header">
+          <div class="modal-section-title" style="margin-bottom:0">Catalyst</div>
+          <button class="news-fetch-btn" id="news-btn" onclick="fetchNews()">🔍 Search News</button>
+        </div>
+
+        <!-- Live news results -->
+        <div id="news-container" style="display:none">
+          <div class="news-list" id="news-list"></div>
+          <div class="news-tap-hint">Tap a headline to use as catalyst</div>
+        </div>
+
+        <div class="catalyst-row" id="cat-pills" style="margin-top:10px">
           <button class="cat-pill" onclick="toggleCat(this,'Earnings')">Earnings</button>
           <button class="cat-pill" onclick="toggleCat(this,'PR/News')">PR/News</button>
           <button class="cat-pill" onclick="toggleCat(this,'FDA')">FDA</button>
           <button class="cat-pill" onclick="toggleCat(this,'Partnership')">Partnership</button>
           <button class="cat-pill" onclick="toggleCat(this,'Dilution Risk')">Dilution Risk</button>
+          <button class="cat-pill" onclick="toggleCat(this,'Short Squeeze')">Short Squeeze</button>
           <button class="cat-pill" onclick="toggleCat(this,'No Catalyst')">No Catalyst</button>
         </div>
-        <input class="cat-input" id="cat-custom" placeholder="Add notes or custom catalyst…" />
+        <input class="cat-input" id="cat-custom" placeholder="Catalyst detail or custom note…" style="margin-top:8px" />
       </div>
 
       <div class="modal-divider"></div>
@@ -346,13 +378,18 @@
             <div class="rv" id="rc-rr">—</div>
           </div>
           <div class="risk-stat">
-            <div class="rl">Max Shares ($50)</div>
+            <div class="rl">Suggested Shares</div>
             <div class="rv" id="rc-shares">—</div>
           </div>
           <div class="risk-stat">
             <div class="rl">Max Loss</div>
             <div class="rv" id="rc-maxloss">—</div>
           </div>
+        </div>
+        <!-- Shares override -->
+        <div class="plan-field" style="margin-bottom:8px">
+          <div class="plan-label">Shares (override suggested)</div>
+          <input class="plan-input" id="p-shares" type="number" step="1" placeholder="Auto from $50 max loss" oninput="calcRisk()" />
         </div>
 
         <!-- Support / Resistance -->
@@ -501,6 +538,10 @@
       document.getElementById('p-support').value = '';
       document.getElementById('p-resist').value = '';
       document.getElementById('p-notes').value = '';
+      document.getElementById('p-shares').value = '';
+      document.getElementById('news-container').style.display = 'none';
+      document.getElementById('news-list').innerHTML = '';
+      document.getElementById('news-btn').textContent = '🔍 Search News';
       document.getElementById('save-btn').textContent = 'Save Plan';
       document.getElementById('save-btn').classList.remove('saved');
       document.getElementById('save-btn').disabled = false;
@@ -568,6 +609,72 @@
       if (e.target === document.getElementById('plan-modal')) closeModal();
     }
 
+    // ── FETCH NEWS ──
+    async function fetchNews() {
+      if (!currentTicker) return;
+      const btn = document.getElementById('news-btn');
+      const container = document.getElementById('news-container');
+      const list = document.getElementById('news-list');
+      btn.disabled = true;
+      btn.textContent = '⏳ Loading...';
+      container.style.display = '';
+      list.innerHTML = '<div class="news-empty">Fetching headlines...</div>';
+
+      try {
+        // Yahoo Finance v2 news — real-time, no API key, routed through Worker
+        const res = await fetch(`${WORKER}/news?ticker=${encodeURIComponent(currentTicker.ticker)}`);
+        const data = await res.json();
+
+        if (!data.items || !data.items.length) {
+          list.innerHTML = '<div class="news-empty">No recent news found for ' + currentTicker.ticker + '</div>';
+        } else {
+          list.innerHTML = data.items.slice(0, 6).map((item, i) => {
+            const age = item.publishedAt ? timeAgo(item.publishedAt) : '';
+            return `<div class="news-item" id="news-item-${i}" onclick="selectNews(${i}, ${JSON.stringify(item.title).replace(/'/g,"&#39;")}, '${escHtml(item.source||'')}')">
+              <div class="news-headline">${escHtml(item.title)}</div>
+              <div class="news-meta">
+                <span class="news-source">${escHtml(item.source||'')}</span>
+                ${age ? `<span>${age}</span>` : ''}
+              </div>
+            </div>`;
+          }).join('');
+        }
+      } catch(e) {
+        list.innerHTML = '<div class="news-empty">News fetch failed — check connection</div>';
+      }
+      btn.disabled = false;
+      btn.textContent = '🔍 Search News';
+    }
+
+    function selectNews(idx, title, source) {
+      // Highlight selected
+      document.querySelectorAll('.news-item').forEach((el, i) => {
+        el.classList.toggle('selected', i === idx);
+      });
+      // Auto-select PR/News pill
+      document.querySelectorAll('.cat-pill').forEach(p => {
+        if (p.textContent === 'PR/News') {
+          p.classList.add('active');
+          if (!selectedCats.includes('PR/News')) selectedCats.push('PR/News');
+        }
+      });
+      // Fill catalyst note field
+      const note = source ? `[${source}] ${title}` : title;
+      document.getElementById('cat-custom').value = note;
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function timeAgo(ts) {
+      const diff = Math.floor((Date.now() - new Date(ts)) / 60000);
+      if (diff < 1) return 'just now';
+      if (diff < 60) return diff + 'm ago';
+      if (diff < 1440) return Math.floor(diff/60) + 'h ago';
+      return Math.floor(diff/1440) + 'd ago';
+    }
+
     // ── CATALYST TOGGLE ──
     function toggleCat(btn, cat) {
       btn.classList.toggle('active');
@@ -590,25 +697,26 @@
       const entry = parseFloat(document.getElementById('p-entry').value) || 0;
       const stop  = parseFloat(document.getElementById('p-stop').value) || 0;
       const target = parseFloat(document.getElementById('p-target').value) || 0;
+      const sharesOverride = parseInt(document.getElementById('p-shares').value) || null;
       const MAX_LOSS = 50;
 
       const riskPerShare = entry && stop ? Math.abs(entry - stop) : 0;
       const reward = entry && target ? Math.abs(target - entry) : 0;
       const rr = riskPerShare > 0 && reward > 0 ? (reward / riskPerShare).toFixed(2) : null;
-      const maxShares = riskPerShare > 0 ? Math.floor(MAX_LOSS / riskPerShare) : null;
-      const maxLoss = maxShares && riskPerShare ? (maxShares * riskPerShare).toFixed(2) : null;
+      const suggestedShares = riskPerShare > 0 ? Math.floor(MAX_LOSS / riskPerShare) : null;
+      const activeShares = sharesOverride || suggestedShares;
+      const maxLoss = activeShares && riskPerShare ? (activeShares * riskPerShare).toFixed(2) : null;
 
       document.getElementById('rc-risk').textContent = riskPerShare > 0 ? '$' + riskPerShare.toFixed(2) : '—';
       document.getElementById('rc-rr').textContent = rr ? rr + ':1' : '—';
 
       const sharesEl = document.getElementById('rc-shares');
-      sharesEl.textContent = maxShares !== null ? maxShares : '—';
+      sharesEl.textContent = suggestedShares !== null ? suggestedShares + (sharesOverride ? ' (auto)' : '') : '—';
 
       const lossEl = document.getElementById('rc-maxloss');
       lossEl.textContent = maxLoss !== null ? '$' + maxLoss : '—';
       lossEl.className = 'rv ' + (maxLoss !== null ? (parseFloat(maxLoss) > MAX_LOSS ? 'danger' : 'ok') : '');
 
-      // RR color
       const rrEl = document.getElementById('rc-rr');
       if (rr) {
         rrEl.className = 'rv ' + (parseFloat(rr) >= 2 ? 'ok' : parseFloat(rr) >= 1 ? '' : 'danger');
@@ -629,6 +737,7 @@
         entry: document.getElementById('p-entry').value,
         stop: document.getElementById('p-stop').value,
         target: document.getElementById('p-target').value,
+        shares: document.getElementById('p-shares').value || null,
         support: document.getElementById('p-support').value,
         resistance: document.getElementById('p-resist').value,
         notes: document.getElementById('p-notes').value.trim(),

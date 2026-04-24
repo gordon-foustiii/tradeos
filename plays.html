@@ -66,12 +66,15 @@
   <script src="/tradeos/js/nav.js"></script>
   <script src="/tradeos/js/api.js"></script>
   <script>
+    renderNav('plays');
+    const WORKER = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
     const _playsCache = {};
 
     async function loadPlays() {
       try {
-        const plays = await apiGet('plans') || { plans: [] };
-        _playsCache.plays = plays.plans || [];
+        const res = await fetch(WORKER + '/scan/plans');
+        const data = await res.json();
+        _playsCache.plays = data.plans || [];
         renderPlays(_playsCache.plays);
       } catch (e) {
         console.error('Error loading plays:', e);
@@ -92,7 +95,6 @@
       emptyState.style.display = 'none';
       updateStats(plays);
 
-      // Sort by status (planned first, then traded, then skipped)
       const sorted = [...plays].sort((a, b) => {
         const statusOrder = { planned: 0, traded: 1, skipped: 2 };
         return (statusOrder[a.status] || 3) - (statusOrder[b.status] || 3);
@@ -107,12 +109,10 @@
       const statusColors = { planned: '#7f5af0', traded: '#2cb67d', skipped: '#ef4565' };
       const statusColor = statusColors[status] || '#7f5af0';
 
-      const plannedEntry = parseFloat(play.plannedEntry) || 0;
-      const stopLoss = parseFloat(play.stopLoss) || 0;
+      const entry = parseFloat(play.entry) || 0;
+      const stop = parseFloat(play.stop) || 0;
       const target = parseFloat(play.target) || 0;
-      const rr = plannedEntry > 0 && target > plannedEntry ? ((target - plannedEntry) / (plannedEntry - stopLoss)).toFixed(2) : '—';
-
-      const newsCount = (play.news || []).length;
+      const rr = entry > 0 && target > entry && stop > 0 ? ((target - entry) / (entry - stop)).toFixed(2) : '—';
 
       return `
         <div class="play-card" style="background: #1a1a2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; cursor: pointer; transition: all 0.2s; border-left: 4px solid ${statusColor};" onclick="openPlaysModal(${idx})">
@@ -121,25 +121,14 @@
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background: rgba(${statusColor === '#7f5af0' ? '127,90,240' : statusColor === '#2cb67d' ? '44,182,125' : '239,69,101'}, 0.15); color: ${statusColor}; padding: 4px 8px; border-radius: 6px;">${status}</div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px;">
-              <div style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Float</div>
-              <div style="font-size: 14px; font-weight: 800; color: #e8e8f0;">${play.float || '—'}</div>
-            </div>
-            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px;">
-              <div style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Rel Vol</div>
-              <div style="font-size: 14px; font-weight: 800; color: #e8e8f0;">${play.relVol || '—'}</div>
-            </div>
-          </div>
-
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
             <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px; text-align: center;">
               <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Entry</div>
-              <div style="font-size: 13px; font-weight: 800; color: #e8e8f0;">$${plannedEntry.toFixed(2)}</div>
+              <div style="font-size: 13px; font-weight: 800; color: #e8e8f0;">$${entry.toFixed(2)}</div>
             </div>
             <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px; text-align: center;">
               <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Stop</div>
-              <div style="font-size: 13px; font-weight: 800; color: #ef4565;">$${stopLoss.toFixed(2)}</div>
+              <div style="font-size: 13px; font-weight: 800; color: #ef4565;">$${stop.toFixed(2)}</div>
             </div>
             <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px; text-align: center;">
               <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Target</div>
@@ -147,18 +136,18 @@
             </div>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06);">
             <div style="font-size: 11px; color: rgba(255,255,255,0.4);">
               R/R: <span style="color: #e8e8f0; font-weight: 700;">${rr}</span>
             </div>
-            <div style="font-size: 11px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 4px;">
-              📰 <span style="color: #e8e8f0; font-weight: 700;">${newsCount}</span>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.4);">
+              ${play.rating || 'No rating'}
             </div>
           </div>
 
-          <div style="display: flex; gap: 8px;">
-            <button onclick="event.stopPropagation(); markPlayStatus('${ticker}', 'traded')" style="flex: 1; background: rgba(44,182,125,0.2); border: 1px solid rgba(44,182,125,0.4); color: #2cb67d; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s;" onmouseover="this.style.background='rgba(44,182,125,0.3)'" onmouseout="this.style.background='rgba(44,182,125,0.2)'">Traded</button>
-            <button onclick="event.stopPropagation(); markPlayStatus('${ticker}', 'skipped')" style="flex: 1; background: rgba(239,69,101,0.2); border: 1px solid rgba(239,69,101,0.4); color: #ef4565; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s;" onmouseover="this.style.background='rgba(239,69,101,0.3)'" onmouseout="this.style.background='rgba(239,69,101,0.2)'">Skip</button>
+          <div style="display: flex; gap: 8px; margin-top: 12px;">
+            ${status === 'planned' ? `<button onclick="event.stopPropagation(); tradeThis('${ticker}')" style="flex: 1; background: #7f5af0; border: none; color: white; padding: 9px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;">Trade This</button>` : ''}
+            <button onclick="event.stopPropagation(); markPlayStatus('${ticker}', 'skipped')" style="flex: 1; background: rgba(239,69,101,0.2); border: 1px solid rgba(239,69,101,0.4); color: #ef4565; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;">Skip</button>
           </div>
         </div>
       `;
@@ -179,65 +168,56 @@
       if (!play) return;
 
       document.getElementById('pdm-ticker').textContent = play.ticker || '?';
-      document.getElementById('pdm-catalyst').textContent = play.catalyst || 'No catalyst logged';
+      
+      const catalystText = play.catalysts && play.catalysts.length 
+        ? play.catalysts.join(', ') + (play.catalystNote ? ': ' + play.catalystNote : '')
+        : play.catalystNote || 'No catalyst logged';
+      document.getElementById('pdm-catalyst').textContent = catalystText;
 
-      const fields = [
-        ['Setup', play.setup],
-        ['Float', play.float],
-        ['Rel Volume', play.relVol],
-        ['Planned Entry', play.plannedEntry ? '$' + parseFloat(play.plannedEntry).toFixed(2) : null],
-        ['Stop Loss', play.stopLoss ? '$' + parseFloat(play.stopLoss).toFixed(2) : null],
-        ['Target', play.target ? '$' + parseFloat(play.target).toFixed(2) : null],
-        ['Emotion', play.emotion],
-        ['Notes', play.notes],
-      ].filter(([, v]) => v && String(v).trim());
-
-      let bodyHTML = '';
-
-      // Stats grid
-      const plannedEntry = parseFloat(play.plannedEntry) || 0;
-      const stopLoss = parseFloat(play.stopLoss) || 0;
+      const entry = parseFloat(play.entry) || 0;
+      const stop = parseFloat(play.stop) || 0;
       const target = parseFloat(play.target) || 0;
-      const rr = plannedEntry > 0 && target > plannedEntry ? ((target - plannedEntry) / (plannedEntry - stopLoss)).toFixed(2) : '—';
+      const rr = entry > 0 && target > entry && stop > 0 ? ((target - entry) / (entry - stop)).toFixed(2) : '—';
 
-      bodyHTML += `
+      let bodyHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
           <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; text-align: center;">
             <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">R/R Ratio</div>
             <div style="font-size: 16px; font-weight: 800; color: #7f5af0;">${rr}</div>
           </div>
           <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; text-align: center;">
-            <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Status</div>
-            <div style="font-size: 14px; font-weight: 800; color: #e8e8f0;">${play.status || 'planned'}</div>
+            <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Rating</div>
+            <div style="font-size: 14px; font-weight: 800; color: #e8e8f0;">${play.rating || '—'}</div>
+          </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+          <div style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px;">Levels</div>
+          <div style="font-size: 14px; color: #e8e8f0; line-height: 1.6;">
+            Entry: $${entry.toFixed(2)}<br>
+            Stop: $${stop.toFixed(2)}<br>
+            Target: $${target.toFixed(2)}
+            ${play.support ? '<br>Support: $' + parseFloat(play.support).toFixed(2) : ''}
+            ${play.resistance ? '<br>Resistance: $' + parseFloat(play.resistance).toFixed(2) : ''}
           </div>
         </div>
       `;
 
-      // Fields
-      if (fields.length) {
-        bodyHTML += fields.map(([label, value]) => `
+      if (play.notes) {
+        bodyHTML += `
           <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 12px;">
-            <div style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px;">${label}</div>
-            <div style="font-size: 14px; color: #e8e8f0; line-height: 1.5; word-break: break-word;">${value}</div>
+            <div style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px;">Notes</div>
+            <div style="font-size: 14px; color: #e8e8f0; line-height: 1.5;">${play.notes}</div>
           </div>
-        `).join('');
+        `;
       }
 
-      // News
-      const news = play.news || [];
-      if (news.length > 0) {
-        bodyHTML += `<div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px; margin-top: 12px;"><div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.3); margin-bottom: 10px;">News (${news.length})</div>`;
-        bodyHTML += news.map(n => {
-          const time = n.publishedAt ? new Date(n.publishedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
-          return `
-            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; margin-bottom: 8px;">
-              <div style="font-size: 12px; font-weight: 700; color: #e8e8f0; margin-bottom: 4px; line-height: 1.4;">${n.title}</div>
-              <div style="font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px;">${n.source} — ${time}</div>
-              <a href="${n.url}" target="_blank" style="color: #7f5af0; text-decoration: none; font-size: 11px; font-weight: 700;">Read more →</a>
-            </div>
-          `;
-        }).join('');
-        bodyHTML += '</div>';
+      if (play.status === 'planned') {
+        bodyHTML += `
+          <button onclick="tradeThis('${play.ticker}')" style="width:100%; background:#7f5af0; border:none; color:white; padding:14px; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; margin-top:12px; font-family:inherit;">
+            Trade This Plan →
+          </button>
+        `;
       }
 
       document.getElementById('pdm-body').innerHTML = bodyHTML;
@@ -250,73 +230,40 @@
       document.body.style.overflow = '';
     }
 
+    function tradeThis(ticker) {
+      window.location.href = '/tradeos/journal.html?trade=' + ticker;
+    }
+
     async function markPlayStatus(ticker, status) {
       const plan = _playsCache.plays.find(p => p.ticker === ticker);
       if (!plan) return;
 
       plan.status = status;
-      plan.updatedAt = new Date().toISOString();
-
-      await apiPost('savePlan', { ticker, ...plan });
+      
+      await fetch(WORKER + '/scan/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker, plan })
+      });
+      
       closePlaysModal();
       loadPlays();
     }
 
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlaysModal(); });
 
-    // Auto-refresh every 30 seconds
     loadPlays();
     setInterval(loadPlays, 30000);
   </script>
 
   <style>
-    .play-card {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .play-card:hover {
-      background: #212135 !important;
-    }
-
-    .plays-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    @media (min-width: 600px) {
-      .plays-grid {
-        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      }
-    }
-
-    .stat-card {
-      background: #1a1a2e;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 14px;
-      text-align: center;
-    }
-
-    .stat-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.4);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 6px;
-    }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: 900;
-      color: #7f5af0;
-    }
+    .play-card { display: flex; flex-direction: column; }
+    .play-card:hover { background: #212135 !important; }
+    .plays-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 600px) { .plays-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); } }
+    .stat-card { background: #1a1a2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; text-align: center; }
+    .stat-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .stat-value { font-size: 24px; font-weight: 900; color: #7f5af0; }
   </style>
-  <script src="/tradeos/js/nav.js"></script>
-  <script>
-  renderNav('plays');
-</script>
 </body>
 </html>

@@ -42,8 +42,6 @@
     .status-dot { width:7px;height:7px;border-radius:50%;background:#ef4565;display:inline-block;margin-right:5px; }
     .status-dot.live { background:#2cb67d;animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
-
-    /* ── CRITERIA EDITOR ── */
     .criteria-bar { margin-bottom:12px; }
     .preset-row { display:flex;gap:6px;margin-bottom:8px; }
     .preset-btn {
@@ -66,9 +64,6 @@
     }
     .crit-input:focus { border-color:rgba(127,90,240,0.5); }
     .crit-input:disabled { opacity:.35;cursor:default; }
-    .criteria-toggle { font-size:11px;color:rgba(127,90,240,0.7);cursor:pointer;margin-bottom:6px;display:inline-block; }
-
-    /* ── MODAL ── */
     .modal-overlay {
       display:none;position:fixed;inset:0;z-index:1000;
       background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);
@@ -101,13 +96,9 @@
     }
     .modal-grid { display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:0; }
     .modal-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:7px; }
-
-    /* stat tiles */
     .stat-tile { background:rgba(255,255,255,0.05);border-radius:10px;padding:9px 11px; }
     .stat-tile .sl { font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px; }
     .stat-tile .sv { font-size:14px;font-weight:800;color:#e8e8f0; }
-
-    /* catalyst */
     .catalyst-row { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px; }
     .cat-pill {
       padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;
@@ -121,8 +112,6 @@
       box-sizing:border-box;outline:none;
     }
     .cat-input:focus { border-color:rgba(127,90,240,0.5); }
-
-    /* plan inputs */
     .plan-row { display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px; }
     .plan-field { display:flex;flex-direction:column;gap:4px; }
     .plan-label { font-size:9px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.06em; }
@@ -135,8 +124,6 @@
     .plan-input.entry { border-color:rgba(127,90,240,0.4); }
     .plan-input.stop  { border-color:rgba(239,69,101,0.4); }
     .plan-input.target { border-color:rgba(44,182,125,0.4); }
-
-    /* risk calc */
     .risk-bar {
       background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;
       display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
@@ -146,16 +133,12 @@
     .risk-stat .rv { font-size:15px;font-weight:900;color:#e8e8f0; }
     .risk-stat .rv.danger { color:#ef4565; }
     .risk-stat .rv.ok { color:#2cb67d; }
-
-    /* notes */
     .plan-notes {
       width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
       border-radius:10px;padding:10px 12px;color:#e8e8f0;font-size:13px;font-family:inherit;
       outline:none;resize:none;box-sizing:border-box;
     }
     .plan-notes:focus { border-color:rgba(127,90,240,0.5); }
-
-    /* save btn */
     .modal-save-btn {
       width:100%;background:#7f5af0;border:none;color:white;
       padding:14px;border-radius:12px;font-size:15px;font-weight:800;
@@ -163,17 +146,11 @@
     }
     .modal-save-btn:disabled { opacity:.4;cursor:default; }
     .modal-save-btn.saved { background:#2cb67d; }
-
-    /* plan badge on card */
     .plan-badge {
       font-size:9px;font-weight:800;background:rgba(44,182,125,0.2);color:#2cb67d;
       border-radius:4px;padding:2px 6px;margin-left:6px;vertical-align:middle;
     }
-
-    /* divider */
     .modal-divider { height:1px;background:rgba(255,255,255,0.07);margin:0 18px; }
-
-    /* news */
     .news-fetch-btn {
       background:rgba(244,185,66,0.12);border:1px solid rgba(244,185,66,0.25);
       color:#f4b942;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;
@@ -193,8 +170,6 @@
     .news-source { font-weight:700;color:rgba(255,255,255,0.4); }
     .news-empty { font-size:12px;color:rgba(255,255,255,0.25);text-align:center;padding:12px 0; }
     .news-tap-hint { font-size:10px;color:rgba(255,255,255,0.2);margin-top:6px;text-align:center; }
-
-    /* rating pills */
     .rating-row { display:flex;gap:6px; }
     .rating-pill {
       flex:1;padding:7px 4px;border-radius:8px;font-size:11px;font-weight:700;
@@ -225,10 +200,7 @@
       <button class="tab" onclick="setTab('tickers',this)">Ticker History</button>
     </div>
 
-    <!-- Live Results -->
     <div id="tab-live">
-
-      <!-- Criteria Editor -->
       <div class="criteria-bar">
         <div class="criteria-grid" id="crit-grid">
           <div class="crit-field">
@@ -269,23 +241,19 @@
       <div id="live-results"><div class="scan-empty">Hit "Run Scan" to check the market.</div></div>
     </div>
 
-    <!-- Run History -->
     <div id="tab-history" style="display:none">
       <div id="history-list"><div class="scan-empty">No scan history yet.</div></div>
     </div>
 
-    <!-- Ticker History -->
     <div id="tab-tickers" style="display:none">
       <div id="ticker-history-list"><div class="scan-empty">No ticker history yet.</div></div>
     </div>
   </div>
 
-  <!-- ── TRADE PLAN MODAL ── -->
   <div class="modal-overlay" id="plan-modal" onclick="handleOverlayClick(event)">
     <div class="modal-sheet" id="modal-sheet">
       <div class="modal-handle"></div>
 
-      <!-- Header -->
       <div class="modal-header">
         <div>
           <div class="modal-sym" id="m-sym">—</div>
@@ -294,7 +262,6 @@
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
 
-      <!-- Stats (auto-pulled) -->
       <div class="modal-section">
         <div class="modal-section-title">Market Data</div>
         <div class="modal-grid" id="m-stats-grid">
@@ -309,17 +276,15 @@
 
       <div class="modal-divider"></div>
 
-      <!-- Catalyst -->
       <div class="modal-section">
         <div class="news-section-header">
           <div class="modal-section-title" style="margin-bottom:0">Catalyst</div>
           <button class="news-fetch-btn" id="news-btn" onclick="fetchNews()">🔍 Search News</button>
         </div>
 
-        <!-- Live news results -->
         <div id="news-container" style="display:none">
           <div class="news-list" id="news-list"></div>
-          <div class="news-tap-hint">Tap a headline to use as catalyst</div>
+          <div class="news-tap-hint">Tap headlines to select • Selected: <span id="news-count">0</span></div>
         </div>
 
         <div class="catalyst-row" id="cat-pills" style="margin-top:10px">
@@ -336,7 +301,6 @@
 
       <div class="modal-divider"></div>
 
-      <!-- Trade Rating -->
       <div class="modal-section">
         <div class="modal-section-title">Setup Quality</div>
         <div class="rating-row">
@@ -349,7 +313,6 @@
 
       <div class="modal-divider"></div>
 
-      <!-- Trade Plan -->
       <div class="modal-section">
         <div class="modal-section-title">Trade Plan</div>
         <div class="plan-row">
@@ -367,7 +330,6 @@
           </div>
         </div>
 
-        <!-- Risk calc bar -->
         <div class="risk-bar">
           <div class="risk-stat">
             <div class="rl">Risk/Share</div>
@@ -386,13 +348,12 @@
             <div class="rv" id="rc-maxloss">—</div>
           </div>
         </div>
-        <!-- Shares override -->
+        
         <div class="plan-field" style="margin-bottom:8px">
           <div class="plan-label">Shares (override suggested)</div>
           <input class="plan-input" id="p-shares" type="number" step="1" placeholder="Auto from $50 max loss" oninput="calcRisk()" />
         </div>
 
-        <!-- Support / Resistance -->
         <div class="modal-grid-2" style="margin-bottom:8px">
           <div class="plan-field">
             <div class="plan-label">Support $</div>
@@ -404,7 +365,6 @@
           </div>
         </div>
 
-        <!-- Notes -->
         <textarea class="plan-notes" id="p-notes" rows="3" placeholder="Why this setup? What are you watching for?"></textarea>
       </div>
 
@@ -418,13 +378,14 @@
   <script src="/tradeos/js/nav.js"></script>
   <script src="/tradeos/js/api.js"></script>
   <script>
-    renderNav('notes');
+    renderNav('scanner');
 
     const WORKER = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
     let activeTab = 'live';
     let currentTicker = null;
     let selectedCats = [];
     let selectedRating = null;
+    let selectedNewsItems = []; // Track selected news
 
     function getCriteria() {
       const v = id => document.getElementById(id).value.trim();
@@ -439,13 +400,6 @@
       };
     }
 
-    function isMarketHours() {
-      const now = new Date();
-      const est = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-      const h = est.getHours(), m = est.getMinutes();
-      return (h > 9 || (h === 9 && m >= 30)) && (h < 16);
-    }
-
     function updateSubtitle(c) {
       const parts = [];
       if (c.pmin !== null || c.pmax !== null) parts.push(`Price ${c.pmin !== null ? '$'+c.pmin : ''}–${c.pmax !== null ? '$'+c.pmax : ''}`);
@@ -458,19 +412,6 @@
       if (sub) sub.textContent = parts.join(' · ');
     }
 
-    function buildFinvizFilters(c) {
-      const f = [];
-      if (c.pmin  !== null) f.push(`sh_price_o${c.pmin}`);
-      if (c.pmax  !== null) f.push(`sh_price_u${c.pmax}`);
-      if (c.float !== null) f.push(`sh_floatsh_u${c.float}`);
-      if (c.chg   !== null) f.push(`ta_change_o${c.chg}`);
-      if (c.rvol  !== null && c.rvol > 0) f.push(`sh_relvol_o${c.rvol}`);
-      if (c.vol   !== null && c.vol  > 0) f.push(`sh_curvol_o${c.vol}`);
-      if (c.cap   !== null) f.push(`cap_smallunder`);
-      return f.join(',');
-    }
-
-    // ── TABS ──
     function setTab(tab, btn) {
       activeTab = tab;
       document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
@@ -482,7 +423,6 @@
       if (tab === 'tickers') loadTickerHistory();
     }
 
-    // ── FORMATTING ──
     function formatTime(ts) {
       if (!ts) return '—';
       const d = new Date(ts);
@@ -498,7 +438,6 @@
       return String(n);
     }
 
-    // ── RENDER CARD ──
     function renderTickerCard(t) {
       const chg = parseFloat(t.change) || 0;
       const hasPlan = t.plan ? '<span class="plan-badge">PLAN ✓</span>' : '';
@@ -522,13 +461,12 @@
       </div>`;
     }
 
-    // ── MODAL OPEN ──
     function openModal(t) {
       currentTicker = t;
       selectedCats = [];
       selectedRating = null;
+      selectedNewsItems = [];
 
-      // Reset UI
       document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.rating-pill').forEach(p => p.classList.remove('active'));
       document.getElementById('cat-custom').value = '';
@@ -542,19 +480,18 @@
       document.getElementById('news-container').style.display = 'none';
       document.getElementById('news-list').innerHTML = '';
       document.getElementById('news-btn').textContent = '🔍 Search News';
+      document.getElementById('news-count').textContent = '0';
       document.getElementById('save-btn').textContent = 'Save Plan';
       document.getElementById('save-btn').classList.remove('saved');
       document.getElementById('save-btn').disabled = false;
       calcRisk();
 
-      // Populate header
       const chg = parseFloat(t.change) || 0;
       document.getElementById('m-sym').textContent = t.ticker;
       const chgEl = document.getElementById('m-change');
       chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
       chgEl.className = 'modal-change ' + (chg >= 0 ? 'up' : 'down');
 
-      // Populate stats
       document.getElementById('m-price').textContent = '$' + parseFloat(t.price||0).toFixed(2);
       document.getElementById('m-float').textContent = t.float || '—';
       document.getElementById('m-rvol').textContent = t.relVolume || '—';
@@ -564,11 +501,9 @@
       chgStat.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
       chgStat.style.color = chg >= 0 ? '#2cb67d' : '#ef4565';
 
-      // Pre-fill entry from current price
       document.getElementById('p-entry').value = parseFloat(t.price||0).toFixed(2);
       calcRisk();
 
-      // Load existing plan if any
       if (t.plan) {
         const p = t.plan;
         if (p.catalysts) {
@@ -592,6 +527,7 @@
         if (p.support) document.getElementById('p-support').value = p.support;
         if (p.resistance) document.getElementById('p-resist').value = p.resistance;
         if (p.notes) document.getElementById('p-notes').value = p.notes;
+        if (p.news) selectedNewsItems = p.news;
         calcRisk();
       }
 
@@ -609,19 +545,21 @@
       if (e.target === document.getElementById('plan-modal')) closeModal();
     }
 
-    // ── FETCH NEWS ──
     async function fetchNews() {
       if (!currentTicker) return;
       const btn = document.getElementById('news-btn');
       const container = document.getElementById('news-container');
       const list = document.getElementById('news-list');
+      
       btn.disabled = true;
       btn.textContent = '⏳ Loading...';
       container.style.display = '';
       list.innerHTML = '<div class="news-empty">Fetching headlines...</div>';
 
+      selectedNewsItems = [];
+      document.getElementById('news-count').textContent = '0';
+
       try {
-        // Yahoo Finance v2 news — real-time, no API key, routed through Worker
         const res = await fetch(`${WORKER}/news?ticker=${encodeURIComponent(currentTicker.ticker)}`);
         const data = await res.json();
 
@@ -630,37 +568,57 @@
         } else {
           list.innerHTML = data.items.slice(0, 6).map((item, i) => {
             const age = item.publishedAt ? timeAgo(item.publishedAt) : '';
-            return `<div class="news-item" id="news-item-${i}" onclick="selectNews(${i}, ${JSON.stringify(item.title).replace(/'/g,"&#39;")}, '${escHtml(item.source||'')}')">
-              <div class="news-headline">${escHtml(item.title)}</div>
-              <div class="news-meta">
-                <span class="news-source">${escHtml(item.source||'')}</span>
-                ${age ? `<span>${age}</span>` : ''}
+            return `
+              <div class="news-item" id="news-item-${i}" onclick="toggleNewsSelect(${i}, event)" data-news='${JSON.stringify(item).replace(/'/g, "&#39;")}'>
+                <div style="display:flex;gap:10px;align-items:flex-start">
+                  <input type="checkbox" id="news-check-${i}" onclick="event.stopPropagation(); toggleNewsSelect(${i}, event)" style="width:18px;height:18px;margin-top:2px;cursor:pointer;flex-shrink:0">
+                  <div style="flex:1">
+                    <div class="news-headline">${escHtml(item.title)}</div>
+                    <div class="news-meta">
+                      <span class="news-source">${escHtml(item.source||'')}</span>
+                      ${age ? `<span>${age}</span>` : ''}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>`;
+            `;
           }).join('');
         }
       } catch(e) {
         list.innerHTML = '<div class="news-empty">News fetch failed — check connection</div>';
       }
+      
       btn.disabled = false;
       btn.textContent = '🔍 Search News';
     }
 
-    function selectNews(idx, title, source) {
-      // Highlight selected
-      document.querySelectorAll('.news-item').forEach((el, i) => {
-        el.classList.toggle('selected', i === idx);
-      });
-      // Auto-select PR/News pill
-      document.querySelectorAll('.cat-pill').forEach(p => {
-        if (p.textContent === 'PR/News') {
-          p.classList.add('active');
-          if (!selectedCats.includes('PR/News')) selectedCats.push('PR/News');
+    function toggleNewsSelect(idx, event) {
+      const checkbox = document.getElementById('news-check-' + idx);
+      const item = document.getElementById('news-item-' + idx);
+      
+      if (!checkbox || !item) return;
+      
+      if (event.target !== checkbox) {
+        checkbox.checked = !checkbox.checked;
+      }
+
+      if (checkbox.checked) {
+        item.classList.add('selected');
+      } else {
+        item.classList.remove('selected');
+      }
+
+      const newsData = JSON.parse(item.dataset.news);
+      
+      if (checkbox.checked) {
+        if (!selectedNewsItems.find(n => n.url === newsData.url)) {
+          selectedNewsItems.push(newsData);
         }
-      });
-      // Fill catalyst note field
-      const note = source ? `[${source}] ${title}` : title;
-      document.getElementById('cat-custom').value = note;
+      } else {
+        selectedNewsItems = selectedNewsItems.filter(n => n.url !== newsData.url);
+      }
+
+      document.getElementById('news-count').textContent = selectedNewsItems.length;
     }
 
     function escHtml(str) {
@@ -675,7 +633,6 @@
       return Math.floor(diff/1440) + 'd ago';
     }
 
-    // ── CATALYST TOGGLE ──
     function toggleCat(btn, cat) {
       btn.classList.toggle('active');
       if (btn.classList.contains('active')) {
@@ -685,14 +642,12 @@
       }
     }
 
-    // ── RATING ──
     function setRating(btn, rating) {
       document.querySelectorAll('.rating-pill').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
       selectedRating = rating;
     }
 
-    // ── RISK CALC ──
     function calcRisk() {
       const entry = parseFloat(document.getElementById('p-entry').value) || 0;
       const stop  = parseFloat(document.getElementById('p-stop').value) || 0;
@@ -723,7 +678,6 @@
       }
     }
 
-    // ── SAVE PLAN ──
     async function savePlan() {
       if (!currentTicker) return;
       const btn = document.getElementById('save-btn');
@@ -741,7 +695,9 @@
         support: document.getElementById('p-support').value,
         resistance: document.getElementById('p-resist').value,
         notes: document.getElementById('p-notes').value.trim(),
-        savedAt: new Date().toISOString()
+        news: selectedNewsItems,
+        savedAt: new Date().toISOString(),
+        status: 'planned'
       };
 
       try {
@@ -750,16 +706,14 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ticker: currentTicker.ticker, plan })
         });
+        
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 
         btn.textContent = 'Plan Saved ✓';
         btn.classList.add('saved');
 
-        // Update local ticker object so badge shows
         currentTicker.plan = plan;
-
-        // Refresh visible card if in live results
         refreshCardInDOM(currentTicker);
 
         setTimeout(() => closeModal(), 800);
@@ -772,20 +726,18 @@
     }
 
     function refreshCardInDOM(t) {
-      // Re-render any visible cards for this ticker
       const containers = ['live-results', 'ticker-history-list'];
       containers.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         el.querySelectorAll('.ticker-card').forEach(card => {
           if (card.querySelector('.ticker-sym') && card.querySelector('.ticker-sym').textContent === t.ticker) {
-            card.outerHTML = renderTickerCard(t); // note: replaces in place
+            card.outerHTML = renderTickerCard(t);
           }
         });
       });
     }
 
-    // ── SCAN ──
     async function runScan() {
       const btn = document.getElementById('scan-btn');
       const dot = document.getElementById('status-dot');
@@ -799,7 +751,7 @@
       try {
         const criteria = getCriteria();
         updateSubtitle(criteria);
-		const params = new URLSearchParams(
+        const params = new URLSearchParams(
           Object.fromEntries(Object.entries(criteria).filter(([k,v]) => v !== null).map(([k,v]) => [k, v]))
         );
         const res = await fetch(WORKER + '/scan/premarket?' + params.toString());
@@ -826,7 +778,6 @@
       btn.classList.remove('running');
     }
 
-    // ── HISTORY ──
     async function loadHistory() {
       const el = document.getElementById('history-list');
       el.innerHTML = '<div class="scan-empty">Loading...</div>';
@@ -852,7 +803,6 @@
       }
     }
 
-    // ── TICKER HISTORY ──
     async function loadTickerHistory() {
       const el = document.getElementById('ticker-history-list');
       el.innerHTML = '<div class="scan-empty">Loading...</div>';
@@ -870,7 +820,6 @@
       }
     }
 
-    // ── LOAD LATEST ON PAGE LOAD ──
     (async () => {
       try {
         const res = await fetch(WORKER + '/scan/latest');

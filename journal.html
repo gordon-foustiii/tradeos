@@ -17,6 +17,13 @@
   </div>
 
   <div class="container">
+    <div id="prefill-banner" style="display:none;background:rgba(127,90,240,0.15);border:1px solid rgba(127,90,240,0.3);border-radius:12px;padding:12px 16px;margin-bottom:16px;color:#a78bfa;font-size:13px;font-weight:700">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span id="prefill-text">📋 Pre-filled from plan</span>
+        <button onclick="document.getElementById('prefill-banner').style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;padding:0 4px;font-family:inherit">×</button>
+      </div>
+    </div>
+
     <div class="page-header">
       <div class="page-title">Journal</div>
       <div class="page-sub">Plan before. Review after.</div>
@@ -113,7 +120,6 @@
     </div>
   </div>
 
-  <!-- Journal Trade Detail Modal -->
   <div id="journal-modal" onclick="if(event.target===this)closeTradeDetail()" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px 0 40px">
     <div style="max-width:480px;margin:0 auto;padding:0 16px">
       <div style="background:#1a1a2e;border-radius:16px;border:1px solid rgba(255,255,255,0.08);overflow:hidden">
@@ -140,8 +146,47 @@
   <script src="/tradeos/js/api.js"></script>
   <script>
     renderNav('journal');
+    const WORKER = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
     const FINNHUB_KEY = 'd7iqv41r01qn2qav2t9gd7iqv41r01qn2qav2ta0';
     const grades = { my: '', claude: '' };
+    let prefillTicker = null;
+
+    // PREFILL FROM PLAN
+    async function prefillFromPlan() {
+      const params = new URLSearchParams(window.location.search);
+      const ticker = params.get('trade');
+      if (!ticker) return;
+
+      prefillTicker = ticker.toUpperCase();
+
+      try {
+        const res = await fetch(WORKER + '/scan/plans');
+        const data = await res.json();
+        const plan = (data.plans || []).find(p => p.ticker.toUpperCase() === prefillTicker);
+        
+        if (plan) {
+          document.getElementById('ticker').value = plan.ticker;
+          
+          const catalyst = plan.catalysts && plan.catalysts.length 
+            ? plan.catalysts.join(', ') + (plan.catalystNote ? ': ' + plan.catalystNote : '')
+            : plan.catalystNote || '';
+          document.getElementById('catalyst').value = catalyst;
+          
+          if (plan.entry) document.getElementById('plannedEntry').value = plan.entry;
+          if (plan.stop) document.getElementById('stopLoss').value = plan.stop;
+          if (plan.target) document.getElementById('target').value = plan.target;
+          if (plan.notes) document.getElementById('plan').value = plan.notes;
+          
+          document.getElementById('date').value = new Date().toISOString().split('T')[0];
+          
+          const banner = document.getElementById('prefill-banner');
+          document.getElementById('prefill-text').textContent = '📋 Pre-filled from plan: ' + plan.ticker;
+          banner.style.display = 'block';
+        }
+      } catch(e) {
+        console.error('Error loading plan:', e);
+      }
+    }
 
     async function fetchHODLOD() {
       const ticker = document.getElementById('ticker').value.trim().toUpperCase();
@@ -156,7 +201,6 @@
       statusEl.style.color = '#7f5af0';
 
       try {
-        // Convert date to unix timestamps for the full trading day
         const from = Math.floor(new Date(date + 'T09:00:00').getTime() / 1000);
         const to = Math.floor(new Date(date + 'T20:00:00').getTime() / 1000);
         const url = `https://finnhub.io/api/v1/stock/candle?symbol=${ticker}&resolution=D&from=${from}&to=${to}&token=${FINNHUB_KEY}`;
@@ -180,7 +224,6 @@
       }
     }
 
-    // Trigger fetch when ticker loses focus or date changes
     document.getElementById('ticker').addEventListener('blur', fetchHODLOD);
     document.getElementById('date').addEventListener('change', fetchHODLOD);
     document.getElementById('date').value = new Date().toISOString().split('T')[0];
@@ -210,7 +253,6 @@
       pnlEl.textContent = (isWin ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
       document.getElementById('jm-header').style.background = isWin ? 'rgba(44,182,125,0.06)' : 'rgba(239,69,101,0.06)';
 
-      // Quick stats row at top of body
       const entry = parseFloat(t.entry) || 0;
       const exit = parseFloat(t.exit) || 0;
       const shares = parseInt(t.shares) || 0;
@@ -244,21 +286,13 @@
         ).join('') + `</div>`;
 
       const fields = [
-        ['Setup', t.setup],
-        ['Catalyst', t.catalyst],
-        ['Float', t.float],
-        ['Rel Volume', t.relVol],
+        ['Setup', t.setup], ['Catalyst', t.catalyst], ['Float', t.float], ['Rel Volume', t.relVol],
         ['Planned Entry', t.plannedEntry ? '$' + parseFloat(t.plannedEntry).toFixed(2) : null],
         ['Stop Loss', t.stopLoss ? '$' + parseFloat(t.stopLoss).toFixed(2) : null],
         ['Target', t.target ? '$' + parseFloat(t.target).toFixed(2) : null],
-        ['Exit Reason', t.exitReason],
-        ['Emotion at Entry', t.emotionEntry],
-        ['Emotion at Exit', t.emotionExit],
-        ['Plan', t.plan],
-        ['Did Well', t.didWell],
-        ['Did Poorly', t.didPoorly],
-        ['How to Improve', t.howToImprove],
-        ['What I Learned', t.whatLearned],
+        ['Exit Reason', t.exitReason], ['Emotion at Entry', t.emotionEntry], ['Emotion at Exit', t.emotionExit],
+        ['Plan', t.plan], ['Did Well', t.didWell], ['Did Poorly', t.didPoorly],
+        ['How to Improve', t.howToImprove], ['What I Learned', t.whatLearned],
         ['Grade Notes', t.gradeNotes || t.notes],
       ].filter(([, v]) => v && String(v).trim());
 
@@ -343,6 +377,26 @@
       const result = await submitTrade(data);
       if (result && result.success) {
         clearApiCache();
+        
+        // Mark plan as traded if came from a plan
+        if (prefillTicker && prefillTicker.toUpperCase() === ticker.toUpperCase()) {
+          try {
+            const res = await fetch(WORKER + '/scan/plans');
+            const plans = await res.json();
+            const plan = (plans.plans || []).find(p => p.ticker.toUpperCase() === prefillTicker);
+            if (plan) {
+              plan.status = 'traded';
+              await fetch(WORKER + '/scan/plan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticker: prefillTicker, plan })
+              });
+            }
+          } catch(e) {
+            console.error('Error marking plan as traded:', e);
+          }
+        }
+        
         const msg = document.getElementById('success-msg');
         msg.style.display = 'block';
         msg.textContent = result.winLoss + ' — P&L: $' + result.pnl.toFixed(2) + ' — Saved.';
@@ -350,12 +404,15 @@
         document.querySelectorAll('.grade-btn').forEach(b => b.classList.remove('selected'));
         grades.my = ''; grades.claude = '';
         document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('prefill-banner').style.display = 'none';
+        prefillTicker = null;
         loadRecent();
       } else {
         alert('Error saving trade. Check your connection.');
       }
     }
 
+    prefillFromPlan();
     loadRecent();
   </script>
 </body>

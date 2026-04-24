@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>TradeOS — Plays</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <link rel="stylesheet" href="/tradeos/css/app.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">Trade<span>OS</span></div>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <div class="page-title">Today's Plays</div>
+      <div class="page-sub">Active plans from the scanner.</div>
+    </div>
+
+    <div id="plays-stats" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+      <div class="stat-card">
+        <div class="stat-label">Planned</div>
+        <div class="stat-value" id="stat-planned">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Traded</div>
+        <div class="stat-value" id="stat-traded">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Skipped</div>
+        <div class="stat-value" id="stat-skipped">0</div>
+      </div>
+    </div>
+
+    <div id="plays-container" class="plays-grid"></div>
+
+    <div class="empty" id="empty-state" style="display: none; text-align: center; padding: 40px 20px;">
+      <div style="font-size: 48px; margin-bottom: 12px;">📊</div>
+      <div style="font-size: 16px; color: rgba(255,255,255,0.6);">No plays yet.</div>
+      <div style="font-size: 13px; color: rgba(255,255,255,0.3); margin-top: 8px;">Run the scanner to create plans.</div>
+    </div>
+  </div>
+
+  <!-- Play Detail Modal -->
+  <div id="play-detail-modal" onclick="if(event.target===this)closePlaysModal()" style="display: none; position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 24px 0 40px;">
+    <div style="max-width: 500px; margin: 0 auto; padding: 0 16px;">
+      <div style="background: #1a1a2e; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); overflow: hidden;">
+        <div style="padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <div id="pdm-ticker" style="font-size: 28px; font-weight: 900; color: #e8e8f0;"></div>
+            <div id="pdm-catalyst" style="font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 4px;"></div>
+          </div>
+          <button onclick="closePlaysModal()" style="background: rgba(255,255,255,0.08); border: none; color: rgba(255,255,255,0.6); width: 34px; height: 34px; border-radius: 8px; font-size: 20px; cursor: pointer; font-family: inherit; line-height: 1; padding: 0;">×</button>
+        </div>
+        <div id="pdm-body" style="padding: 16px 20px 24px; display: flex; flex-direction: column; gap: 12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+
+  <script src="/tradeos/js/nav.js"></script>
+  <script src="/tradeos/js/api.js"></script>
+  <script>
+    const _playsCache = {};
+
+    async function loadPlays() {
+      try {
+        const plays = await apiGet('plans') || { plans: [] };
+        _playsCache.plays = plays.plans || [];
+        renderPlays(_playsCache.plays);
+      } catch (e) {
+        console.error('Error loading plays:', e);
+      }
+    }
+
+    function renderPlays(plays) {
+      const container = document.getElementById('plays-container');
+      const emptyState = document.getElementById('empty-state');
+
+      if (!plays || plays.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        updateStats([]);
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      updateStats(plays);
+
+      // Sort by status (planned first, then traded, then skipped)
+      const sorted = [...plays].sort((a, b) => {
+        const statusOrder = { planned: 0, traded: 1, skipped: 2 };
+        return (statusOrder[a.status] || 3) - (statusOrder[b.status] || 3);
+      });
+
+      container.innerHTML = sorted.map((p, idx) => createPlayCard(p, idx)).join('');
+    }
+
+    function createPlayCard(play, idx) {
+      const ticker = play.ticker || '?';
+      const status = play.status || 'planned';
+      const statusColors = { planned: '#7f5af0', traded: '#2cb67d', skipped: '#ef4565' };
+      const statusColor = statusColors[status] || '#7f5af0';
+
+      const plannedEntry = parseFloat(play.plannedEntry) || 0;
+      const stopLoss = parseFloat(play.stopLoss) || 0;
+      const target = parseFloat(play.target) || 0;
+      const rr = plannedEntry > 0 && target > plannedEntry ? ((target - plannedEntry) / (plannedEntry - stopLoss)).toFixed(2) : '—';
+
+      const newsCount = (play.news || []).length;
+
+      return `
+        <div class="play-card" style="background: #1a1a2e; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; cursor: pointer; transition: all 0.2s; border-left: 4px solid ${statusColor};" onclick="openPlaysModal(${idx})">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <div style="font-size: 24px; font-weight: 900; color: #e8e8f0;">${ticker}</div>
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background: rgba(${statusColor === '#7f5af0' ? '127,90,240' : statusColor === '#2cb67d' ? '44,182,125' : '239,69,101'}, 0.15); color: ${statusColor}; padding: 4px 8px; border-radius: 6px;">${status}</div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px;">
+              <div style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Float</div>
+              <div style="font-size: 14px; font-weight: 800; color: #e8e8f0;">${play.float || '—'}</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px;">
+              <div style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Rel Vol</div>
+              <div style="font-size: 14px; font-weight: 800; color: #e8e8f0;">${play.relVol || '—'}</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px; text-align: center;">
+              <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Entry</div>
+              <div style="font-size: 13px; font-weight: 800; color: #e8e8f0;">$${plannedEntry.toFixed(2)}</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px; text-align: center;">
+              <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Stop</div>
+              <div style="font-size: 13px; font-weight: 800; color: #ef4565;">$${stopLoss.toFixed(2)}</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px; text-align: center;">
+              <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px;">Target</div>
+              <div style="font-size: 13px; font-weight: 800; color: #2cb67d;">$${target.toFixed(2)}</div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <div style="font-size: 11px; color: rgba(255,255,255,0.4);">
+              R/R: <span style="color: #e8e8f0; font-weight: 700;">${rr}</span>
+            </div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 4px;">
+              📰 <span style="color: #e8e8f0; font-weight: 700;">${newsCount}</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px;">
+            <button onclick="event.stopPropagation(); markPlayStatus('${ticker}', 'traded')" style="flex: 1; background: rgba(44,182,125,0.2); border: 1px solid rgba(44,182,125,0.4); color: #2cb67d; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s;" onmouseover="this.style.background='rgba(44,182,125,0.3)'" onmouseout="this.style.background='rgba(44,182,125,0.2)'">Traded</button>
+            <button onclick="event.stopPropagation(); markPlayStatus('${ticker}', 'skipped')" style="flex: 1; background: rgba(239,69,101,0.2); border: 1px solid rgba(239,69,101,0.4); color: #ef4565; padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all 0.2s;" onmouseover="this.style.background='rgba(239,69,101,0.3)'" onmouseout="this.style.background='rgba(239,69,101,0.2)'">Skip</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateStats(plays) {
+      const planned = plays.filter(p => p.status === 'planned').length;
+      const traded = plays.filter(p => p.status === 'traded').length;
+      const skipped = plays.filter(p => p.status === 'skipped').length;
+
+      document.getElementById('stat-planned').textContent = planned;
+      document.getElementById('stat-traded').textContent = traded;
+      document.getElementById('stat-skipped').textContent = skipped;
+    }
+
+    function openPlaysModal(idx) {
+      const play = _playsCache.plays[idx];
+      if (!play) return;
+
+      document.getElementById('pdm-ticker').textContent = play.ticker || '?';
+      document.getElementById('pdm-catalyst').textContent = play.catalyst || 'No catalyst logged';
+
+      const fields = [
+        ['Setup', play.setup],
+        ['Float', play.float],
+        ['Rel Volume', play.relVol],
+        ['Planned Entry', play.plannedEntry ? '$' + parseFloat(play.plannedEntry).toFixed(2) : null],
+        ['Stop Loss', play.stopLoss ? '$' + parseFloat(play.stopLoss).toFixed(2) : null],
+        ['Target', play.target ? '$' + parseFloat(play.target).toFixed(2) : null],
+        ['Emotion', play.emotion],
+        ['Notes', play.notes],
+      ].filter(([, v]) => v && String(v).trim());
+
+      let bodyHTML = '';
+
+      // Stats grid
+      const plannedEntry = parseFloat(play.plannedEntry) || 0;
+      const stopLoss = parseFloat(play.stopLoss) || 0;
+      const target = parseFloat(play.target) || 0;
+      const rr = plannedEntry > 0 && target > plannedEntry ? ((target - plannedEntry) / (plannedEntry - stopLoss)).toFixed(2) : '—';
+
+      bodyHTML += `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; text-align: center;">
+            <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">R/R Ratio</div>
+            <div style="font-size: 16px; font-weight: 800; color: #7f5af0;">${rr}</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; text-align: center;">
+            <div style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Status</div>
+            <div style="font-size: 14px; font-weight: 800; color: #e8e8f0;">${play.status || 'planned'}</div>
+          </div>
+        </div>
+      `;
+
+      // Fields
+      if (fields.length) {
+        bodyHTML += fields.map(([label, value]) => `
+          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 12px;">
+            <div style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px;">${label}</div>
+            <div style="font-size: 14px; color: #e8e8f0; line-height: 1.5; word-break: break-word;">${value}</div>
+          </div>
+        `).join('');
+      }
+
+      // News
+      const news = play.news || [];
+      if (news.length > 0) {
+        bodyHTML += `<div style="border-top: 1px solid rgba(255,255,255,0.06); padding-top: 12px; margin-top: 12px;"><div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.3); margin-bottom: 10px;">News (${news.length})</div>`;
+        bodyHTML += news.map(n => {
+          const time = n.publishedAt ? new Date(n.publishedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+          return `
+            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 10px; margin-bottom: 8px;">
+              <div style="font-size: 12px; font-weight: 700; color: #e8e8f0; margin-bottom: 4px; line-height: 1.4;">${n.title}</div>
+              <div style="font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 6px;">${n.source} — ${time}</div>
+              <a href="${n.url}" target="_blank" style="color: #7f5af0; text-decoration: none; font-size: 11px; font-weight: 700;">Read more →</a>
+            </div>
+          `;
+        }).join('');
+        bodyHTML += '</div>';
+      }
+
+      document.getElementById('pdm-body').innerHTML = bodyHTML;
+      document.getElementById('play-detail-modal').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closePlaysModal() {
+      document.getElementById('play-detail-modal').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    async function markPlayStatus(ticker, status) {
+      const plan = _playsCache.plays.find(p => p.ticker === ticker);
+      if (!plan) return;
+
+      plan.status = status;
+      plan.updatedAt = new Date().toISOString();
+
+      await apiPost('savePlan', { ticker, ...plan });
+      closePlaysModal();
+      loadPlays();
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlaysModal(); });
+
+    // Auto-refresh every 30 seconds
+    loadPlays();
+    setInterval(loadPlays, 30000);
+  </script>
+
+  <style>
+    .play-card {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .play-card:hover {
+      background: #212135 !important;
+    }
+
+    .plays-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 600px) {
+      .plays-grid {
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      }
+    }
+
+    .stat-card {
+      background: #1a1a2e;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 900;
+      color: #7f5af0;
+    }
+  </style>
+</body>
+</html>

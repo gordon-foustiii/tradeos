@@ -1,0 +1,54 @@
+<!-- Add this to index.html in the container section, after the stats cards -->
+
+<div id="plays-widget" class="card" style="display: none;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+    <div class="card-title">Today's Plays</div>
+    <a href="/tradeos/plays.html" style="color: #7f5af0; font-size: 12px; font-weight: 700; text-decoration: none;">View all →</a>
+  </div>
+
+  <div id="plays-home-list" style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="font-size: 12px; color: rgba(255,255,255,0.3); text-align: center; padding: 20px;">Loading plays...</div>
+  </div>
+</div>
+
+<script>
+async function loadPlaysWidget() {
+  try {
+    const plays = await apiGet('plans') || { plans: [] };
+    const activePlayss = (plays.plans || []).filter(p => p.status === 'planned');
+
+    const widget = document.getElementById('plays-widget');
+    const list = document.getElementById('plays-home-list');
+
+    if (activePlayss.length === 0) {
+      widget.style.display = 'none';
+      return;
+    }
+
+    widget.style.display = 'block';
+
+    list.innerHTML = activePlayss.slice(0, 5).map(p => {
+      const entry = parseFloat(p.plannedEntry) || 0;
+      return `
+        <div onclick="window.location.href='/tradeos/plays.html'" style="background: rgba(127,90,240,0.1); border: 1px solid rgba(127,90,240,0.2); border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(127,90,240,0.15)'" onmouseout="this.style.background='rgba(127,90,240,0.1)'">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="font-weight: 800; color: #e8e8f0;">${p.ticker}</div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.5);">Entry: $${entry.toFixed(2)}</div>
+          </div>
+          <div style="font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.4;">${p.catalyst || 'No catalyst'}</div>
+        </div>
+      `;
+    }).join('');
+
+    if (activePlayss.length > 5) {
+      list.innerHTML += `<div style="font-size: 12px; color: rgba(255,255,255,0.3); text-align: center; padding: 8px;">+${activePlayss.length - 5} more →</div>`;
+    }
+  } catch (e) {
+    console.error('Error loading plays widget:', e);
+  }
+}
+
+// Load on page load and refresh every minute
+loadPlaysWidget();
+setInterval(loadPlaysWidget, 60000);
+</script>

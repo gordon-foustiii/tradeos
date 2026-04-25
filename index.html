@@ -80,18 +80,6 @@
       </div>
     </div>
 
-    <!-- TODAY'S PLAYS WIDGET -->
-    <div id="plays-widget" class="card" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-        <div class="card-title">Today's Plays</div>
-        <a href="/tradeos/plays.html" style="color: #7f5af0; font-size: 12px; font-weight: 700; text-decoration: none;">View all →</a>
-      </div>
-
-      <div id="plays-home-list" style="display: flex; flex-direction: column; gap: 10px;">
-        <div style="font-size: 12px; color: rgba(255,255,255,0.3); text-align: center; padding: 20px;">Loading plays...</div>
-      </div>
-    </div>
-
     <div class="card">
       <div class="card-title">Daily rules</div>
       <div id="rules-list"></div>
@@ -160,173 +148,270 @@
       <div class="play-item"><span class="check">→</span><span>The stock doesn't know you own it. It doesn't owe you a recovery.</span></div>
       <div class="play-item"><span class="check">→</span><span>1% better every day. Compound the improvement, not just the money.</span></div>
     </div>
+
+    <div style="margin-top:8px">
+      <div class="card-title" style="margin-bottom:10px">Strategy Notes</div>
+
+      <div class="note-card">
+        <div class="note-date">Apr 16, 2026</div>
+        <div class="note-title">EGFIII Investment Solutions — Three Tier Strategy</div>
+        <div class="note-body">
+          <p>Three risk tiers to serve different client profiles:</p>
+          <ul>
+            <li><strong>Low Risk — Dividend Capture:</strong> Stable, income-focused. Minimal market exposure.</li>
+            <li><strong>Medium Risk — Long Term Positions:</strong> Fundamentals-based. Longer holding periods.</li>
+            <li><strong>High Risk — Small Cap Momentum:</strong> Active trading, catalyst-driven. High reward.</li>
+          </ul>
+          <p>Building the track record now through personal trading before managing client capital.</p>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-date">Apr 16, 2026</div>
+        <div class="note-title">Dividend Capture Strategy</div>
+        <div class="note-body">
+          <p>Buy before ex-dividend date, collect dividend, sell after. Net gain = dividend minus price slippage on exit.</p>
+          <ul>
+            <li>Enter 1-2 days before ex-dividend date</li>
+            <li>Collect the dividend</li>
+            <li>Exit shortly after — stock typically drops by dividend amount on ex-date</li>
+            <li>Select large cap, stable dividend payers with low volatility</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-date">Apr 16, 2026</div>
+        <div class="note-title">The Delayed Data Cascade Theory</div>
+        <div class="note-body">
+          <p>Real-time traders see the spike first and act. 15-min delayed traders see it later and act — creating a second spike. Each wave of delayed info = new wave of buyers.</p>
+          <p>The edge: real-time data puts you in before the delayed crowd even knows the move started. The delayed crowd becomes your exit liquidity.</p>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-date">Apr 16, 2026</div>
+        <div class="note-title">Core Theory — Movement Creates Movement</div>
+        <div class="note-body">
+          <p>If a stock can go from $1 to $2, it can double again to $5. Each leg feeds the next. The only factors that stop it are supply, sentiment shift, or catalyst exhaustion.</p>
+          <p>Ride the momentum, cut quickly if it turns. You can't win if you're not in the trade.</p>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-date">Apr 16, 2026</div>
+        <div class="note-title">The AI Amplification Theory</div>
+        <div class="note-body">
+          <ul>
+            <li>Humans find the stock first — scanner, news, instinct</li>
+            <li>AI traders detect the pattern once it's moving and pile in simultaneously</li>
+            <li>Consensus AI short signals create short squeeze fuel</li>
+            <li>The human who finds it early captures the full move — AI becomes exit liquidity</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-date">Apr 16, 2026</div>
+        <div class="note-title">Short Squeeze Mechanics</div>
+        <div class="note-body">
+          <p>Low float + rising price + shorts underwater = forced covering = more upside. The lower the float the more violent the squeeze.</p>
+          <ul>
+            <li>Stock spikes on catalyst → shorts pile in thinking it's topping</li>
+            <li>Shorts forced to cover → adds fuel → squeeze intensifies</li>
+            <li>Repeat until actual top</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-date">Apr 16, 2026</div>
+        <div class="note-title">Risk Management Philosophy</div>
+        <div class="note-body">
+          <ul>
+            <li>Cut losses quickly — it's not a bad trade, just bad luck</li>
+            <li>You can't win if you're not in the trade</li>
+            <li>Missing a move entirely is worse than a small loss</li>
+            <li>Size small on uncertain setups, bigger as conviction grows</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <div class="note-date">Apr 16, 2026</div>
+        <div class="note-title">Trade Window Rules</div>
+        <div class="note-body">
+          <p>Before 10:30am — trade momentum freely within criteria.</p>
+          <p>After 10:30am — only if all three conditions are met:</p>
+          <ul>
+            <li>Volume is increasing — not fading</li>
+            <li>Catalyst is still fresh or new catalyst dropped</li>
+            <li>Price is holding or reclaiming VWAP</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <nav class="bottom-nav" id="bottom-nav"></nav>
-
   <script src="/tradeos/js/nav.js"></script>
   <script src="/tradeos/js/api.js"></script>
   <script>
-    // Determine active nav tab
-    const pageId = window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/tradeos/') ? '' : 
-                   window.location.pathname.split('/').pop().replace('.html', '');
-    renderNav(pageId);
+    if (!isLoggedIn()) { window.location.href = '/tradeos/login.html'; }
+    renderNav('');
 
-    // Load stats
-    async function loadStats() {
-      const stats = await getStats();
-      if (!stats) return;
-      document.getElementById('s-total').textContent = stats.total || 0;
-      document.getElementById('s-wr').textContent = (stats.winRate || 0) + '%';
-      document.getElementById('s-avgloss').textContent = '$' + Math.abs(stats.avgLoss || 0).toFixed(2);
-      document.getElementById('s-avgwin').textContent = '$' + (stats.avgWin || 0).toFixed(2);
-      document.getElementById('s-avgday').textContent = '$' + (stats.avgPerDay || 0).toFixed(2);
-      document.getElementById('s-best').textContent = '$' + (stats.best || 0).toFixed(2);
-      document.getElementById('s-lost').textContent = '$' + Math.abs(stats.totalLost || 0).toFixed(2);
-      document.getElementById('s-made').textContent = '$' + (stats.totalMade || 0).toFixed(2);
-      document.getElementById('s-pnl').textContent = (stats.totalPnl >= 0 ? '+' : '') + '$' + stats.totalPnl.toFixed(2);
-      document.getElementById('s-pnl').style.color = stats.totalPnl >= 0 ? '#2cb67d' : '#ef4565';
-    }
-
-    // Load plays widget
-    async function loadPlaysWidget() {
-      try {
-        const plays = await apiGet('plans') || { plans: [] };
-        const activePlays = (plays.plans || []).filter(p => p.status === 'planned');
-
-        const widget = document.getElementById('plays-widget');
-        const list = document.getElementById('plays-home-list');
-
-        if (activePlays.length === 0) {
-          widget.style.display = 'none';
-          return;
-        }
-
-        widget.style.display = 'block';
-
-        list.innerHTML = activePlays.slice(0, 5).map(p => {
-          const entry = parseFloat(p.plannedEntry) || 0;
-          return `
-            <div onclick="window.location.href='/tradeos/plays.html'" style="background: rgba(127,90,240,0.1); border: 1px solid rgba(127,90,240,0.2); border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(127,90,240,0.15)'" onmouseout="this.style.background='rgba(127,90,240,0.1)'">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <div style="font-weight: 800; color: #e8e8f0;">${p.ticker}</div>
-                <div style="font-size: 11px; color: rgba(255,255,255,0.5);">Entry: $${entry.toFixed(2)}</div>
-              </div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.4;">${p.catalyst || 'No catalyst'}</div>
-            </div>
-          `;
-        }).join('');
-
-        if (activePlays.length > 5) {
-          list.innerHTML += `<div style="font-size: 12px; color: rgba(255,255,255,0.3); text-align: center; padding: 8px;">+${activePlays.length - 5} more →</div>`;
-        }
-      } catch (e) {
-        console.error('Error loading plays widget:', e);
-      }
-    }
-
-    // Set greeting based on time
-    const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'Good morning.' : hour < 17 ? 'Good afternoon.' : 'Good evening.';
-    document.getElementById('greeting').textContent = greeting;
-
-    // Load data on page load
-    loadStats();
-    loadPlaysWidget();
-
-    // Refresh stats every 30 seconds
-    setInterval(loadStats, 30000);
-
-    // Refresh plays every 60 seconds
-    setInterval(loadPlaysWidget, 60000);
-
-    // Daily rules
     const rules = [
-      '1. Cut losses quickly — always. No exceptions.',
-      '2. Only trade stocks with a real catalyst — news, deal, FDA, earnings beat.',
-      '3. Set stop loss before entering — always. Know your exit before your entry.',
-      '4. Max loss per trade: $50. Use the Calculator first.',
-      '5. Primary trade window: 9:30–10:30am. After 10:30 only if volume increasing + catalyst fresh + VWAP holding.',
-      '6. No averaging down — ever.',
-      '7. Never underestimate a stock. Movement creates movement.',
-      '8. Never trust a stock. It doesn\'t owe you anything.',
-      '9. Log every trade in the journal — win or lose.',
-      '10. No trade day is still a good day. Patience is a position.'
+      'Cut losses quickly — always. No exceptions.',
+      'Only trade stocks with a real catalyst.',
+      'Set stop loss before entering — always.',
+      'Max loss per trade: $50. Use the Calculator.',
+      'Primary window: 9:30–10:30am. After 10:30 only if volume + catalyst + VWAP confirm.',
+      'No averaging down — ever.',
+      'Never underestimate a stock.',
+      'Never trust a stock.',
+      'Log every trade — win or lose.',
+      'No trade day is still a good day.'
     ];
-    document.getElementById('rules-list').innerHTML = rules.map(r => `<div class="play-item"><span class="check">→</span><span>${r}</span></div>`).join('');
 
-    // Habit tracking
-    let habitData = { items: [false, false, false, false, false, false, false] };
+    document.getElementById('rules-list').innerHTML = rules.map((r, i) =>
+      `<div class="rule-item"><span class="rule-n">${i+1}</span><span>${r}</span></div>`
+    ).join('');
+
+    const hr = new Date().getHours();
+    const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('greeting').textContent = greet + ', Gordon.';
+
+    getStats().then(stats => {
+      if (!stats) return;
+      const wr = stats.winRate || 0;
+      const pnl = stats.totalPnl || 0;
+      document.getElementById('s-total').textContent = stats.total || 0;
+      const wrEl = document.getElementById('s-wr');
+      wrEl.textContent = wr + '%';
+      wrEl.className = 'metric-value ' + (wr >= 50 ? 'green' : 'amber');
+      const pnlEl = document.getElementById('s-pnl');
+      const pnlColor = pnl >= 0 ? '#2cb67d' : '#ef4565';
+      const sign = pnl >= 0 ? '+' : '-';
+      const absVal = Math.abs(pnl).toFixed(2);
+      const [dollars, cents] = absVal.split('.');
+      const maxDigits = 9;
+      const padded = dollars.padStart(maxDigits, '0');
+      const firstSig = padded.search(/[^0]/);
+      let odometer = sign + '$';
+      for (let i = 0; i < padded.length; i++) {
+        const dim = i < firstSig;
+        odometer += `<span style="color:${dim ? 'rgba(255,255,255,0.15)' : pnlColor}">${padded[i]}</span>`;
+        if (i === 2) odometer += `<span style="color:rgba(255,255,255,0.15)">,</span>`;
+        if (i === 5) odometer += `<span style="color:rgba(255,255,255,0.15)">,</span>`;
+      }
+      odometer += `<span style="color:${pnlColor}">.</span>`;
+      odometer += `<span style="color:${pnlColor}">${cents}</span>`;
+      pnlEl.style.color = pnlColor;
+      pnlEl.innerHTML = odometer;
+      document.getElementById('s-avgwin').textContent = '$' + (stats.avgWin || 0).toFixed(2);
+      document.getElementById('s-avgloss').textContent = '$' + Math.abs(stats.avgLoss || 0).toFixed(2);
+      document.getElementById('s-best').textContent = '$' + (stats.best || 0).toFixed(2);
+      document.getElementById('s-made').textContent = '+$' + (stats.totalMade || 0).toFixed(2);
+      document.getElementById('s-lost').textContent = '-$' + Math.abs(stats.totalLost || 0).toFixed(2);
+      const avgDay = stats.avgPerDay || 0;
+      const avgDayEl = document.getElementById('s-avgday');
+      avgDayEl.textContent = (avgDay >= 0 ? '+' : '') + '$' + Math.abs(avgDay).toFixed(2);
+      avgDayEl.className = 'metric-value ' + (avgDay >= 0 ? 'green' : 'red');
+    });
+
+    // ── HABIT TRACKER ──
+    const TOTAL = 7;
+    const checked = new Array(TOTAL).fill(false);
+    const today = new Date().toISOString().slice(0, 10);
+    let alreadyLogged = false;
 
     function toggle(i) {
-      habitData.items[i] = !habitData.items[i];
-      updateHabitUI();
-    }
-
-    function updateHabitUI() {
-      for (let i = 0; i < 7; i++) {
-        const cb = document.getElementById(`cb-${i}`);
-        const ht = document.getElementById(`ht-${i}`);
-        if (habitData.items[i]) {
-          cb.classList.add('checked');
-          ht.classList.add('done');
-        } else {
-          cb.classList.remove('checked');
-          ht.classList.remove('done');
-        }
-      }
-      const completed = habitData.items.filter(x => x).length;
-      document.getElementById('score-display').textContent = completed + ' / 7';
-      document.getElementById('submit-btn').disabled = completed === 0;
+      if (alreadyLogged) return;
+      checked[i] = !checked[i];
+      document.getElementById('cb-' + i).classList.toggle('checked', checked[i]);
+      document.getElementById('ht-' + i).classList.toggle('done', checked[i]);
+      const count = checked.filter(Boolean).length;
+      document.getElementById('score-display').textContent = count + ' / ' + TOTAL;
+      document.getElementById('submit-btn').disabled = count === 0;
     }
 
     async function submitHabits() {
-      const today = new Date().toISOString().split('T')[0];
-      const result = await saveHabits({ date: today, type: 'morning', items: habitData.items, score: habitData.items.filter(x => x).length });
-      if (result && result.success) {
-        document.getElementById('submit-status').textContent = '✓ Logged';
-        document.getElementById('submit-status').style.color = '#2cb67d';
-        setTimeout(() => { document.getElementById('submit-status').textContent = ''; }, 2000);
-        loadHabitHistory();
-      } else {
-        document.getElementById('submit-status').textContent = '✗ Error saving';
-        document.getElementById('submit-status').style.color = '#ef4565';
+      const count = checked.filter(Boolean).length;
+      const score = Math.round((count / TOTAL) * 100);
+      const btn = document.getElementById('submit-btn');
+      const status = document.getElementById('submit-status');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      try {
+        const result = await apiPost('saveHabits', { date: today, type: 'morning', items: checked, score });
+        if (result && result.success) {
+          alreadyLogged = true;
+          btn.textContent = 'Logged ✓';
+          status.textContent = score + '% — ' + count + ' of ' + TOTAL + ' completed';
+          status.style.color = score === 100 ? '#2cb67d' : score >= 70 ? '#f4b942' : '#ef4565';
+          document.getElementById('today-badge').innerHTML = '<span class="today-badge">logged</span>';
+          loadHistory();
+        } else {
+          btn.disabled = false;
+          btn.textContent = 'Log Morning Routine';
+          status.textContent = 'Save failed — try again';
+        }
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Log Morning Routine';
+        status.textContent = 'Error — check connection';
       }
     }
 
-    async function loadHabitHistory() {
-      const habits = await getHabits();
-      if (!habits || habits.length === 0) {
-        document.getElementById('habit-history').innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:13px;text-align:center;padding:8px 0">No habits logged yet.</div>';
-        return;
+    async function loadHistory() {
+      const el = document.getElementById('habit-history');
+      try {
+        const data = await apiGet('getHabits');
+        if (!data || !data.length) {
+          el.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:13px;text-align:center;padding:8px 0">No history yet.</div>';
+          return;
+        }
+        el.innerHTML = data.slice(0, 14).map(h => {
+          const isToday = h.date === today;
+          const pct = h.score || 0;
+          const barColor = pct === 100 ? '#2cb67d' : pct >= 70 ? '#f4b942' : '#ef4565';
+          const label = new Date(h.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          return `<div class="history-row">
+            <span class="history-date">${label}${isToday ? ' <span class="today-badge">today</span>' : ''}</span>
+            <div class="history-bar-wrap"><div class="history-bar" style="width:${pct}%;background:${barColor}"></div></div>
+            <span class="history-pct" style="color:${barColor}">${pct}%</span>
+          </div>`;
+        }).join('');
+        if (data.some(h => h.date === today)) {
+          alreadyLogged = true;
+          const todayData = data.find(h => h.date === today);
+          document.getElementById('submit-btn').textContent = 'Logged ✓';
+          document.getElementById('submit-btn').disabled = true;
+          document.getElementById('today-badge').innerHTML = '<span class="today-badge">logged</span>';
+          document.getElementById('submit-status').textContent = todayData.score + '% completed today';
+          document.getElementById('submit-status').style.color = 'rgba(255,255,255,0.35)';
+          if (todayData.items) {
+            todayData.items.forEach((v, i) => {
+              if (v) {
+                checked[i] = true;
+                document.getElementById('cb-' + i).classList.add('checked');
+                document.getElementById('ht-' + i).classList.add('done');
+              }
+            });
+            document.getElementById('score-display').textContent = checked.filter(Boolean).length + ' / ' + TOTAL;
+          }
+        }
+      } catch (e) {
+        el.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:13px;text-align:center;padding:8px 0">Could not load history.</div>';
       }
-      const grouped = {};
-      habits.forEach(h => {
-        const d = h.date.substring(0, 10);
-        if (!grouped[d]) grouped[d] = { total: 0, score: 0 };
-        grouped[d].total++;
-        grouped[d].score += h.score || 0;
-      });
-      const rows = Object.entries(grouped).sort((a, b) => new Date(b[0]) - new Date(a[0])).slice(0, 14).map(([date, stats]) => {
-        const pct = Math.round((stats.score / (stats.total * 7)) * 100);
-        const barColor = pct >= 80 ? '#2cb67d' : pct >= 50 ? '#7f5af0' : '#ef4565';
-        const dateObj = new Date(date);
-        const isToday = dateObj.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
-        return `<div class="history-row">
-          <span class="history-date">${dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${isToday ? ' <span class="today-badge">TODAY</span>' : ''}</span>
-          <div class="history-bar-wrap"><div class="history-bar" style="width:${pct}%;background:${barColor}"></div></div>
-          <span class="history-pct">${pct}%</span>
-        </div>`;
-      }).join('');
-      document.getElementById('habit-history').innerHTML = rows;
     }
 
-    loadHabitHistory();
+    loadHistory();
 
-    // Note cards
     document.querySelectorAll('.note-card').forEach(card => {
-      card.addEventListener('click', function() {
-        this.classList.toggle('open');
+      card.querySelector('.note-title').addEventListener('click', () => {
+        card.classList.toggle('open');
       });
     });
   </script>

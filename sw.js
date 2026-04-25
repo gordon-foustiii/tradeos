@@ -1,4 +1,4 @@
-const CACHE = 'tradeos-v3';
+const CACHE = 'tradeos-v4';
 const ASSETS = [
   '/tradeos/',
   '/tradeos/index.html',

@@ -3,26 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <meta name="theme-color" content="#0a0a14">
+  <meta name="theme-color" content="#0f0f0f">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Dashboard — TradeOS</title>
   <link rel="manifest" href="/tradeos/manifest.json">
   <style>
-    :root {
-      --bg-primary: #0a0a14;
-      --bg-secondary: #14141f;
-      --bg-tertiary: #1a1a28;
-      --border: #252535;
-      --text-primary: #e8e8f0;
-      --text-secondary: #a0a0b0;
-      --accent: #7f5af0;
-      --accent-light: #9d7fff;
-      --success: #22c55e;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-    }
-
     * {
       margin: 0;
       padding: 0;
@@ -30,9 +16,9 @@
     }
 
     body {
-      font-family: 'Courier Prime', 'Courier New', monospace;
-      background: var(--bg-primary);
-      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      color: #fff;
       line-height: 1.5;
     }
 
@@ -41,8 +27,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 16px 20px;
-      background: linear-gradient(180deg, var(--bg-secondary) 0%, transparent 100%);
-      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -58,7 +44,10 @@
     }
 
     .topbar-brand span {
-      color: var(--accent);
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .topbar-menu {
@@ -69,11 +58,11 @@
     .btn-icon {
       width: 40px;
       height: 40px;
-      border: 1px solid var(--border);
-      background: var(--bg-tertiary);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 8px;
       cursor: pointer;
-      color: var(--text-secondary);
+      color: #aaa;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -82,9 +71,9 @@
     }
 
     .btn-icon:hover {
-      background: var(--bg-primary);
-      color: var(--accent);
-      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffd93d;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     .container {
@@ -112,7 +101,7 @@
 
     .welcome-sub {
       font-size: 14px;
-      color: var(--text-secondary);
+      color: #aaa;
     }
 
     .grid {
@@ -123,8 +112,8 @@
     }
 
     .card {
-      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       padding: 20px;
       animation: fadeIn 0.6s ease-out;
@@ -143,7 +132,7 @@
 
     .stat-label {
       font-size: 12px;
-      color: var(--text-secondary);
+      color: #aaa;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 8px;
@@ -165,15 +154,15 @@
     }
 
     .stat-change.positive {
-      color: var(--success);
+      color: #4ade80;
     }
 
     .stat-change.negative {
-      color: var(--danger);
+      color: #ef4444;
     }
 
     .stat-change.neutral {
-      color: var(--text-secondary);
+      color: #aaa;
     }
 
     .stat-icon {
@@ -194,8 +183,8 @@
       margin: 32px 0 16px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: var(--text-secondary);
-      border-bottom: 1px solid var(--border);
+      color: #aaa;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       padding-bottom: 12px;
     }
 
@@ -206,13 +195,13 @@
     }
 
     .trades-table thead {
-      border-bottom: 2px solid var(--border);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
     }
 
     .trades-table th {
       text-align: left;
       padding: 12px 0;
-      color: var(--text-secondary);
+      color: #aaa;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -221,12 +210,15 @@
 
     .trades-table td {
       padding: 12px 0;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .trade-ticker {
       font-weight: 700;
-      color: var(--accent);
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       min-width: 60px;
     }
 
@@ -237,17 +229,17 @@
     }
 
     .trade-pnl.win {
-      color: var(--success);
+      color: #4ade80;
     }
 
     .trade-pnl.loss {
-      color: var(--danger);
+      color: #ef4444;
     }
 
     .empty-state {
       text-align: center;
       padding: 40px 20px;
-      color: var(--text-secondary);
+      color: #aaa;
     }
 
     .empty-state-icon {
@@ -264,8 +256,8 @@
     }
 
     .btn-action {
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-      color: white;
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      color: #000;
       border: none;
       border-radius: 8px;
       padding: 14px 16px;
@@ -280,7 +272,7 @@
 
     .btn-action:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(127, 90, 240, 0.3);
+      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
     }
 
     .btn-action:active {
@@ -293,7 +285,7 @@
       gap: 8px;
       margin-top: 32px;
       padding-top: 16px;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .nav-link {
@@ -303,7 +295,7 @@
       gap: 6px;
       padding: 12px;
       text-decoration: none;
-      color: var(--text-secondary);
+      color: #aaa;
       border-radius: 8px;
       transition: all 0.2s;
       font-size: 11px;
@@ -313,14 +305,14 @@
     }
 
     .nav-link:hover {
-      background: var(--bg-tertiary);
-      color: var(--accent);
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
     }
 
     .nav-link.active {
-      background: var(--bg-tertiary);
-      color: var(--accent);
-      border-bottom: 2px solid var(--accent);
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
+      border-bottom: 2px solid #ffd93d;
     }
 
     .nav-icon {
@@ -328,7 +320,7 @@
     }
 
     .loading {
-      color: var(--text-secondary);
+      color: #aaa;
       text-align: center;
       padding: 20px;
     }
@@ -337,8 +329,8 @@
       display: inline-block;
       width: 16px;
       height: 16px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #ffd93d;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -351,7 +343,7 @@
 <body>
   <div class="topbar">
     <div class="topbar-brand">
-      Trade<span>OS</span>
+      ⚔️ Trade<span>OS</span>
     </div>
     <div class="topbar-menu">
       <button class="btn-icon" onclick="refreshStats()" title="Refresh">🔄</button>
@@ -483,11 +475,6 @@
       return '$' + Math.abs(num).toFixed(2);
     }
 
-    function getMonth() {
-      const now = new Date();
-      return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-    }
-
     function loadDashboard() {
       if (!isLoggedIn()) {
         window.location.href = '/tradeos/login.html';
@@ -497,53 +484,71 @@
       document.getElementById('greeting').textContent = getGreeting();
 
       // Load stats
-      getStats().then(function(stats) {
-        if (!stats) return;
+      if (typeof getStats === 'function') {
+        getStats().then(function(stats) {
+          if (!stats) return;
 
-        document.getElementById('total-trades').textContent = stats.total || 0;
-        document.getElementById('win-rate').textContent = (stats.winRate || 0) + '%';
-        
-        const pnl = stats.totalPnl || 0;
-        document.getElementById('total-pnl').textContent = formatMoney(pnl);
-        const pnlEl = document.getElementById('pnl-change');
-        pnlEl.className = 'stat-change ' + (pnl > 0 ? 'positive' : pnl < 0 ? 'negative' : 'neutral');
-        pnlEl.innerHTML = (pnl > 0 ? '↑ ' : pnl < 0 ? '↓ ' : '') + formatMoney(pnl);
+          document.getElementById('total-trades').textContent = stats.total || 0;
+          document.getElementById('win-rate').textContent = (stats.winRate || 0) + '%';
+          
+          const pnl = stats.totalPnl || 0;
+          document.getElementById('total-pnl').textContent = formatMoney(pnl);
+          const pnlEl = document.getElementById('pnl-change');
+          pnlEl.className = 'stat-change ' + (pnl > 0 ? 'positive' : pnl < 0 ? 'negative' : 'neutral');
+          pnlEl.innerHTML = (pnl > 0 ? '↑ ' : pnl < 0 ? '↓ ' : '') + formatMoney(pnl);
 
-        // Month P&L (placeholder)
-        document.getElementById('month-pnl').textContent = '$0.00';
-        document.getElementById('month-change').innerHTML = 'No trades this month';
-      });
+          document.getElementById('month-pnl').textContent = '$0.00';
+          document.getElementById('month-change').innerHTML = 'No trades this month';
+        });
+      }
 
       // Load trades
-      getTrades().then(function(data) {
-        const trades = data && data.trades ? data.trades : [];
-        const tbody = document.getElementById('trades-body');
+      if (typeof getTrades === 'function') {
+        getTrades().then(function(data) {
+          const trades = data && data.trades ? data.trades : [];
+          const tbody = document.getElementById('trades-body');
 
-        if (trades.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">📭</div><div>No trades yet. Start trading!</div></td></tr>';
-          return;
-        }
+          if (trades.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">📭</div><div>No trades yet. Start trading!</div></td></tr>';
+            return;
+          }
 
-        const recent = trades.slice(-10).reverse();
-        tbody.innerHTML = recent.map(function(t) {
-          const pnl = parseFloat(t.pnl) || 0;
-          return `
-            <tr>
-              <td>${formatDate(t.createdAt || t.date)}</td>
-              <td class="trade-ticker">${t.ticker}</td>
-              <td>$${(t.entry || 0).toFixed(2)}</td>
-              <td>$${(t.exit || 0).toFixed(2)}</td>
-              <td>${t.qty}</td>
-              <td class="trade-pnl ${pnl > 0 ? 'win' : pnl < 0 ? 'loss' : ''}">${pnl > 0 ? '+' : ''}${formatMoney(pnl)}</td>
-            </tr>
-          `;
-        }).join('');
-      });
+          const recent = trades.slice(-10).reverse();
+          tbody.innerHTML = recent.map(function(t) {
+            const pnl = parseFloat(t.pnl) || 0;
+            return `
+              <tr>
+                <td>${formatDate(t.createdAt || t.date)}</td>
+                <td class="trade-ticker">${t.ticker}</td>
+                <td>$${(t.entry || 0).toFixed(2)}</td>
+                <td>$${(t.exit || 0).toFixed(2)}</td>
+                <td>${t.qty}</td>
+                <td class="trade-pnl ${pnl > 0 ? 'win' : pnl < 0 ? 'loss' : ''}">${pnl > 0 ? '+' : ''}${formatMoney(pnl)}</td>
+              </tr>
+            `;
+          }).join('');
+        });
+      }
     }
 
     function refreshStats() {
-      clearApiCache();
+      if (typeof clearApiCache === 'function') clearApiCache();
       loadDashboard();
+    }
+
+    function isLoggedIn() {
+      const token = localStorage.getItem('tradeos_id_token');
+      const expiry = localStorage.getItem('tradeos_token_expiry');
+      return token && expiry && Date.now() < parseInt(expiry);
+    }
+
+    function signOut() {
+      if (confirm('Sign out of TradeOS?')) {
+        localStorage.removeItem('tradeos_id_token');
+        localStorage.removeItem('tradeos_access_token');
+        localStorage.removeItem('tradeos_token_expiry');
+        window.location.href = '/tradeos/login.html';
+      }
     }
 
     // Load on page load

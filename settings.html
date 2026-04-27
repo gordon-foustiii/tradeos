@@ -3,27 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <meta name="theme-color" color="#1a1a1a">
+  <meta name="theme-color" content="#0f0f0f">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Profile — TradeOS</title>
   <link rel="manifest" href="/tradeos/manifest.json">
   <style>
-    :root {
-      --bg-primary: #1a1a1a;
-      --bg-secondary: #2a2a2a;
-      --bg-tertiary: #353535;
-      --border: #3a3a3a;
-      --text-primary: #ffffff;
-      --text-secondary: #a0a0a0;
-      --accent: #ff6b35;
-      --accent-light: #ff8c5a;
-      --accent-dark: #e55a25;
-      --success: #4ade80;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-    }
-
     * {
       margin: 0;
       padding: 0;
@@ -37,20 +22,20 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, var(--bg-primary) 0%, #0f0f0f 100%);
-      color: var(--text-primary);
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      color: #fff;
       line-height: 1.6;
       overflow-x: hidden;
     }
 
     /* Hero Section */
     .hero {
-      background: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 50%, var(--accent-light) 100%);
+      background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%);
       padding: 40px 20px;
       text-align: center;
       position: relative;
       overflow: hidden;
-      border-bottom: 2px solid var(--border);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
     }
 
     .hero::before {
@@ -105,8 +90,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 16px 20px;
-      background: var(--bg-secondary);
-      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -122,17 +107,20 @@
     }
 
     .topbar-brand span {
-      color: var(--accent);
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .btn-icon {
       width: 40px;
       height: 40px;
-      border: 1px solid var(--border);
-      background: var(--bg-tertiary);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 8px;
       cursor: pointer;
-      color: var(--text-secondary);
+      color: #aaa;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -141,9 +129,9 @@
     }
 
     .btn-icon:hover {
-      background: var(--bg-primary);
-      color: var(--accent);
-      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffd93d;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     .container {
@@ -173,7 +161,7 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: var(--text-secondary);
+      color: #aaa;
       margin-bottom: 16px;
       display: flex;
       align-items: center;
@@ -185,13 +173,13 @@
       display: inline-block;
       width: 3px;
       height: 16px;
-      background: linear-gradient(180deg, var(--accent) 0%, var(--accent-light) 100%);
+      background: linear-gradient(180deg, #ff6b6b 0%, #ffd93d 100%);
       border-radius: 2px;
     }
 
     .card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       padding: 20px;
       margin-bottom: 12px;
@@ -207,12 +195,12 @@
     .card-title {
       font-size: 15px;
       font-weight: 600;
-      color: var(--text-primary);
+      color: #fff;
     }
 
     .card-subtitle {
       font-size: 12px;
-      color: var(--text-secondary);
+      color: #aaa;
       margin-top: 4px;
     }
 
@@ -230,20 +218,14 @@
 
     .status-badge.connected {
       background: rgba(74, 222, 128, 0.15);
-      color: var(--success);
+      color: #4ade80;
       border: 1px solid rgba(74, 222, 128, 0.3);
     }
 
     .status-badge.disconnected {
       background: rgba(239, 68, 68, 0.15);
-      color: var(--danger);
+      color: #ef4444;
       border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
-    .status-badge.pending {
-      background: rgba(245, 158, 11, 0.15);
-      color: var(--warning);
-      border: 1px solid rgba(245, 158, 11, 0.3);
     }
 
     .dot {
@@ -254,9 +236,8 @@
       animation: pulse 2s ease-in-out infinite;
     }
 
-    .dot.green { background: var(--success); }
-    .dot.red { background: var(--danger); }
-    .dot.yellow { background: var(--warning); }
+    .dot.green { background: #4ade80; }
+    .dot.red { background: #ef4444; }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
@@ -273,17 +254,17 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      color: var(--text-secondary);
+      color: #aaa;
       margin-bottom: 8px;
     }
 
     .input {
       width: 100%;
       padding: 12px;
-      background: var(--bg-primary);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
-      color: var(--text-primary);
+      color: #fff;
       font-family: inherit;
       font-size: 14px;
       transition: all 0.2s;
@@ -291,13 +272,13 @@
 
     .input:focus {
       outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
-      background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(255, 107, 53, 0.05) 100%);
+      border-color: #ffd93d;
+      box-shadow: 0 0 0 3px rgba(255, 217, 61, 0.1);
+      background: rgba(255, 217, 61, 0.02);
     }
 
     .input:disabled {
-      background: var(--bg-tertiary);
+      background: rgba(255, 255, 255, 0.05);
       opacity: 0.6;
       cursor: not-allowed;
     }
@@ -313,16 +294,16 @@
       position: relative;
       width: 44px;
       height: 24px;
-      background: var(--border);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       cursor: pointer;
       transition: background 0.3s;
-      border: 1px solid var(--border);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .switch.active {
-      background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%);
-      border-color: var(--accent);
+      background: linear-gradient(90deg, #ff6b6b 0%, #ffd93d 100%);
+      border-color: #ffd93d;
     }
 
     .switch::after {
@@ -361,15 +342,15 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-      color: white;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%);
+      color: #000;
       flex: 1;
       min-width: 140px;
     }
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
+      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
     }
 
     .btn-primary:active {
@@ -377,26 +358,26 @@
     }
 
     .btn-secondary {
-      background: var(--bg-tertiary);
-      color: var(--text-secondary);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.1);
+      color: #aaa;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .btn-secondary:hover {
-      background: var(--bg-secondary);
-      color: var(--accent);
-      border-color: var(--accent);
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffd93d;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     .btn-danger {
       background: rgba(239, 68, 68, 0.1);
-      color: var(--danger);
-      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
     .btn-danger:hover {
       background: rgba(239, 68, 68, 0.2);
-      border-color: var(--danger);
+      border-color: #ef4444;
     }
 
     .stats-grid {
@@ -407,8 +388,8 @@
     }
 
     .stat-mini {
-      background: var(--bg-primary);
-      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       padding: 12px;
       text-align: center;
@@ -416,7 +397,7 @@
 
     .stat-mini-label {
       font-size: 10px;
-      color: var(--text-secondary);
+      color: #aaa;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 6px;
@@ -425,17 +406,20 @@
     .stat-mini-value {
       font-size: 18px;
       font-weight: 800;
-      color: var(--accent);
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .api-key-display {
-      background: var(--bg-primary);
-      border: 1px dashed var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.1);
       border-radius: 8px;
       padding: 12px;
       font-family: 'Courier New', monospace;
       font-size: 11px;
-      color: var(--text-secondary);
+      color: #aaa;
       word-break: break-all;
       margin-top: 8px;
     }
@@ -446,7 +430,7 @@
       gap: 8px;
       margin-top: 40px;
       padding-top: 24px;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .nav-link {
@@ -456,7 +440,7 @@
       gap: 6px;
       padding: 12px;
       text-decoration: none;
-      color: var(--text-secondary);
+      color: #aaa;
       border-radius: 8px;
       transition: all 0.2s;
       font-size: 11px;
@@ -466,55 +450,24 @@
     }
 
     .nav-link:hover {
-      background: var(--bg-tertiary);
-      color: var(--accent);
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
     }
 
     .nav-link.active {
-      background: var(--bg-tertiary);
-      color: var(--accent);
-      border-bottom: 2px solid var(--accent);
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
+      border-bottom: 2px solid #ffd93d;
     }
 
     .nav-icon {
       font-size: 18px;
     }
 
-    .alert {
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-bottom: 16px;
-      border-left: 3px solid;
-    }
-
-    .alert.success {
-      background: rgba(74, 222, 128, 0.1);
-      border-color: var(--success);
-      color: var(--success);
-    }
-
-    .alert.error {
-      background: rgba(239, 68, 68, 0.1);
-      border-color: var(--danger);
-      color: var(--danger);
-    }
-
-    .alert.info {
-      background: rgba(59, 130, 246, 0.1);
-      border-color: #3b82f6;
-      color: #3b82f6;
-    }
-
     .divider {
       height: 1px;
-      background: var(--border);
+      background: rgba(255, 255, 255, 0.1);
       margin: 16px 0;
-    }
-
-    .loading {
-      opacity: 0.6;
-      pointer-events: none;
     }
 
     @media (max-width: 600px) {
@@ -544,7 +497,7 @@
   <!-- Top Navigation -->
   <div class="topbar">
     <div class="topbar-brand">
-      Trade<span>OS</span>
+      ⚔️ Trade<span>OS</span>
     </div>
     <div style="display: flex; gap: 12px;">
       <button class="btn-icon" onclick="goHome()" title="Home">🏠</button>
@@ -586,7 +539,7 @@
             <div class="card-subtitle">When you joined</div>
           </div>
         </div>
-        <div style="padding: 12px 0; font-size: 14px; color: var(--text-secondary);" id="account-created">Loading...</div>
+        <div style="padding: 12px 0; font-size: 14px; color: #aaa;" id="account-created">Loading...</div>
       </div>
     </div>
 
@@ -631,7 +584,7 @@
             Disconnected
           </div>
         </div>
-        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 12px; line-height: 1.5;">
+        <div style="font-size: 13px; color: #aaa; margin-top: 12px; line-height: 1.5;">
           Connect your Schwab account to enable live market data, real-time quotes, and automated trade sync.
         </div>
         <div class="divider"></div>
@@ -652,7 +605,7 @@
             Connected
           </div>
         </div>
-        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 12px;">
+        <div style="font-size: 13px; color: #aaa; margin-top: 12px;">
           Your trades are automatically synced to Google Sheets for backup and analysis.
         </div>
       </div>
@@ -710,11 +663,11 @@
 
     <!-- Danger Zone -->
     <div class="section">
-      <div class="section-title" style="color: var(--danger);">Danger Zone</div>
+      <div class="section-title" style="color: #ef4444;">Danger Zone</div>
       
-      <div class="card" style="border-color: rgba(239, 68, 68, 0.2); background: var(--bg-secondary);">
-        <div class="card-title" style="color: var(--danger); margin-bottom: 12px;">Delete Account</div>
-        <div class="card-subtitle" style="color: var(--text-secondary);">This action cannot be undone. All trades and data will be permanently removed.</div>
+      <div class="card" style="border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);">
+        <div class="card-title" style="color: #ef4444; margin-bottom: 12px;">Delete Account</div>
+        <div class="card-subtitle" style="color: #aaa;">This action cannot be undone. All trades and data will be permanently removed.</div>
         <div class="divider"></div>
         <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
       </div>
@@ -782,16 +735,13 @@
         return;
       }
 
-      // Load user profile (from token)
       const token = localStorage.getItem('tradeos_id_token');
       try {
-        // Parse JWT (basic decode - don't verify signature on client)
         const payload = JSON.parse(atob(token.split('.')[1]));
         document.getElementById('user-name').textContent = payload.name || 'Trader';
         document.getElementById('user-email').textContent = payload.email || '';
         document.getElementById('email-input').value = payload.email || '';
         
-        // Estimate account age
         const iat = new Date(payload.iat * 1000);
         const formatted = iat.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         document.getElementById('account-created').textContent = formatted;
@@ -799,7 +749,6 @@
         console.error('Failed to decode token', e);
       }
 
-      // Load trading stats
       if (typeof getStats === 'function') {
         getStats().then(stats => {
           if (!stats) return;
@@ -810,25 +759,15 @@
           document.getElementById('stat-best').textContent = '$' + (stats.bestTrade || 0).toFixed(0);
         }).catch(e => {
           console.error('Failed to load stats', e);
-          document.getElementById('stat-trades').textContent = '0';
-          document.getElementById('stat-winrate').textContent = '0%';
-          document.getElementById('stat-pnl').textContent = '$0';
-          document.getElementById('stat-best').textContent = '$0';
         });
       }
 
-      // Check Schwab status
       checkSchwabStatus();
-
-      // Load preferences
       loadPreferences();
-
-      // Load API key status
       checkApiKeyStatus();
     }
 
     function checkSchwabStatus() {
-      // Check if Schwab access token is stored
       const schwabToken = localStorage.getItem('schwab_access_token');
       const schwabExpiry = localStorage.getItem('schwab_token_expiry');
       
@@ -836,26 +775,12 @@
         document.getElementById('schwab-status').className = 'status-badge connected';
         document.getElementById('schwab-status').innerHTML = '<span class="dot green"></span>Connected';
         document.getElementById('schwab-btn').textContent = 'Reconnect';
-      } else {
-        document.getElementById('schwab-status').className = 'status-badge disconnected';
-        document.getElementById('schwab-status').innerHTML = '<span class="dot red"></span>Disconnected';
-        document.getElementById('schwab-btn').textContent = 'Connect Schwab';
       }
     }
 
     function connectSchwab() {
-      // Generate state for OAuth
       const state = Math.random().toString(36).substring(7);
       sessionStorage.setItem('schwab_state', state);
-
-      // Redirect to Schwab OAuth
-      const clientId = 'YOUR_SCHWAB_CLIENT_ID'; // Replace with actual
-      const redirectUri = 'https://gordon-foustiii.github.io/tradeos/auth.html';
-      const scope = 'PlaceTrades AccountAccess MoveMoney';
-      
-      const authUrl = `https://api.schwabapi.com/v1/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}&scope=${encodeURIComponent(scope)}`;
-      
-      // For now, show a message
       alert('Schwab integration setup:\n\n1. Get credentials from: https://developer.schwab.com\n2. Update client_id in settings.html\n3. Schwab OAuth will launch here');
     }
 
@@ -865,9 +790,7 @@
         alert('Schwab is not connected. Connect first.');
         return;
       }
-
-      alert('Testing Schwab connection...\n(Check browser console for details)');
-      console.log('Schwab token:', token ? 'present' : 'missing');
+      alert('Testing Schwab connection...');
     }
 
     function togglePref(pref, el) {
@@ -879,7 +802,6 @@
 
     function loadPreferences() {
       const prefs = JSON.parse(localStorage.getItem('tradeos_prefs') || '{"notifications":true,"digest":true}');
-      
       const switches = document.querySelectorAll('.switch');
       if (prefs.notifications && switches[0]) {
         switches[0].classList.toggle('active', true);
@@ -936,7 +858,6 @@
         if (confirm('Really? Type your email to confirm deletion.')) {
           const email = prompt('Type your email to confirm:');
           if (email) {
-            // In a real app, call API to delete
             alert('Account deletion requested. Check your email to confirm.');
             localStorage.clear();
             window.location.href = '/tradeos/login.html';
@@ -945,7 +866,6 @@
       }
     }
 
-    // Load on page ready
     window.addEventListener('load', loadProfile);
   </script>
 </body>

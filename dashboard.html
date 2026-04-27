@@ -18,9 +18,13 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      background-attachment: fixed;
       color: #fff;
       line-height: 1.5;
+      min-height: 100vh;
       padding-bottom: 100px;
+      display: flex;
+      flex-direction: column;
     }
 
     .topbar {
@@ -33,6 +37,8 @@
       position: sticky;
       top: 0;
       z-index: 100;
+      height: 72px;
+      flex-shrink: 0;
     }
 
     .topbar-brand {
@@ -81,6 +87,8 @@
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
+      flex: 1;
+      width: 100%;
     }
 
     .header {
@@ -292,6 +300,8 @@
       background: rgba(0, 0, 0, 0.95);
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       z-index: 100;
+      height: 100px;
+      backdrop-filter: blur(10px);
     }
 
     .nav-link {

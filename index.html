@@ -137,25 +137,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="logo">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; display: inline-block; vertical-align: middle;">
-                <g>
-                    <!-- Left sword -->
-                    <rect x="8" y="6" width="4" height="28" rx="2" fill="url(#grad1)" transform="rotate(-45 10 20)"/>
-                    <circle cx="10" cy="20" r="3" fill="url(#grad1)"/>
-                    <!-- Right sword -->
-                    <rect x="36" y="6" width="4" height="28" rx="2" fill="url(#grad1)" transform="rotate(45 38 20)"/>
-                    <circle cx="38" cy="20" r="3" fill="url(#grad1)"/>
-                    <defs>
-                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffd93d;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                </g>
-            </svg>
-            TradeOS
-        </div>
+        <div class="logo">⚔️ TRADEOS</div>
         <h1>Trading OS</h1>
         <p class="subtitle">Viking-branded trading platform for systematic penny stock trading and portfolio management.</p>
 
@@ -187,6 +169,25 @@
     <script>
         const WORKER_URL = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
 
+        // Check if already logged in
+        function checkAuth() {
+            const token = localStorage.getItem('tradeos_id_token');
+            const expiry = localStorage.getItem('tradeos_token_expiry');
+            
+            if (token && expiry && Date.now() < parseInt(expiry)) {
+                // Token valid, redirect to dashboard
+                window.location.href = '/tradeos/dashboard.html';
+                return true;
+            }
+            
+            // Clear expired tokens
+            localStorage.removeItem('tradeos_id_token');
+            localStorage.removeItem('tradeos_access_token');
+            localStorage.removeItem('tradeos_token_expiry');
+            return false;
+        }
+
+        // Check worker health
         fetch(`${WORKER_URL}/scan/latest`)
             .then(() => {
                 document.getElementById('worker-status').textContent = 'Online';
@@ -197,12 +198,15 @@
             });
 
         function handleLogin() {
-            window.location.href = 'login.html';
+            window.location.href = '/tradeos/login.html';
         }
 
         function handleInfo() {
             alert('TradeOS v2 - Coming Soon\n\nFeatures in development:\n• Scanner\n• Trade Journal\n• Playbook\n• Performance Analytics');
         }
+
+        // Run auth check on load
+        checkAuth();
     </script>
 </body>
 </html>

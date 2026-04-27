@@ -835,32 +835,65 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadCustomPresets(); updateFilterDisplay(); updatePresetsUI();
       document.getElementById('presetName').addEventListener('input', (e) => { document.getElementById('saveBtn').disabled = !e.target.value.trim(); });
+      // Auto-start scan when page loads
+      autoStartScan();
     });
 
-    function toggleScanner() {
-      state.isScanning = !state.isScanning;
+    function autoStartScan() {
+      state.isScanning = true;
       const btn = document.getElementById('scanBtn');
       const dot = document.getElementById('statusDot');
       const txt = document.getElementById('statusText');
+      btn.textContent = '⏹ Stop Scanning'; 
+      btn.classList.add('stop'); 
+      dot.classList.add('active'); 
+      txt.textContent = 'Scanning...'; 
+      performScan();
+    }
+
+    function toggleScanner() {
       if (state.isScanning) {
-        btn.textContent = '⏹ Stop Scanning'; btn.classList.add('stop'); dot.classList.add('active'); txt.textContent = 'Scanning...'; startScan();
+        stopScan();
       } else {
-        btn.textContent = '▶ Start Scan'; btn.classList.remove('stop'); dot.classList.remove('active'); txt.textContent = 'Ready'; if (state.scanInterval) clearInterval(state.scanInterval);
+        state.isScanning = true;
+        const btn = document.getElementById('scanBtn');
+        const dot = document.getElementById('statusDot');
+        const txt = document.getElementById('statusText');
+        btn.textContent = '⏹ Stop Scanning'; 
+        btn.classList.add('stop'); 
+        dot.classList.add('active'); 
+        txt.textContent = 'Scanning...'; 
+        startScan();
       }
     }
 
     function startScan() {
       performScan();
-      state.scanInterval = setInterval(() => { if (state.isScanning) performScan(); }, 60000);
+      // Removed interval - scan runs once and stops
     }
 
     function performScan() {
       setTimeout(() => {
         if (state.isScanning) {
           state.results = MOCK_RESULTS.filter(r => applyFilters(r, state.currentFilters)).sort((a, b) => b.relVol - a.relVol);
-          state.lastUpdate = new Date(); renderResults();
+          state.lastUpdate = new Date(); 
+          renderResults();
+          // Auto-stop after scan completes
+          stopScan();
         }
       }, 300);
+    }
+
+    function stopScan() {
+      state.isScanning = false;
+      const btn = document.getElementById('scanBtn');
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      btn.textContent = '▶ Start Scan'; 
+      btn.classList.remove('stop'); 
+      dot.classList.remove('active'); 
+      txt.textContent = 'Ready'; 
+      if (state.scanInterval) clearInterval(state.scanInterval);
     }
 
     function applyFilters(t, f) { return t.price >= f.price.min && t.price <= f.price.max && t.change >= f.change.min && t.float <= f.float.max && t.relVol >= f.relVol.min && t.volume >= f.volume.min && t.mktCap <= f.mktCap.max; }

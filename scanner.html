@@ -115,8 +115,8 @@
     /* Scanner Controls */
     .scanner-controls {
       display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 16px;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 12px;
       align-items: center;
       margin-bottom: 24px;
       background: rgba(255, 255, 255, 0.05);
@@ -147,6 +147,29 @@
       background: linear-gradient(135deg, #5f6d7f, #4a5a6f);
     }
 
+    .btn-secondary {
+      padding: 10px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-secondary.active {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
     .scan-status {
       display: flex;
       gap: 8px;
@@ -163,6 +186,12 @@
       animation: pulse-idle 2s infinite;
     }
 
+    .status-dot.ready {
+      background: #4ade80;
+      box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+      animation: pulse-ready 2s infinite;
+    }
+
     .status-dot.active {
       background: #4ade80;
       animation: pulse-active 1.5s infinite;
@@ -173,6 +202,11 @@
       50% { opacity: 0.5; }
     }
 
+    @keyframes pulse-ready {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(74, 222, 128, 0.6); }
+      50% { opacity: 0.7; box-shadow: 0 0 12px rgba(74, 222, 128, 0.8); }
+    }
+
     @keyframes pulse-idle {
       0%, 100% { opacity: 0.4; }
       50% { opacity: 0.2; }
@@ -181,16 +215,12 @@
     /* Presets */
     .presets-section {
       margin-bottom: 24px;
-      display: none;
-    }
-
-    .presets-section.active {
-      display: block;
     }
 
     .presets-label {
       font-size: 12px;
-      color: #aaa;
+      font-weight: 600;
+      color: #888;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 8px;
@@ -207,175 +237,133 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      align-items: center;
     }
 
     .btn-preset {
-      padding: 8px 14px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
       color: #aaa;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 500;
       transition: all 0.2s;
     }
 
     .btn-preset:hover {
-      border-color: rgba(255, 215, 61, 0.3);
-      color: #ffd93d;
-      background: rgba(255, 215, 61, 0.05);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
     }
 
     .btn-preset.active {
-      border-color: #ffd93d;
-      background: rgba(255, 215, 61, 0.1);
+      background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 157, 77, 0.2));
+      border: 1px solid rgba(255, 107, 107, 0.5);
       color: #ffd93d;
     }
 
     /* Filter Editor */
-    .filter-editor {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 24px;
-      display: none;
+    #filterEditor {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
     }
 
-    .filter-editor.active {
-      display: block;
+    #filterEditor.active {
+      max-height: 400px;
+      overflow-y: auto;
     }
 
     .filter-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
       margin-bottom: 16px;
     }
 
-    .filter-item {
+    .filter-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
 
     .filter-label {
       font-size: 12px;
       font-weight: 600;
-      color: #fff;
+      color: #888;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
+    .filter-input-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
     .filter-input {
+      flex: 1;
       padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       color: #fff;
       font-size: 13px;
-      transition: all 0.2s;
     }
 
     .filter-input:focus {
       outline: none;
-      border-color: #ffd93d;
-      background: rgba(255, 215, 61, 0.05);
-    }
-
-    .filter-input[type="range"] {
-      padding: 0;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      cursor: pointer;
-    }
-
-    .filter-value {
-      font-size: 11px;
-      color: #aaa;
-    }
-
-    .save-preset-row {
-      display: flex;
-      gap: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding-top: 16px;
-    }
-
-    .save-preset-row input {
-      flex: 1;
-      padding: 8px 12px;
+      border-color: rgba(255, 107, 107, 0.5);
       background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 6px;
-      color: #fff;
-      font-size: 13px;
     }
 
-    .btn-save {
-      padding: 8px 16px;
-      background: rgba(74, 222, 128, 0.1);
-      border: 1px solid rgba(74, 222, 128, 0.3);
-      color: #4ade80;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
+    .filter-value-display {
       font-size: 12px;
-      transition: all 0.2s;
+      color: #ffd93d;
+      font-weight: 600;
+      min-width: 45px;
+      text-align: right;
     }
 
-    .btn-save:hover:not(:disabled) {
-      background: rgba(74, 222, 128, 0.2);
-      border-color: #4ade80;
+    .range-input {
+      width: 100%;
+      accent-color: #ff6b6b;
     }
 
-    .btn-save:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* Results Table - Finviz Style */
-    .results-section {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .results-header {
-      padding: 12px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    /* Results */
+    .results-info {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .results-count {
-      font-size: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
       color: #aaa;
-      font-weight: 500;
     }
 
-    .results-update {
-      font-size: 11px;
+    .results-empty {
+      text-align: center;
+      padding: 60px 20px;
       color: #666;
     }
 
-    /* Results Cards Grid */
-    .results-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-      margin-top: 16px;
+    .results-empty p {
+      margin: 8px 0;
     }
 
-    @media (max-width: 768px) {
-      .results-container {
-        grid-template-columns: 1fr;
-      }
+    .results-empty-sub {
+      font-size: 13px;
+      color: #555;
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
     }
 
     .result-card {
@@ -384,47 +372,42 @@
       border-radius: 12px;
       padding: 16px;
       cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      transition: all 0.2s;
     }
 
     .result-card:hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: rgba(255, 255, 255, 0.2);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      transform: translateY(-4px);
     }
 
     .card-header {
       display: flex;
-      align-items: baseline;
       justify-content: space-between;
-      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
     .card-ticker {
-      font-size: 20px;
+      font-size: 16px;
       font-weight: 700;
-      color: #ffd93d;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .card-ticker .hit-badge {
+    .hit-badge {
       font-size: 11px;
-      background: linear-gradient(135deg, #ff6b6b, #ff5252);
-      color: #fff;
-      padding: 4px 8px;
+      background: rgba(255, 107, 107, 0.2);
+      color: #ff6b6b;
+      padding: 2px 6px;
       border-radius: 4px;
-      font-weight: 700;
+      font-weight: 600;
     }
 
     .card-change {
-      font-size: 18px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 600;
     }
 
     .card-change.positive {
@@ -436,16 +419,16 @@
     }
 
     .card-price {
-      font-size: 16px;
-      font-weight: 600;
-      color: #bbb;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #fff;
     }
 
     .card-metrics {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      font-size: 13px;
+      gap: 8px;
     }
 
     .metric-item {
@@ -455,17 +438,16 @@
     }
 
     .metric-label {
+      font-size: 11px;
       color: #888;
       text-transform: uppercase;
-      font-size: 11px;
-      font-weight: 600;
       letter-spacing: 0.5px;
     }
 
     .metric-value {
-      color: #fff;
+      font-size: 13px;
       font-weight: 600;
-      font-size: 14px;
+      color: #ccc;
     }
 
     .metric-value.positive {
@@ -473,171 +455,188 @@
     }
 
     .metric-value.neutral {
-      color: #bbb;
-    }
-
-    .results-empty {
-      grid-column: 1 / -1;
-      padding: 60px 20px;
-      text-align: center;
-      color: #666;
-    }
-
-    .results-empty p {
-      margin: 8px 0;
-    }
-
-    .results-empty-sub {
-      font-size: 12px;
-      color: #555;
-    }
-
-    .col-metric {
-      text-align: right;
-      width: 50px;
-    }
-
-    .positive {
-      color: #4ade80;
-    }
-
-    .negative {
-      color: #ff6b6b;
-    }
-
-    .neutral {
       color: #aaa;
     }
 
-    .results-empty {
-      padding: 60px 20px;
-      text-align: center;
-      color: #666;
-    }
-
-    .results-empty p {
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-
-    .results-empty-sub {
-      font-size: 11px;
-      color: #444;
-    }
-
     /* Modal */
-    .modal {
-      display: none;
+    .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: flex-end;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
     }
 
-    .modal.active {
-      display: flex;
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    @media (min-width: 768px) {
+      .modal-overlay {
+        align-items: center;
+        justify-content: center;
+      }
     }
 
     .modal-content {
-      background: rgba(15, 15, 15, 0.95);
+      background: linear-gradient(135deg, rgba(15, 15, 15, 0.95), rgba(26, 26, 26, 0.95));
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 24px;
-      max-width: 400px;
+      border-radius: 16px 16px 0 0;
+      padding: 28px;
       width: 100%;
-      max-height: 80vh;
+      max-height: 90vh;
       overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+
+    @media (min-width: 768px) {
+      .modal-content {
+        border-radius: 16px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100%);
+      }
+      to {
+        transform: translateY(0);
+      }
     }
 
     .modal-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      align-items: flex-start;
+      margin-bottom: 24px;
+      gap: 16px;
     }
 
-    .modal-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #ffd93d;
+    .modal-title-block {
+      flex: 1;
+    }
+
+    .modal-ticker {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .modal-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: #aaa;
     }
 
     .modal-close {
-      background: none;
-      border: none;
-      color: #aaa;
-      font-size: 24px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
       cursor: pointer;
-      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      transition: all 0.2s;
+      flex-shrink: 0;
     }
 
     .modal-close:hover {
+      background: rgba(255, 255, 255, 0.1);
       color: #fff;
     }
 
-    .modal-field {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    .modal-section {
+      margin-bottom: 24px;
     }
 
-    .modal-field:last-child {
-      border-bottom: none;
-    }
-
-    .modal-label {
-      font-size: 11px;
-      color: #aaa;
+    .modal-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #888;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+    }
+
+    .modal-stat {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .modal-stat-label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .modal-stat-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
     }
 
     .modal-value {
       font-size: 14px;
       font-weight: 600;
-      color: #fff;
     }
 
-    .modal-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    .modal-value.positive {
+      color: #4ade80;
+    }
+
+    .modal-value.negative {
+      color: #ff6b6b;
     }
 
     .modal-history {
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
     }
 
     .history-header {
       display: flex;
       justify-content: space-between;
-      font-size: 12px;
-      color: #ffd93d;
-      margin-bottom: 12px;
-      gap: 12px;
+      margin-bottom: 8px;
+      color: #aaa;
     }
 
     .history-prices {
-      font-size: 13px;
       color: #ccc;
     }
 
     .history-row {
-      margin-bottom: 8px;
+      margin: 4px 0;
     }
 
     .history-list {
@@ -645,324 +644,350 @@
     }
 
     .hit-items {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-top: 6px;
-      max-height: 120px;
-      overflow-y: auto;
+      margin: 4px 0 0 0;
+      padding-left: 12px;
     }
 
     .hit-item {
-      font-size: 12px;
-      color: #aaa;
-      padding: 4px 8px;
-      background: rgba(255, 255, 255, 0.03);
-      border-left: 2px solid #ffd93d;
+      font-size: 11px;
+      color: #999;
+      margin: 2px 0;
     }
 
-    .btn-secondary {
-      flex: 1;
+    /* News Section */
+    .modal-news {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .news-item {
       padding: 10px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-left: 2px solid rgba(255, 107, 107, 0.4);
+      margin-bottom: 8px;
+    }
+
+    .news-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .news-title {
+      font-size: 12px;
+      font-weight: 600;
       color: #fff;
-      border-radius: 6px;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+
+    .news-time {
+      font-size: 11px;
+      color: #888;
+    }
+
+    .news-source {
+      font-size: 10px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .news-placeholder {
+      text-align: center;
+      color: #666;
+      font-size: 12px;
+      padding: 20px 10px;
+    }
+
+    /* Action Buttons */
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-action {
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
       font-size: 13px;
       transition: all 0.2s;
+      text-align: center;
     }
 
-    .btn-secondary:hover {
+    .btn-action.primary {
+      background: linear-gradient(135deg, #ff6b6b, #ff5252);
+      color: #fff;
+      border: none;
+    }
+
+    .btn-action.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-action.secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+
+    .btn-action.secondary:hover {
       background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.3);
     }
 
-    /* Footer Nav */
-    .footer-nav {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 8px 4px;
-      background: rgba(0, 0, 0, 0.95);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      z-index: 100;
-      backdrop-filter: blur(10px);
+    /* Util */
+    .text-center {
+      text-align: center;
     }
 
-    .nav-link {
+    .mt-2 {
+      margin-top: 16px;
+    }
+
+    .modal-input-group {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 4px;
-      text-decoration: none;
-      color: #aaa;
-      border-radius: 8px;
-      transition: all 0.2s;
-      font-size: 9px;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .modal-input-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #888;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      font-weight: 600;
     }
 
-    .nav-link svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    .nav-link:hover {
+    .modal-input {
+      padding: 10px 12px;
       background: rgba(255, 255, 255, 0.05);
-      color: #ffd93d;
-    }
-
-    .nav-link.active {
-      background: rgba(255, 255, 255, 0.05);
-      color: #ffd93d;
-      border-bottom: 2px solid #ffd93d;
-    }
-
-    /* Toggle Button */
-    .btn-toggle-edit {
-      padding: 8px 14px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #aaa;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 500;
-      transition: all 0.2s;
+      color: #fff;
+      font-size: 13px;
     }
 
-    .btn-toggle-edit:hover {
-      border-color: rgba(255, 215, 61, 0.3);
-      color: #ffd93d;
+    .modal-input:focus {
+      outline: none;
+      border-color: rgba(255, 107, 107, 0.5);
+      background: rgba(255, 255, 255, 0.08);
     }
 
-    .btn-toggle-edit.active {
-      background: rgba(255, 215, 61, 0.1);
-      border-color: #ffd93d;
-      color: #ffd93d;
+    .toggle-section {
+      display: none;
+    }
+
+    .toggle-section.active {
+      display: block;
     }
   </style>
 </head>
 <body>
   <div class="topbar">
     <div class="topbar-brand">
-      ⚔️ Trade<span>OS</span>
+      <span>TradeOS</span>
     </div>
     <div class="topbar-menu">
-      <button class="btn-icon" onclick="goHome()" title="Home">🏠</button>
-      <button class="btn-icon" onclick="signOut()" title="Sign out">⚙️</button>
+      <button class="btn-icon" title="Profile" onclick="signOut()">⚙️</button>
+      <button class="btn-icon" title="Home" onclick="goHome()">🏠</button>
     </div>
   </div>
 
   <div class="container">
     <div class="header">
-      <div class="page-title">🔍 Scanner</div>
-      <div class="page-subtitle">Real-time market data with Den of Wisdom filters</div>
+      <h1 class="page-title">Scanner</h1>
+      <p class="page-subtitle">Pre-market momentum detection</p>
     </div>
 
-    <!-- Scanner Controls -->
     <div class="scanner-controls">
-      <button id="scanBtn" class="btn-primary" onclick="toggleScanner()">▶ Start Scan</button>
+      <button id="scanBtn" class="btn-primary" onclick="toggleScanner()">Scan</button>
       <div class="scan-status">
-        <span class="status-dot" id="statusDot"></span>
+        <div id="statusDot" class="status-dot"></div>
         <span id="statusText">Ready</span>
       </div>
-      <button id="editToggle" class="btn-toggle-edit" onclick="toggleEditMode()">✎ Edit Filters</button>
+      <div></div>
+      <button id="editToggle" class="btn-secondary" onclick="toggleEditMode()">Edit Filters</button>
     </div>
 
-    <!-- Presets -->
-    <div class="presets-section">
-      <label class="presets-label">Filter Presets</label>
-      <div class="presets-buttons">
-        <button class="btn-preset active" data-preset="balanced" onclick="selectPreset('balanced')">Balanced (Den)</button>
-        <button class="btn-preset" data-preset="aggressive" onclick="selectPreset('aggressive')">Aggressive</button>
-        <button class="btn-preset" data-preset="conservative" onclick="selectPreset('conservative')">Conservative</button>
-      </div>
-    </div>
+    <div id="filterEditor" class="filter-editor">
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label class="filter-label">Price Range ($)</label>
+          <div class="filter-input-group">
+            <input type="number" id="priceMin" class="filter-input" min="0" step="0.01" onchange="updateFilters()" />
+            <span class="filter-value-display" id="priceMinVal">$1</span>
+          </div>
+          <div class="filter-input-group">
+            <input type="number" id="priceMax" class="filter-input" min="0" step="0.01" onchange="updateFilters()" />
+            <span class="filter-value-display" id="priceMaxVal">$20</span>
+          </div>
+        </div>
 
-    <!-- Filter Editor -->
-    <div class="filter-editor" id="filterEditor">
-      <div class="presets-buttons-inline">
-        <label class="presets-label" style="margin-bottom: 12px; display: block; width: 100%;">Quick Presets</label>
-        <button class="btn-preset active" data-preset="balanced" onclick="selectPreset('balanced')">Balanced (Den)</button>
-        <button class="btn-preset" data-preset="aggressive" onclick="selectPreset('aggressive')">Aggressive</button>
-        <button class="btn-preset" data-preset="conservative" onclick="selectPreset('conservative')">Conservative</button>
-      </div>
+        <div class="filter-group">
+          <label class="filter-label">Min Change (%)</label>
+          <div class="filter-input-group">
+            <input type="number" id="changeMin" class="filter-input" step="0.1" onchange="updateFilters()" />
+            <span class="filter-value-display" id="changeMinVal">10%</span>
+          </div>
+        </div>
 
-      <div class="filter-grid" style="margin-top: 20px;">
-        <div class="filter-item">
-          <label class="filter-label">Price Min</label>
-          <input type="number" class="filter-input" id="priceMin" min="0" step="0.5" onchange="updateFilters()">
-          <span class="filter-value" id="priceMinVal">$1</span>
+        <div class="filter-group">
+          <label class="filter-label">Max Float (M)</label>
+          <div class="filter-input-group">
+            <input type="number" id="floatMax" class="filter-input" step="0.1" onchange="updateFilters()" />
+            <span class="filter-value-display" id="floatMaxVal">20M</span>
+          </div>
         </div>
-        <div class="filter-item">
-          <label class="filter-label">Price Max</label>
-          <input type="number" class="filter-input" id="priceMax" min="0" step="0.5" onchange="updateFilters()">
-          <span class="filter-value" id="priceMaxVal">$20</span>
-        </div>
-        <div class="filter-item">
-          <label class="filter-label">Min Change %</label>
-          <input type="number" class="filter-input" id="changeMin" min="0" step="1" onchange="updateFilters()">
-          <span class="filter-value" id="changeMinVal">10%</span>
-        </div>
-        <div class="filter-item">
-          <label class="filter-label">Max Float</label>
-          <input type="range" class="filter-input" id="floatMax" min="1000000" max="50000000" step="1000000" oninput="updateFilters()">
-          <span class="filter-value" id="floatMaxVal">20M</span>
-        </div>
-        <div class="filter-item">
+
+        <div class="filter-group">
           <label class="filter-label">Min Rel Vol</label>
-          <input type="number" class="filter-input" id="relVolMin" min="0.5" step="0.1" onchange="updateFilters()">
-          <span class="filter-value" id="relVolMinVal">1.5x</span>
+          <div class="filter-input-group">
+            <input type="number" id="relVolMin" class="filter-input" min="0" step="0.1" onchange="updateFilters()" />
+            <span class="filter-value-display" id="relVolMinVal">1.5x</span>
+          </div>
         </div>
-        <div class="filter-item">
+
+        <div class="filter-group">
           <label class="filter-label">Min Volume</label>
-          <input type="number" class="filter-input" id="volumeMin" min="0" step="50000" onchange="updateFilters()">
-          <span class="filter-value" id="volumeMinVal">250K</span>
+          <div class="filter-input-group">
+            <input type="number" id="volumeMin" class="filter-input" step="10000" onchange="updateFilters()" />
+            <span class="filter-value-display" id="volumeMinVal">250K</span>
+          </div>
         </div>
       </div>
 
-      <div class="save-preset-row">
-        <input type="text" id="presetName" placeholder="e.g., My Custom Preset">
-        <button class="btn-save" onclick="saveCustomPreset()" id="saveBtn" disabled>💾 Save</button>
+      <div class="presets-section" style="margin-top: 20px;">
+        <span class="presets-label">Presets</span>
+        <div class="presets-buttons">
+          <button class="btn-preset active" data-preset="standard" onclick="selectPreset('standard')">Standard</button>
+          <button class="btn-preset" data-preset="aggressive" onclick="selectPreset('aggressive')">Aggressive</button>
+          <button class="btn-preset" data-preset="conservative" onclick="selectPreset('conservative')">Conservative</button>
+          <div class="presets-buttons-inline"></div>
+        </div>
       </div>
     </div>
 
-    <!-- Results Table -->
-    <div class="results-section">
-      <div class="results-header">
-        <span class="results-count"><span id="resultCount">0</span> tickers matched</span>
-        <span class="results-update" id="lastUpdate"></span>
-      </div>
-      <div class="results-container" id="resultsBody">
-        <div class="results-empty">
-          <p>No results yet</p>
-          <p class="results-empty-sub">Start a scan to see live results</p>
-        </div>
+    <div class="results-info">
+      <span><strong id="resultCount">0</strong> results</span>
+      <span id="lastUpdate" style="color: #666;"></span>
+    </div>
+
+    <div id="resultsBody" class="results-grid">
+      <div class="results-empty">
+        <p>No scans yet</p>
+        <p class="results-empty-sub">Click "Scan" to begin</p>
       </div>
     </div>
   </div>
 
-  <!-- Ticker Detail Modal -->
-  <div class="modal" id="tickerModal">
+  <!-- Ticker Modal -->
+  <div id="tickerModal" class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title" id="modalTicker">TICKER</div>
-        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div class="modal-title-block">
+          <div class="modal-ticker" id="modalTicker">TICK</div>
+          <div class="modal-meta">
+            <span id="modalPrice">$0.00</span>
+            <span id="modalChange" class="modal-value">+0.00%</span>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
-      <div>
-        <div class="modal-field">
-          <span class="modal-label">Price</span>
-          <span class="modal-value" id="modalPrice">$0.00</span>
-        </div>
-        <div class="modal-field">
-          <span class="modal-label">Change</span>
-          <span class="modal-value" id="modalChange">+0.00%</span>
-        </div>
-        <div class="modal-field">
-          <span class="modal-label">Volume</span>
-          <span class="modal-value" id="modalVolume">0</span>
-        </div>
-        <div class="modal-field">
-          <span class="modal-label">Rel Vol</span>
-          <span class="modal-value" id="modalRelVol">0.0x</span>
-        </div>
-        <div class="modal-field">
-          <span class="modal-label">Float</span>
-          <span class="modal-value" id="modalFloat">0M</span>
-        </div>
-        <div class="modal-field">
-          <span class="modal-label">Market Cap</span>
-          <span class="modal-value" id="modalMktCap">$0B</span>
+
+      <div class="modal-section">
+        <span class="modal-section-title">Metrics</span>
+        <div class="modal-grid">
+          <div class="modal-stat">
+            <div class="modal-stat-label">Volume</div>
+            <div class="modal-stat-value" id="modalVolume">0M</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">Rel Vol</div>
+            <div class="modal-stat-value" id="modalRelVol">0x</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">Float</div>
+            <div class="modal-stat-value" id="modalFloat">0M</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">Mkt Cap</div>
+            <div class="modal-stat-value" id="modalMktCap">$0B</div>
+          </div>
         </div>
       </div>
-      <div id="tickerHistoryContainer"></div>
+
+      <div class="modal-section" id="tickerHistoryContainer">
+        <span class="modal-section-title">Scanner History</span>
+        <div class="modal-history">
+          <p>Loading...</p>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-section-title">Relevant News</span>
+        <div class="modal-news" id="newsContainer">
+          <div class="news-placeholder">
+            News integration coming soon
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-input-group">
+        <label class="modal-input-label">Add Catalyst (for Play)</label>
+        <input type="text" id="catalystInput" class="modal-input" placeholder="e.g., FDA approval, earnings, product launch..." />
+      </div>
+
       <div class="modal-actions">
-        <button class="btn-secondary" onclick="addToWatchlist()">➕ Watchlist</button>
-        <button class="btn-secondary" onclick="startTrade()">🚀 Trade</button>
+        <button class="btn-action secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn-action primary" onclick="addToPlay()">Add to Play</button>
       </div>
     </div>
-  </div>
-
-  <div class="footer-nav">
-    <a href="/tradeos/index.html" class="nav-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Home
-    </a>
-    <a href="/tradeos/scanner.html" class="nav-link active">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      Scanner
-    </a>
-    <a href="/tradeos/plays.html" class="nav-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      Plays
-    </a>
-    <a href="/tradeos/journal.html" class="nav-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      Journal
-    </a>
-    <a href="/tradeos/tools.html" class="nav-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-      Tools
-    </a>
-    <a href="/tradeos/settings.html" class="nav-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Profile
-    </a>
   </div>
 
   <script>
     const FILTERS = {
-      balanced: { name: 'Balanced (Den of Wisdom)', price: { min: 1, max: 20 }, change: { min: 10 }, float: { max: 20e6 }, relVol: { min: 1.5 }, volume: { min: 250000 }, mktCap: { max: 2e9 } },
-      aggressive: { name: 'Aggressive (Float < 5M)', price: { min: 1, max: 15 }, change: { min: 15 }, float: { max: 5e6 }, relVol: { min: 2.0 }, volume: { min: 500000 }, mktCap: { max: 1.5e9 } },
-      conservative: { name: 'Conservative (Float < 30M)', price: { min: 2, max: 20 }, change: { min: 8 }, float: { max: 30e6 }, relVol: { min: 1.2 }, volume: { min: 200000 }, mktCap: { max: 3e9 } },
+      standard: { price: { min: 1, max: 20 }, change: { min: 10 }, float: { max: 20e6 }, relVol: { min: 1.5 }, volume: { min: 250000 }, mktCap: { max: 2e9 } },
+      aggressive: { price: { min: 0.5, max: 10 }, change: { min: 15 }, float: { max: 15e6 }, relVol: { min: 2.0 }, volume: { min: 300000 }, mktCap: { max: 1.5e9 } },
+      conservative: { price: { min: 2, max: 25 }, change: { min: 8 }, float: { max: 25e6 }, relVol: { min: 1.2 }, volume: { min: 200000 }, mktCap: { max: 3e9 } }
     };
 
-    let state = { isScanning: false, activePreset: 'balanced', results: [], currentFilters: { ...FILTERS.balanced }, lastUpdate: null, selectedTicker: null, scanInterval: null, tickerHistory: {} };
+    const MOCK_RESULTS = [];
 
-    // Load ticker history from localStorage on page load
-    function loadTickerHistory() {
-      const saved = localStorage.getItem('tradeos_ticker_history');
-      state.tickerHistory = saved ? JSON.parse(saved) : {};
-    }
+    let state = {
+      isScanning: false,
+      results: [],
+      lastUpdate: null,
+      activePreset: 'standard',
+      selectedTicker: null,
+      currentFilters: { ...FILTERS.standard },
+      tickerHistory: {},
+      scanInterval: null
+    };
 
-    function saveTickerHistory() {
-      localStorage.setItem('tradeos_ticker_history', JSON.stringify(state.tickerHistory));
-    }
-
-    function recordTickerHit(ticker, price) {
-      if (!state.tickerHistory[ticker]) {
-        state.tickerHistory[ticker] = { firstSeen: new Date().toISOString(), hits: [], totalHits: 0 };
-      }
-      state.tickerHistory[ticker].hits.push({ price, timestamp: new Date().toISOString() });
-      state.tickerHistory[ticker].totalHits = state.tickerHistory[ticker].hits.length;
-      saveTickerHistory();
-    }
-
-    const MOCK_RESULTS = [
-      { ticker: 'UGRO', price: 12.50, change: 24.30, volume: 5200000, float: 2.1e6, relVol: 2.80, mktCap: 262.5e6 },
-      { ticker: 'ROLR', price: 8.20, change: 18.70, volume: 3400000, float: 5.5e6, relVol: 2.20, mktCap: 328e6 },
-      { ticker: 'YAAS', price: 2.32, change: 56.00, volume: 176470000, float: 2.01e6, relVol: 5.95, mktCap: 10.48e6 },
-      { ticker: 'EDSA', price: 11.17, change: 2.75, volume: 9010000, float: 7.56e6, relVol: 1.06, mktCap: 99.25e6 },
-      { ticker: 'RMAX', price: 9.94, change: 22.03, volume: 14000000, float: 15.32e6, relVol: 325.06, mktCap: 325.06e6 },
-      { ticker: 'BRLS', price: 1.30, change: 8.78, volume: 3060000, float: 5.57e6, relVol: 129.75, mktCap: 24.25e6 },
-      { ticker: 'TRAK', price: 8.95, change: 19.46, volume: 725020, float: 12.14e6, relVol: 162.92, mktCap: 6.20e6 },
-    ];
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadTickerHistory(); // Load before scanning
-      loadCustomPresets(); updateFilterDisplay(); updatePresetsUI();
-      loadScannerState(); // Restore previous results
+    window.addEventListener('DOMContentLoaded', () => {
+      loadScannerState();
+      loadCustomPresets();
+      updateFilterDisplay();
+      updatePresetsUI();
+      updateStatusDot();
       document.getElementById('presetName').addEventListener('input', (e) => { document.getElementById('saveBtn').disabled = !e.target.value.trim(); });
     });
+
+    function updateStatusDot() {
+      const dot = document.getElementById('statusDot');
+      if (state.isScanning) {
+        dot.classList.remove('ready');
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+        dot.classList.add('ready');
+      }
+    }
 
     function loadScannerState() {
       const saved = localStorage.getItem('tradeos_scanner_state');
@@ -971,6 +996,7 @@
         state.results = savedState.results || [];
         state.lastUpdate = savedState.lastUpdate ? new Date(savedState.lastUpdate) : null;
         state.currentFilters = savedState.currentFilters || state.currentFilters;
+        state.tickerHistory = savedState.tickerHistory || {};
         renderResults();
         updateFilterDisplay();
       }
@@ -980,8 +1006,17 @@
       localStorage.setItem('tradeos_scanner_state', JSON.stringify({
         results: state.results,
         lastUpdate: state.lastUpdate,
-        currentFilters: state.currentFilters
+        currentFilters: state.currentFilters,
+        tickerHistory: state.tickerHistory
       }));
+    }
+
+    function recordTickerHit(ticker, price) {
+      if (!state.tickerHistory[ticker]) {
+        state.tickerHistory[ticker] = { totalHits: 0, firstSeen: new Date(), hits: [] };
+      }
+      state.tickerHistory[ticker].totalHits++;
+      state.tickerHistory[ticker].hits.push({ price, timestamp: new Date() });
     }
 
     function toggleScanner() {
@@ -990,31 +1025,27 @@
       } else {
         state.isScanning = true;
         const btn = document.getElementById('scanBtn');
-        const dot = document.getElementById('statusDot');
         const txt = document.getElementById('statusText');
-        btn.textContent = '⏹ Stop Scanning'; 
-        btn.classList.add('stop'); 
-        dot.classList.add('active'); 
-        txt.textContent = 'Scanning...'; 
+        btn.textContent = '⏹ Stop';
+        btn.classList.add('stop');
+        txt.textContent = 'Scanning...';
+        updateStatusDot();
         startScan();
       }
     }
 
     function startScan() {
       performScan();
-      // Removed interval - scan runs once and stops
     }
 
     function performScan() {
       setTimeout(() => {
         if (state.isScanning) {
           state.results = MOCK_RESULTS.filter(r => applyFilters(r, state.currentFilters)).sort((a, b) => b.relVol - a.relVol);
-          // Record each ticker hit
           state.results.forEach(r => recordTickerHit(r.ticker, r.price));
-          state.lastUpdate = new Date(); 
+          state.lastUpdate = new Date();
           renderResults();
-          saveScannerState(); // Save results
-          // Auto-stop after scan completes
+          saveScannerState();
           stopScan();
         }
       }, 300);
@@ -1023,44 +1054,77 @@
     function stopScan() {
       state.isScanning = false;
       const btn = document.getElementById('scanBtn');
-      const dot = document.getElementById('statusDot');
       const txt = document.getElementById('statusText');
-      btn.textContent = '▶ Start Scan'; 
-      btn.classList.remove('stop'); 
-      dot.classList.remove('active'); 
-      txt.textContent = 'Ready'; 
+      btn.textContent = 'Scan';
+      btn.classList.remove('stop');
+      txt.textContent = 'Ready';
+      updateStatusDot();
       if (state.scanInterval) clearInterval(state.scanInterval);
     }
 
-    function applyFilters(t, f) { return t.price >= f.price.min && t.price <= f.price.max && t.change >= f.change.min && t.float <= f.float.max && t.relVol >= f.relVol.min && t.volume >= f.volume.min && t.mktCap <= f.mktCap.max; }
-
-    function selectPreset(p) { state.activePreset = p; state.currentFilters = { ...FILTERS[p] }; updateFilterDisplay(); updatePresetsUI(); if (state.isScanning) performScan(); }
-    function updatePresetsUI() { document.querySelectorAll('.btn-preset').forEach(b => { b.classList.toggle('active', b.dataset.preset === state.activePreset); }); }
-    function saveCustomPreset() { const n = document.getElementById('presetName').value.trim(); if (!n) return; const c = JSON.parse(localStorage.getItem('customPresets') || '{}'); c[n] = { name: n, ...state.currentFilters }; localStorage.setItem('customPresets', JSON.stringify(c)); const btn = document.createElement('button'); btn.className = 'btn-preset'; btn.textContent = n; btn.onclick = () => selectPreset(n); btn.dataset.preset = n; document.querySelector('.presets-buttons-inline').appendChild(btn); document.getElementById('presetName').value = ''; document.getElementById('saveBtn').disabled = true; }
-    function loadCustomPresets() { const c = JSON.parse(localStorage.getItem('customPresets') || '{}'); Object.entries(c).forEach(([k, p]) => { const btn = document.createElement('button'); btn.className = 'btn-preset'; btn.textContent = p.name; btn.onclick = () => { state.currentFilters = { ...p }; state.activePreset = k; updateFilterDisplay(); updatePresetsUI(); if (state.isScanning) performScan(); }; btn.dataset.preset = k; document.querySelector('.presets-buttons-inline').appendChild(btn); }); }
-    function toggleEditMode() { const e = document.getElementById('filterEditor'); const b = document.getElementById('editToggle'); e.classList.toggle('active'); b.classList.toggle('active'); if (e.classList.contains('active')) updateFilterDisplay(); }
-    function updateFilters() { 
-      state.currentFilters = { 
-        price: { min: parseFloat(document.getElementById('priceMin').value) || 1, max: parseFloat(document.getElementById('priceMax').value) || 20 }, 
-        change: { min: parseFloat(document.getElementById('changeMin').value) || 10 }, 
-        float: { max: parseFloat(document.getElementById('floatMax').value) || 20e6 }, 
-        relVol: { min: parseFloat(document.getElementById('relVolMin').value) || 1.5 }, 
-        volume: { min: parseFloat(document.getElementById('volumeMin').value) || 250000 }, 
-        mktCap: state.currentFilters.mktCap 
-      }; 
-      updateFilterDisplay(); 
-      saveScannerState();
-      if (state.isScanning) performScan(); 
+    function applyFilters(t, f) {
+      return t.price >= f.price.min && t.price <= f.price.max && t.change >= f.change.min && t.float <= f.float.max && t.relVol >= f.relVol.min && t.volume >= f.volume.min && t.mktCap <= f.mktCap.max;
     }
-    function updateFilterDisplay() { document.getElementById('priceMin').value = state.currentFilters.price.min; document.getElementById('priceMax').value = state.currentFilters.price.max; document.getElementById('changeMin').value = state.currentFilters.change.min; document.getElementById('floatMax').value = state.currentFilters.float.max; document.getElementById('relVolMin').value = state.currentFilters.relVol.min; document.getElementById('volumeMin').value = state.currentFilters.volume.min; document.getElementById('priceMinVal').textContent = `$${state.currentFilters.price.min}`; document.getElementById('priceMaxVal').textContent = `$${state.currentFilters.price.max}`; document.getElementById('changeMinVal').textContent = `${state.currentFilters.change.min}%`; document.getElementById('floatMaxVal').textContent = `${(state.currentFilters.float.max / 1e6).toFixed(1)}M`; document.getElementById('relVolMinVal').textContent = `${state.currentFilters.relVol.min}x`; document.getElementById('volumeMinVal').textContent = `${(state.currentFilters.volume.min / 1000).toFixed(0)}K`; }
-    function renderResults() { 
-      const container = document.getElementById('resultsBody'); 
-      const count = document.getElementById('resultCount'); 
-      const lastUpdate = document.getElementById('lastUpdate'); 
-      if (state.results.length === 0) { 
-        container.innerHTML = `<div class="results-empty"><p>No results match your filters</p><p class="results-empty-sub">Try broadening the filters or wait for market data</p></div>`; 
-        return; 
-      } 
+
+    function selectPreset(p) {
+      state.activePreset = p;
+      state.currentFilters = { ...FILTERS[p] };
+      updateFilterDisplay();
+      updatePresetsUI();
+      if (state.isScanning) performScan();
+    }
+
+    function updatePresetsUI() {
+      document.querySelectorAll('.btn-preset').forEach(b => {
+        b.classList.toggle('active', b.dataset.preset === state.activePreset);
+      });
+    }
+
+    function toggleEditMode() {
+      const e = document.getElementById('filterEditor');
+      const b = document.getElementById('editToggle');
+      e.classList.toggle('active');
+      b.classList.toggle('active');
+      if (e.classList.contains('active')) updateFilterDisplay();
+    }
+
+    function updateFilters() {
+      state.currentFilters = {
+        price: { min: parseFloat(document.getElementById('priceMin').value) || 1, max: parseFloat(document.getElementById('priceMax').value) || 20 },
+        change: { min: parseFloat(document.getElementById('changeMin').value) || 10 },
+        float: { max: parseFloat(document.getElementById('floatMax').value) || 20e6 },
+        relVol: { min: parseFloat(document.getElementById('relVolMin').value) || 1.5 },
+        volume: { min: parseFloat(document.getElementById('volumeMin').value) || 250000 },
+        mktCap: state.currentFilters.mktCap
+      };
+      updateFilterDisplay();
+      saveScannerState();
+      if (state.isScanning) performScan();
+    }
+
+    function updateFilterDisplay() {
+      document.getElementById('priceMin').value = state.currentFilters.price.min;
+      document.getElementById('priceMax').value = state.currentFilters.price.max;
+      document.getElementById('changeMin').value = state.currentFilters.change.min;
+      document.getElementById('floatMax').value = state.currentFilters.float.max;
+      document.getElementById('relVolMin').value = state.currentFilters.relVol.min;
+      document.getElementById('volumeMin').value = state.currentFilters.volume.min;
+      document.getElementById('priceMinVal').textContent = `$${state.currentFilters.price.min}`;
+      document.getElementById('priceMaxVal').textContent = `$${state.currentFilters.price.max}`;
+      document.getElementById('changeMinVal').textContent = `${state.currentFilters.change.min}%`;
+      document.getElementById('floatMaxVal').textContent = `${(state.currentFilters.float.max / 1e6).toFixed(1)}M`;
+      document.getElementById('relVolMinVal').textContent = `${state.currentFilters.relVol.min}x`;
+      document.getElementById('volumeMinVal').textContent = `${(state.currentFilters.volume.min / 1000).toFixed(0)}K`;
+    }
+
+    function renderResults() {
+      const container = document.getElementById('resultsBody');
+      const count = document.getElementById('resultCount');
+      const lastUpdate = document.getElementById('lastUpdate');
+      if (state.results.length === 0) {
+        container.innerHTML = `<div class="results-empty"><p>No results match your filters</p><p class="results-empty-sub">Try broadening the filters or wait for market data</p></div>`;
+        return;
+      }
       container.innerHTML = state.results.map(r => {
         const history = state.tickerHistory[r.ticker];
         const hitCount = history ? history.totalHits : 0;
@@ -1091,27 +1155,27 @@
             </div>
           </div>
         </div>`;
-      }).join(''); 
-      count.textContent = state.results.length; 
-      if (state.lastUpdate) lastUpdate.textContent = `Updated ${state.lastUpdate.toLocaleTimeString()}`; 
+      }).join('');
+      count.textContent = state.results.length;
+      if (state.lastUpdate) lastUpdate.textContent = `Updated ${state.lastUpdate.toLocaleTimeString()}`;
     }
 
     function getPriceRange(hits) {
       const prices = hits.map(h => h.price);
       return { min: Math.min(...prices), max: Math.max(...prices) };
     }
-    function showTickerModal(t, p, c, v, rv, f, mc) { 
-      state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc }; 
-      document.getElementById('modalTicker').textContent = t; 
-      document.getElementById('modalPrice').textContent = `$${p.toFixed(2)}`; 
-      document.getElementById('modalChange').textContent = `${c >= 0 ? '+' : ''}${c.toFixed(2)}%`; 
-      document.getElementById('modalChange').className = `modal-value ${c >= 0 ? 'positive' : 'negative'}`; 
-      document.getElementById('modalVolume').textContent = `${(v / 1e6).toFixed(2)}M`; 
-      document.getElementById('modalRelVol').textContent = `${rv.toFixed(2)}x`; 
-      document.getElementById('modalFloat').textContent = `${(f / 1e6).toFixed(2)}M`; 
-      document.getElementById('modalMktCap').textContent = `$${(mc / 1e9).toFixed(2)}B`; 
-      
-      // Add ticker history
+
+    function showTickerModal(t, p, c, v, rv, f, mc) {
+      state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc };
+      document.getElementById('modalTicker').textContent = t;
+      document.getElementById('modalPrice').textContent = `$${p.toFixed(2)}`;
+      document.getElementById('modalChange').textContent = `${c >= 0 ? '+' : ''}${c.toFixed(2)}%`;
+      document.getElementById('modalChange').className = `modal-value ${c >= 0 ? 'positive' : 'negative'}`;
+      document.getElementById('modalVolume').textContent = `${(v / 1e6).toFixed(2)}M`;
+      document.getElementById('modalRelVol').textContent = `${rv.toFixed(2)}x`;
+      document.getElementById('modalFloat').textContent = `${(f / 1e6).toFixed(2)}M`;
+      document.getElementById('modalMktCap').textContent = `$${(mc / 1e9).toFixed(2)}B`;
+
       const history = state.tickerHistory[t];
       const historyHTML = history ? `
         <div class="modal-history">
@@ -1130,15 +1194,53 @@
           </div>
         </div>
       ` : '<div class="modal-history"><p>No history yet</p></div>';
-      
+
       document.getElementById('tickerHistoryContainer').innerHTML = historyHTML;
-      document.getElementById('tickerModal').classList.add('active'); 
+      document.getElementById('catalystInput').value = '';
+      document.getElementById('tickerModal').classList.add('active');
     }
-    function closeModal() { document.getElementById('tickerModal').classList.remove('active'); }
-    function addToWatchlist() { alert(`Added ${state.selectedTicker.ticker} to watchlist`); closeModal(); }
-    function startTrade() { alert(`Starting trade for ${state.selectedTicker.ticker}`); closeModal(); }
-    function goHome() { window.location.href = '/tradeos/'; }
-    function signOut() { if (confirm('Sign out of TradeOS?')) { localStorage.removeItem('tradeos_id_token'); localStorage.removeItem('tradeos_access_token'); localStorage.removeItem('tradeos_token_expiry'); window.location.href = '/tradeos/login.html'; } }
+
+    function closeModal() {
+      document.getElementById('tickerModal').classList.remove('active');
+    }
+
+    function addToPlay() {
+      const catalyst = document.getElementById('catalystInput').value.trim();
+      const msg = catalyst ? `Added ${state.selectedTicker.ticker} to Play with catalyst: "${catalyst}"` : `Added ${state.selectedTicker.ticker} to Play`;
+      alert(msg);
+      closeModal();
+    }
+
+    function loadCustomPresets() {
+      const c = JSON.parse(localStorage.getItem('customPresets') || '{}');
+      Object.entries(c).forEach(([k, p]) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-preset';
+        btn.textContent = p.name;
+        btn.onclick = () => {
+          state.currentFilters = { ...p };
+          state.activePreset = k;
+          updateFilterDisplay();
+          updatePresetsUI();
+          if (state.isScanning) performScan();
+        };
+        btn.dataset.preset = k;
+        document.querySelector('.presets-buttons-inline').appendChild(btn);
+      });
+    }
+
+    function goHome() {
+      window.location.href = '/tradeos/';
+    }
+
+    function signOut() {
+      if (confirm('Sign out of TradeOS?')) {
+        localStorage.removeItem('tradeos_id_token');
+        localStorage.removeItem('tradeos_access_token');
+        localStorage.removeItem('tradeos_token_expiry');
+        window.location.href = '/tradeos/login.html';
+      }
+    }
   </script>
 </body>
 </html>

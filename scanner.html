@@ -969,13 +969,16 @@
       scanInterval: null
     };
 
-    window.addEventListener('DOMContentLoaded', () => {
-      loadScannerState();
-      loadCustomPresets();
-      updateFilterDisplay();
-      updatePresetsUI();
-      updateStatusDot();
-      document.getElementById('presetName').addEventListener('input', (e) => { document.getElementById('saveBtn').disabled = !e.target.value.trim(); });
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        loadScannerState();
+        loadCustomPresets();
+        updateFilterDisplay();
+        updatePresetsUI();
+        updateStatusDot();
+      } catch (e) {
+        console.error('Init error:', e);
+      }
     });
 
     function updateStatusDot() {
@@ -1038,17 +1041,36 @@
       performScan();
     }
 
-    function performScan() {
-      setTimeout(() => {
-        if (state.isScanning) {
-          state.results = MOCK_RESULTS.filter(r => applyFilters(r, state.currentFilters)).sort((a, b) => b.relVol - a.relVol);
-          state.results.forEach(r => recordTickerHit(r.ticker, r.price));
-          state.lastUpdate = new Date();
-          renderResults();
-          saveScannerState();
-          stopScan();
+    async function performScan() {
+      try {
+        if (!state.isScanning) return;
+        
+        // Fetch from Cloudflare Worker
+        const response = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/scan');
+        
+        if (!response.ok) {
+          throw new Error(`Worker error: ${response.status}`);
         }
-      }, 300);
+        
+        const data = await response.json();
+        const results = data.results || [];
+        
+        // Apply filters and sort
+        state.results = results
+          .filter(r => applyFilters(r, state.currentFilters))
+          .sort((a, b) => b.change - a.change);
+        
+        state.results.forEach(r => recordTickerHit(r.ticker, r.price));
+        state.lastUpdate = new Date();
+        renderResults();
+        saveScannerState();
+        stopScan();
+        
+      } catch (error) {
+        console.error('Scan error:', error);
+        document.getElementById('statusText').textContent = `Error: ${error.message}`;
+        stopScan();
+      }
     }
 
     function stopScan() {

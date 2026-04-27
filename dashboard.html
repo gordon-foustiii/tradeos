@@ -20,6 +20,7 @@
       background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
       color: #fff;
       line-height: 1.5;
+      padding-bottom: 70px;
     }
 
     .topbar {
@@ -281,11 +282,16 @@
 
     .footer-nav {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin-top: 32px;
-      padding-top: 16px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 20px;
+      background: rgba(0, 0, 0, 0.9);
       border-top: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 100;
     }
 
     .nav-link {
@@ -422,29 +428,13 @@
     </div>
 
     <div class="footer-nav">
-      <a href="/tradeos/index.html" class="nav-link active">
+      <a href="/tradeos/index.html" class="nav-link">
         <div class="nav-icon">🏠</div>
         Home
       </a>
-      <a href="/tradeos/journal.html" class="nav-link">
-        <div class="nav-icon">📔</div>
-        Journal
-      </a>
-      <a href="/tradeos/candies.html" class="nav-link">
-        <div class="nav-icon">🕯️</div>
-        Candies
-      </a>
-      <a href="/tradeos/scanner.html" class="nav-link">
-        <div class="nav-icon">🔍</div>
-        Scanner
-      </a>
-      <a href="/tradeos/plays.html" class="nav-link">
-        <div class="nav-icon">📋</div>
-        Plays
-      </a>
-      <a href="/tradeos/tools.html" class="nav-link">
-        <div class="nav-icon">🔧</div>
-        Tools
+      <a href="/tradeos/dashboard.html" class="nav-link active">
+        <div class="nav-icon">📊</div>
+        Dashboard
       </a>
       <a href="/tradeos/settings.html" class="nav-link">
         <div class="nav-icon">👤</div>

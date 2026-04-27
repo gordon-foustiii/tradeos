@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#0f0f0f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Tools — TradeOS</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      color: #fff;
+      line-height: 1.5;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .topbar-brand span {
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .topbar-menu {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      cursor: pointer;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 18px;
+    }
+
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffd93d;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      margin-bottom: 32px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    .content {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      min-height: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .content-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .content-text {
+      font-size: 18px;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+
+    .content-subtext {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .footer-nav {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 12px;
+      text-decoration: none;
+      color: #aaa;
+      border-radius: 8px;
+      transition: all 0.2s;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
+    }
+
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
+      border-bottom: 2px solid #ffd93d;
+    }
+
+    .nav-icon {
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">
+      ⚔️ Trade<span>OS</span>
+    </div>
+    <div class="topbar-menu">
+      <button class="btn-icon" onclick="goHome()" title="Home">🏠</button>
+      <button class="btn-icon" onclick="signOut()" title="Sign out">⚙️</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="page-title">🔧 Tools</div>
+      <div class="page-subtitle">Calculators, timers, and trading utilities</div>
+    </div>
+
+    <div class="content">
+      <div class="content-icon">⚙️</div>
+      <div class="content-text">Tools Coming Soon</div>
+      <div class="content-subtext">Position sizing, calculators, and timers in development</div>
+    </div>
+
+    <div class="footer-nav">
+      <a href="/tradeos/index.html" class="nav-link">
+        <div class="nav-icon">🏠</div>
+        Home
+      </a>
+      <a href="/tradeos/journal.html" class="nav-link">
+        <div class="nav-icon">📔</div>
+        Journal
+      </a>
+      <a href="/tradeos/candies.html" class="nav-link">
+        <div class="nav-icon">🕯️</div>
+        Candies
+      </a>
+      <a href="/tradeos/scanner.html" class="nav-link">
+        <div class="nav-icon">🔍</div>
+        Scanner
+      </a>
+      <a href="/tradeos/plays.html" class="nav-link">
+        <div class="nav-icon">📋</div>
+        Plays
+      </a>
+      <a href="/tradeos/tools.html" class="nav-link active">
+        <div class="nav-icon">🔧</div>
+        Tools
+      </a>
+      <a href="/tradeos/settings.html" class="nav-link">
+        <div class="nav-icon">👤</div>
+        Profile
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function goHome() {
+      window.location.href = '/tradeos/';
+    }
+
+    function signOut() {
+      if (confirm('Sign out of TradeOS?')) {
+        localStorage.removeItem('tradeos_id_token');
+        localStorage.removeItem('tradeos_access_token');
+        localStorage.removeItem('tradeos_token_expiry');
+        window.location.href = '/tradeos/login.html';
+      }
+    }
+  </script>
+</body>
+</html>

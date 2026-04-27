@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeOS</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #aaa;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-direction: column;
+        }
+
+        button {
+            padding: 14px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .status {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-label {
+            color: #aaa;
+        }
+
+        .status-value {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .indicator.online {
+            background: #4ade80;
+        }
+
+        .indicator.offline {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">⚔️ TRADEOS</div>
+        <h1>Trading OS</h1>
+        <p class="subtitle">Viking-branded trading platform for systematic penny stock trading and portfolio management.</p>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="handleLogin()">Sign In</button>
+            <button class="btn-secondary" onclick="handleInfo()">Learn More</button>
+        </div>
+
+        <div class="status">
+            <div class="status-item">
+                <span class="status-label"><span class="indicator online"></span>Worker</span>
+                <span class="status-value" id="worker-status">Checking...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label"><span class="indicator offline"></span>Scanner</span>
+                <span class="status-value">Coming Soon</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label"><span class="indicator offline"></span>Journal</span>
+                <span class="status-value">Coming Soon</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WORKER_URL = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
+
+        fetch(`${WORKER_URL}/scan/latest`)
+            .then(() => {
+                document.getElementById('worker-status').textContent = 'Online';
+            })
+            .catch(() => {
+                document.getElementById('worker-status').textContent = 'Offline';
+                document.querySelector('.indicator.online').classList.add('offline');
+            });
+
+        function handleLogin() {
+            window.location.href = 'auth.html';
+        }
+
+        function handleInfo() {
+            alert('TradeOS v2 - Coming Soon\n\nFeatures in development:\n• Scanner\n• Trade Journal\n• Playbook\n• Performance Analytics');
+        }
+    </script>
+</body>
+</html>

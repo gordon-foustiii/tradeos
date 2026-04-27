@@ -126,25 +126,30 @@
     }
 
     .btn-primary {
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      color: #000;
+      border: none;
       padding: 10px 20px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background: linear-gradient(135deg, #ff6b6b, #ff5252);
-      color: #fff;
       border-radius: 8px;
-      cursor: pointer;
       font-weight: 600;
-      transition: all 0.2s;
+      cursor: pointer;
+      transition: transform 0.2s, filter 0.2s;
       font-size: 14px;
       white-space: nowrap;
     }
 
     .btn-primary:hover {
+      filter: brightness(1.1);
       transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
     }
 
     .btn-primary.stop {
-      background: linear-gradient(135deg, #5f6d7f, #4a5a6f);
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      opacity: 0.6;
     }
 
     .btn-secondary {

@@ -90,7 +90,7 @@
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 20px;
       flex: 1;
@@ -112,36 +112,459 @@
       color: #aaa;
     }
 
-    .content {
+    /* Scanner Controls */
+    .scanner-controls {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 24px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
-      padding: 40px 20px;
-      text-align: center;
-      min-height: 400px;
+      padding: 16px;
+    }
+
+    .btn-primary {
+      padding: 10px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, #ff6b6b, #ff5252);
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-primary.stop {
+      background: linear-gradient(135deg, #5f6d7f, #4a5a6f);
+    }
+
+    .scan-status {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      color: #aaa;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #666;
+      animation: pulse-idle 2s infinite;
+    }
+
+    .status-dot.active {
+      background: #4ade80;
+      animation: pulse-active 1.5s infinite;
+    }
+
+    @keyframes pulse-active {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @keyframes pulse-idle {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.2; }
+    }
+
+    /* Presets */
+    .presets-section {
+      margin-bottom: 24px;
+    }
+
+    .presets-label {
+      font-size: 12px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .presets-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-preset {
+      padding: 8px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+      color: #aaa;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-preset:hover {
+      border-color: rgba(255, 215, 61, 0.3);
+      color: #ffd93d;
+      background: rgba(255, 215, 61, 0.05);
+    }
+
+    .btn-preset.active {
+      border-color: #ffd93d;
+      background: rgba(255, 215, 61, 0.1);
+      color: #ffd93d;
+    }
+
+    /* Filter Editor */
+    .filter-editor {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      display: none;
+    }
+
+    .filter-editor.active {
+      display: block;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .filter-item {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      gap: 6px;
     }
 
-    .content-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-      opacity: 0.5;
+    .filter-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .content-text {
-      font-size: 18px;
+    .filter-input {
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .filter-input:focus {
+      outline: none;
+      border-color: #ffd93d;
+      background: rgba(255, 215, 61, 0.05);
+    }
+
+    .filter-input[type="range"] {
+      padding: 0;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+    }
+
+    .filter-value {
+      font-size: 11px;
       color: #aaa;
-      margin-bottom: 8px;
     }
 
-    .content-subtext {
-      font-size: 14px;
+    .save-preset-row {
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 16px;
+    }
+
+    .save-preset-row input {
+      flex: 1;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 13px;
+    }
+
+    .btn-save {
+      padding: 8px 16px;
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      color: #4ade80;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .btn-save:hover:not(:disabled) {
+      background: rgba(74, 222, 128, 0.2);
+      border-color: #4ade80;
+    }
+
+    .btn-save:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Results Table - Finviz Style */
+    .results-section {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .results-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .results-count {
+      font-size: 12px;
+      color: #aaa;
+      font-weight: 500;
+    }
+
+    .results-update {
+      font-size: 11px;
       color: #666;
     }
 
+    /* Table styling */
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      table-layout: fixed;
+    }
+
+    .results-table thead {
+      background: rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .results-table th {
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 500;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-size: 10px;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .results-table th:last-child {
+      border-right: none;
+    }
+
+    .results-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .results-table td:last-child {
+      border-right: none;
+    }
+
+    .results-table tbody tr {
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+
+    .results-table tbody tr:hover {
+      background: rgba(255, 215, 61, 0.08);
+    }
+
+    /* Cell styling */
+    .col-ticker {
+      font-weight: 700;
+      color: #ffd93d;
+      width: 50px;
+    }
+
+    .col-price {
+      text-align: right;
+      width: 60px;
+    }
+
+    .col-pct {
+      text-align: right;
+      width: 60px;
+      font-weight: 600;
+    }
+
+    .col-volume {
+      text-align: right;
+      width: 70px;
+    }
+
+    .col-metric {
+      text-align: right;
+      width: 50px;
+    }
+
+    .positive {
+      color: #4ade80;
+    }
+
+    .negative {
+      color: #ff6b6b;
+    }
+
+    .neutral {
+      color: #aaa;
+    }
+
+    .results-empty {
+      padding: 60px 20px;
+      text-align: center;
+      color: #666;
+    }
+
+    .results-empty p {
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .results-empty-sub {
+      font-size: 11px;
+      color: #444;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: rgba(15, 15, 15, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffd93d;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 24px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    .modal-field {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .modal-field:last-child {
+      border-bottom: none;
+    }
+
+    .modal-label {
+      font-size: 11px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .modal-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-secondary {
+      flex: 1;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Footer Nav */
     .footer-nav {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -187,6 +610,30 @@
       color: #ffd93d;
       border-bottom: 2px solid #ffd93d;
     }
+
+    /* Toggle Button */
+    .btn-toggle-edit {
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #aaa;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-toggle-edit:hover {
+      border-color: rgba(255, 215, 61, 0.3);
+      color: #ffd93d;
+    }
+
+    .btn-toggle-edit.active {
+      background: rgba(255, 215, 61, 0.1);
+      border-color: #ffd93d;
+      color: #ffd93d;
+    }
   </style>
 </head>
 <body>
@@ -203,56 +650,235 @@
   <div class="container">
     <div class="header">
       <div class="page-title">🔍 Scanner</div>
-      <div class="page-subtitle">Real-time market scanner with custom filters</div>
+      <div class="page-subtitle">Real-time market data with Den of Wisdom filters</div>
     </div>
 
-    <div class="content">
-      <div class="content-icon">🔎</div>
-      <div class="content-text">Scanner Coming Soon</div>
-      <div class="content-subtext">Premarket and intraday scanning tools in development</div>
+    <!-- Scanner Controls -->
+    <div class="scanner-controls">
+      <button id="scanBtn" class="btn-primary" onclick="toggleScanner()">▶ Start Scan</button>
+      <div class="scan-status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Ready</span>
+      </div>
+      <button id="editToggle" class="btn-toggle-edit" onclick="toggleEditMode()">✎ Edit Filters</button>
     </div>
 
-        <div class="footer-nav">
-      <a href="/tradeos/index.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Home
-      </a>
-      <a href="/tradeos/scanner.html" class="nav-link active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        Scanner
-      </a>
-      <a href="/tradeos/plays.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Plays
-      </a>
-      <a href="/tradeos/journal.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Journal
-      </a>
-      <a href="/tradeos/tools.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        Tools
-      </a>
-      <a href="/tradeos/settings.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Profile
-      </a>
+    <!-- Presets -->
+    <div class="presets-section">
+      <label class="presets-label">Filter Presets</label>
+      <div class="presets-buttons">
+        <button class="btn-preset active" data-preset="balanced" onclick="selectPreset('balanced')">Balanced (Den)</button>
+        <button class="btn-preset" data-preset="aggressive" onclick="selectPreset('aggressive')">Aggressive</button>
+        <button class="btn-preset" data-preset="conservative" onclick="selectPreset('conservative')">Conservative</button>
+      </div>
+    </div>
+
+    <!-- Filter Editor -->
+    <div class="filter-editor" id="filterEditor">
+      <div class="filter-grid">
+        <div class="filter-item">
+          <label class="filter-label">Price Min</label>
+          <input type="number" class="filter-input" id="priceMin" min="0" step="0.5" onchange="updateFilters()">
+          <span class="filter-value" id="priceMinVal">$1</span>
+        </div>
+        <div class="filter-item">
+          <label class="filter-label">Price Max</label>
+          <input type="number" class="filter-input" id="priceMax" min="0" step="0.5" onchange="updateFilters()">
+          <span class="filter-value" id="priceMaxVal">$20</span>
+        </div>
+        <div class="filter-item">
+          <label class="filter-label">Min Change %</label>
+          <input type="number" class="filter-input" id="changeMin" min="0" step="1" onchange="updateFilters()">
+          <span class="filter-value" id="changeMinVal">10%</span>
+        </div>
+        <div class="filter-item">
+          <label class="filter-label">Max Float</label>
+          <input type="range" class="filter-input" id="floatMax" min="1000000" max="50000000" step="1000000" oninput="updateFilters()">
+          <span class="filter-value" id="floatMaxVal">20M</span>
+        </div>
+        <div class="filter-item">
+          <label class="filter-label">Min Rel Vol</label>
+          <input type="number" class="filter-input" id="relVolMin" min="0.5" step="0.1" onchange="updateFilters()">
+          <span class="filter-value" id="relVolMinVal">1.5x</span>
+        </div>
+        <div class="filter-item">
+          <label class="filter-label">Min Volume</label>
+          <input type="number" class="filter-input" id="volumeMin" min="0" step="50000" onchange="updateFilters()">
+          <span class="filter-value" id="volumeMinVal">250K</span>
+        </div>
+      </div>
+
+      <div class="save-preset-row">
+        <input type="text" id="presetName" placeholder="e.g., My Custom Preset">
+        <button class="btn-save" onclick="saveCustomPreset()" id="saveBtn" disabled>💾 Save</button>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="results-section">
+      <div class="results-header">
+        <span class="results-count"><span id="resultCount">0</span> tickers matched</span>
+        <span class="results-update" id="lastUpdate"></span>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th class="col-ticker">Ticker</th>
+              <th class="col-price">Price</th>
+              <th class="col-pct">Change %</th>
+              <th class="col-volume">Volume</th>
+              <th class="col-metric">Rel Vol</th>
+              <th class="col-metric">Float</th>
+              <th class="col-metric">Mkt Cap</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr>
+              <td colspan="7" class="results-empty">
+                <p>No results yet</p>
+                <p class="results-empty-sub">Start a scan to see live results</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <script>
-    function goHome() {
-      window.location.href = '/tradeos/';
-    }
+  <!-- Ticker Detail Modal -->
+  <div class="modal" id="tickerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTicker">TICKER</div>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div>
+        <div class="modal-field">
+          <span class="modal-label">Price</span>
+          <span class="modal-value" id="modalPrice">$0.00</span>
+        </div>
+        <div class="modal-field">
+          <span class="modal-label">Change</span>
+          <span class="modal-value" id="modalChange">+0.00%</span>
+        </div>
+        <div class="modal-field">
+          <span class="modal-label">Volume</span>
+          <span class="modal-value" id="modalVolume">0</span>
+        </div>
+        <div class="modal-field">
+          <span class="modal-label">Rel Vol</span>
+          <span class="modal-value" id="modalRelVol">0.0x</span>
+        </div>
+        <div class="modal-field">
+          <span class="modal-label">Float</span>
+          <span class="modal-value" id="modalFloat">0M</span>
+        </div>
+        <div class="modal-field">
+          <span class="modal-label">Market Cap</span>
+          <span class="modal-value" id="modalMktCap">$0B</span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="addToWatchlist()">➕ Watchlist</button>
+        <button class="btn-secondary" onclick="startTrade()">🚀 Trade</button>
+      </div>
+    </div>
+  </div>
 
-    function signOut() {
-      if (confirm('Sign out of TradeOS?')) {
-        localStorage.removeItem('tradeos_id_token');
-        localStorage.removeItem('tradeos_access_token');
-        localStorage.removeItem('tradeos_token_expiry');
-        window.location.href = '/tradeos/login.html';
+  <div class="footer-nav">
+    <a href="/tradeos/index.html" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Home
+    </a>
+    <a href="/tradeos/scanner.html" class="nav-link active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Scanner
+    </a>
+    <a href="/tradeos/plays.html" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Plays
+    </a>
+    <a href="/tradeos/journal.html" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Journal
+    </a>
+    <a href="/tradeos/tools.html" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      Tools
+    </a>
+    <a href="/tradeos/settings.html" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </a>
+  </div>
+
+  <script>
+    const FILTERS = {
+      balanced: { name: 'Balanced (Den of Wisdom)', price: { min: 1, max: 20 }, change: { min: 10 }, float: { max: 20e6 }, relVol: { min: 1.5 }, volume: { min: 250000 }, mktCap: { max: 2e9 } },
+      aggressive: { name: 'Aggressive (Float < 5M)', price: { min: 1, max: 15 }, change: { min: 15 }, float: { max: 5e6 }, relVol: { min: 2.0 }, volume: { min: 500000 }, mktCap: { max: 1.5e9 } },
+      conservative: { name: 'Conservative (Float < 30M)', price: { min: 2, max: 20 }, change: { min: 8 }, float: { max: 30e6 }, relVol: { min: 1.2 }, volume: { min: 200000 }, mktCap: { max: 3e9 } },
+    };
+
+    let state = { isScanning: false, activePreset: 'balanced', results: [], currentFilters: { ...FILTERS.balanced }, lastUpdate: null, selectedTicker: null, scanInterval: null };
+
+    const MOCK_RESULTS = [
+      { ticker: 'UGRO', price: 12.50, change: 24.30, volume: 5200000, float: 2.1e6, relVol: 2.80, mktCap: 262.5e6 },
+      { ticker: 'ROLR', price: 8.20, change: 18.70, volume: 3400000, float: 5.5e6, relVol: 2.20, mktCap: 328e6 },
+      { ticker: 'YAAS', price: 2.32, change: 56.00, volume: 176470000, float: 2.01e6, relVol: 5.95, mktCap: 10.48e6 },
+      { ticker: 'EDSA', price: 11.17, change: 2.75, volume: 9010000, float: 7.56e6, relVol: 1.06, mktCap: 99.25e6 },
+      { ticker: 'RMAX', price: 9.94, change: 22.03, volume: 14000000, float: 15.32e6, relVol: 325.06, mktCap: 325.06e6 },
+      { ticker: 'BRLS', price: 1.30, change: 8.78, volume: 3060000, float: 5.57e6, relVol: 129.75, mktCap: 24.25e6 },
+      { ticker: 'TRAK', price: 8.95, change: 19.46, volume: 725020, float: 12.14e6, relVol: 162.92, mktCap: 6.20e6 },
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCustomPresets(); updateFilterDisplay(); updatePresetsUI();
+      document.getElementById('presetName').addEventListener('input', (e) => { document.getElementById('saveBtn').disabled = !e.target.value.trim(); });
+    });
+
+    function toggleScanner() {
+      state.isScanning = !state.isScanning;
+      const btn = document.getElementById('scanBtn');
+      const dot = document.getElementById('statusDot');
+      const txt = document.getElementById('statusText');
+      if (state.isScanning) {
+        btn.textContent = '⏹ Stop Scanning'; btn.classList.add('stop'); dot.classList.add('active'); txt.textContent = 'Scanning...'; startScan();
+      } else {
+        btn.textContent = '▶ Start Scan'; btn.classList.remove('stop'); dot.classList.remove('active'); txt.textContent = 'Ready'; if (state.scanInterval) clearInterval(state.scanInterval);
       }
     }
+
+    function startScan() {
+      performScan();
+      state.scanInterval = setInterval(() => { if (state.isScanning) performScan(); }, 60000);
+    }
+
+    function performScan() {
+      setTimeout(() => {
+        if (state.isScanning) {
+          state.results = MOCK_RESULTS.filter(r => applyFilters(r, state.currentFilters)).sort((a, b) => b.relVol - a.relVol);
+          state.lastUpdate = new Date(); renderResults();
+        }
+      }, 300);
+    }
+
+    function applyFilters(t, f) { return t.price >= f.price.min && t.price <= f.price.max && t.change >= f.change.min && t.float <= f.float.max && t.relVol >= f.relVol.min && t.volume >= f.volume.min && t.mktCap <= f.mktCap.max; }
+
+    function selectPreset(p) { state.activePreset = p; state.currentFilters = { ...FILTERS[p] }; updateFilterDisplay(); updatePresetsUI(); if (state.isScanning) performScan(); }
+    function updatePresetsUI() { document.querySelectorAll('.btn-preset').forEach(b => { b.classList.toggle('active', b.dataset.preset === state.activePreset); }); }
+    function saveCustomPreset() { const n = document.getElementById('presetName').value.trim(); if (!n) return; const c = JSON.parse(localStorage.getItem('customPresets') || '{}'); c[n] = { name: n, ...state.currentFilters }; localStorage.setItem('customPresets', JSON.stringify(c)); const btn = document.createElement('button'); btn.className = 'btn-preset'; btn.textContent = n; btn.onclick = () => selectPreset(n); btn.dataset.preset = n; document.querySelector('.presets-buttons').appendChild(btn); document.getElementById('presetName').value = ''; document.getElementById('saveBtn').disabled = true; }
+    function loadCustomPresets() { const c = JSON.parse(localStorage.getItem('customPresets') || '{}'); Object.entries(c).forEach(([k, p]) => { const btn = document.createElement('button'); btn.className = 'btn-preset'; btn.textContent = p.name; btn.onclick = () => { state.currentFilters = { ...p }; state.activePreset = k; updateFilterDisplay(); updatePresetsUI(); if (state.isScanning) performScan(); }; btn.dataset.preset = k; document.querySelector('.presets-buttons').appendChild(btn); }); }
+    function toggleEditMode() { const e = document.getElementById('filterEditor'); const b = document.getElementById('editToggle'); e.classList.toggle('active'); b.classList.toggle('active'); if (e.classList.contains('active')) updateFilterDisplay(); }
+    function updateFilters() { state.currentFilters = { price: { min: parseFloat(document.getElementById('priceMin').value) || 1, max: parseFloat(document.getElementById('priceMax').value) || 20 }, change: { min: parseFloat(document.getElementById('changeMin').value) || 10 }, float: { max: parseFloat(document.getElementById('floatMax').value) || 20e6 }, relVol: { min: parseFloat(document.getElementById('relVolMin').value) || 1.5 }, volume: { min: parseFloat(document.getElementById('volumeMin').value) || 250000 }, mktCap: state.currentFilters.mktCap }; updateFilterDisplay(); if (state.isScanning) performScan(); }
+    function updateFilterDisplay() { document.getElementById('priceMin').value = state.currentFilters.price.min; document.getElementById('priceMax').value = state.currentFilters.price.max; document.getElementById('changeMin').value = state.currentFilters.change.min; document.getElementById('floatMax').value = state.currentFilters.float.max; document.getElementById('relVolMin').value = state.currentFilters.relVol.min; document.getElementById('volumeMin').value = state.currentFilters.volume.min; document.getElementById('priceMinVal').textContent = `$${state.currentFilters.price.min}`; document.getElementById('priceMaxVal').textContent = `$${state.currentFilters.price.max}`; document.getElementById('changeMinVal').textContent = `${state.currentFilters.change.min}%`; document.getElementById('floatMaxVal').textContent = `${(state.currentFilters.float.max / 1e6).toFixed(1)}M`; document.getElementById('relVolMinVal').textContent = `${state.currentFilters.relVol.min}x`; document.getElementById('volumeMinVal').textContent = `${(state.currentFilters.volume.min / 1000).toFixed(0)}K`; }
+    function renderResults() { const tbody = document.getElementById('resultsBody'); const count = document.getElementById('resultCount'); const lastUpdate = document.getElementById('lastUpdate'); if (state.results.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="results-empty"><p>No results match your filters</p><p class="results-empty-sub">Try broadening the filters or wait for market data</p></td></tr>`; return; } tbody.innerHTML = state.results.map(r => `<tr onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap})"><td class="col-ticker">${r.ticker}</td><td class="col-price">$${r.price.toFixed(2)}</td><td class="col-pct positive">${r.change >= 0 ? '+' : ''}${r.change.toFixed(2)}%</td><td class="col-volume">${(r.volume / 1e6).toFixed(2)}M</td><td class="col-metric ${r.relVol >= 1.5 ? 'positive' : 'neutral'}">${r.relVol.toFixed(2)}x</td><td class="col-metric ${r.float <= 20e6 ? 'positive' : 'neutral'}">${(r.float / 1e6).toFixed(2)}M</td><td class="col-metric">${(r.mktCap / 1e9).toFixed(2)}B</td></tr>`).join(''); count.textContent = state.results.length; if (state.lastUpdate) lastUpdate.textContent = `Updated ${state.lastUpdate.toLocaleTimeString()}`; }
+    function showTickerModal(t, p, c, v, rv, f, mc) { state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc }; document.getElementById('modalTicker').textContent = t; document.getElementById('modalPrice').textContent = `$${p.toFixed(2)}`; document.getElementById('modalChange').textContent = `${c >= 0 ? '+' : ''}${c.toFixed(2)}%`; document.getElementById('modalChange').className = `modal-value ${c >= 0 ? 'positive' : 'negative'}`; document.getElementById('modalVolume').textContent = `${(v / 1e6).toFixed(2)}M`; document.getElementById('modalRelVol').textContent = `${rv.toFixed(2)}x`; document.getElementById('modalFloat').textContent = `${(f / 1e6).toFixed(2)}M`; document.getElementById('modalMktCap').textContent = `$${(mc / 1e9).toFixed(2)}B`; document.getElementById('tickerModal').classList.add('active'); }
+    function closeModal() { document.getElementById('tickerModal').classList.remove('active'); }
+    function addToWatchlist() { alert(`Added ${state.selectedTicker.ticker} to watchlist`); closeModal(); }
+    function startTrade() { alert(`Starting trade for ${state.selectedTicker.ticker}`); closeModal(); }
+    function goHome() { window.location.href = '/tradeos/'; }
+    function signOut() { if (confirm('Sign out of TradeOS?')) { localStorage.removeItem('tradeos_id_token'); localStorage.removeItem('tradeos_access_token'); localStorage.removeItem('tradeos_token_expiry'); window.location.href = '/tradeos/login.html'; } }
   </script>
 </body>
 </html>

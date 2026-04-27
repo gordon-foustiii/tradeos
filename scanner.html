@@ -181,6 +181,11 @@
     /* Presets */
     .presets-section {
       margin-bottom: 24px;
+      display: none;
+    }
+
+    .presets-section.active {
+      display: block;
     }
 
     .presets-label {
@@ -196,6 +201,13 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+    }
+
+    .presets-buttons-inline {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
     .btn-preset {
@@ -404,6 +416,20 @@
       font-weight: 700;
       color: #ffd93d;
       width: 50px;
+      position: relative;
+    }
+
+    .ticker-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ff6b6b, #ff5252);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      min-width: 20px;
+      text-align: center;
     }
 
     .col-price {
@@ -546,6 +572,51 @@
       border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
+    .modal-history {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #ffd93d;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .history-prices {
+      font-size: 13px;
+      color: #ccc;
+    }
+
+    .history-row {
+      margin-bottom: 8px;
+    }
+
+    .history-list {
+      margin-top: 8px;
+    }
+
+    .hit-items {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 6px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .hit-item {
+      font-size: 12px;
+      color: #aaa;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 2px solid #ffd93d;
+    }
+
     .btn-secondary {
       flex: 1;
       padding: 10px;
@@ -675,7 +746,14 @@
 
     <!-- Filter Editor -->
     <div class="filter-editor" id="filterEditor">
-      <div class="filter-grid">
+      <div class="presets-buttons-inline">
+        <label class="presets-label" style="margin-bottom: 12px; display: block; width: 100%;">Quick Presets</label>
+        <button class="btn-preset active" data-preset="balanced" onclick="selectPreset('balanced')">Balanced (Den)</button>
+        <button class="btn-preset" data-preset="aggressive" onclick="selectPreset('aggressive')">Aggressive</button>
+        <button class="btn-preset" data-preset="conservative" onclick="selectPreset('conservative')">Conservative</button>
+      </div>
+
+      <div class="filter-grid" style="margin-top: 20px;">
         <div class="filter-item">
           <label class="filter-label">Price Min</label>
           <input type="number" class="filter-input" id="priceMin" min="0" step="0.5" onchange="updateFilters()">
@@ -779,6 +857,7 @@
           <span class="modal-value" id="modalMktCap">$0B</span>
         </div>
       </div>
+      <div id="tickerHistoryContainer"></div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="addToWatchlist()">➕ Watchlist</button>
         <button class="btn-secondary" onclick="startTrade()">🚀 Trade</button>
@@ -820,7 +899,26 @@
       conservative: { name: 'Conservative (Float < 30M)', price: { min: 2, max: 20 }, change: { min: 8 }, float: { max: 30e6 }, relVol: { min: 1.2 }, volume: { min: 200000 }, mktCap: { max: 3e9 } },
     };
 
-    let state = { isScanning: false, activePreset: 'balanced', results: [], currentFilters: { ...FILTERS.balanced }, lastUpdate: null, selectedTicker: null, scanInterval: null };
+    let state = { isScanning: false, activePreset: 'balanced', results: [], currentFilters: { ...FILTERS.balanced }, lastUpdate: null, selectedTicker: null, scanInterval: null, tickerHistory: {} };
+
+    // Load ticker history from localStorage on page load
+    function loadTickerHistory() {
+      const saved = localStorage.getItem('tradeos_ticker_history');
+      state.tickerHistory = saved ? JSON.parse(saved) : {};
+    }
+
+    function saveTickerHistory() {
+      localStorage.setItem('tradeos_ticker_history', JSON.stringify(state.tickerHistory));
+    }
+
+    function recordTickerHit(ticker, price) {
+      if (!state.tickerHistory[ticker]) {
+        state.tickerHistory[ticker] = { firstSeen: new Date().toISOString(), hits: [], totalHits: 0 };
+      }
+      state.tickerHistory[ticker].hits.push({ price, timestamp: new Date().toISOString() });
+      state.tickerHistory[ticker].totalHits = state.tickerHistory[ticker].hits.length;
+      saveTickerHistory();
+    }
 
     const MOCK_RESULTS = [
       { ticker: 'UGRO', price: 12.50, change: 24.30, volume: 5200000, float: 2.1e6, relVol: 2.80, mktCap: 262.5e6 },
@@ -833,22 +931,30 @@
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
+      loadTickerHistory(); // Load before scanning
       loadCustomPresets(); updateFilterDisplay(); updatePresetsUI();
+      loadScannerState(); // Restore previous results
       document.getElementById('presetName').addEventListener('input', (e) => { document.getElementById('saveBtn').disabled = !e.target.value.trim(); });
-      // Auto-start scan when page loads
-      autoStartScan();
     });
 
-    function autoStartScan() {
-      state.isScanning = true;
-      const btn = document.getElementById('scanBtn');
-      const dot = document.getElementById('statusDot');
-      const txt = document.getElementById('statusText');
-      btn.textContent = '⏹ Stop Scanning'; 
-      btn.classList.add('stop'); 
-      dot.classList.add('active'); 
-      txt.textContent = 'Scanning...'; 
-      performScan();
+    function loadScannerState() {
+      const saved = localStorage.getItem('tradeos_scanner_state');
+      if (saved) {
+        const savedState = JSON.parse(saved);
+        state.results = savedState.results || [];
+        state.lastUpdate = savedState.lastUpdate ? new Date(savedState.lastUpdate) : null;
+        state.currentFilters = savedState.currentFilters || state.currentFilters;
+        renderResults();
+        updateFilterDisplay();
+      }
+    }
+
+    function saveScannerState() {
+      localStorage.setItem('tradeos_scanner_state', JSON.stringify({
+        results: state.results,
+        lastUpdate: state.lastUpdate,
+        currentFilters: state.currentFilters
+      }));
     }
 
     function toggleScanner() {
@@ -876,8 +982,11 @@
       setTimeout(() => {
         if (state.isScanning) {
           state.results = MOCK_RESULTS.filter(r => applyFilters(r, state.currentFilters)).sort((a, b) => b.relVol - a.relVol);
+          // Record each ticker hit
+          state.results.forEach(r => recordTickerHit(r.ticker, r.price));
           state.lastUpdate = new Date(); 
           renderResults();
+          saveScannerState(); // Save results
           // Auto-stop after scan completes
           stopScan();
         }
@@ -900,13 +1009,87 @@
 
     function selectPreset(p) { state.activePreset = p; state.currentFilters = { ...FILTERS[p] }; updateFilterDisplay(); updatePresetsUI(); if (state.isScanning) performScan(); }
     function updatePresetsUI() { document.querySelectorAll('.btn-preset').forEach(b => { b.classList.toggle('active', b.dataset.preset === state.activePreset); }); }
-    function saveCustomPreset() { const n = document.getElementById('presetName').value.trim(); if (!n) return; const c = JSON.parse(localStorage.getItem('customPresets') || '{}'); c[n] = { name: n, ...state.currentFilters }; localStorage.setItem('customPresets', JSON.stringify(c)); const btn = document.createElement('button'); btn.className = 'btn-preset'; btn.textContent = n; btn.onclick = () => selectPreset(n); btn.dataset.preset = n; document.querySelector('.presets-buttons').appendChild(btn); document.getElementById('presetName').value = ''; document.getElementById('saveBtn').disabled = true; }
-    function loadCustomPresets() { const c = JSON.parse(localStorage.getItem('customPresets') || '{}'); Object.entries(c).forEach(([k, p]) => { const btn = document.createElement('button'); btn.className = 'btn-preset'; btn.textContent = p.name; btn.onclick = () => { state.currentFilters = { ...p }; state.activePreset = k; updateFilterDisplay(); updatePresetsUI(); if (state.isScanning) performScan(); }; btn.dataset.preset = k; document.querySelector('.presets-buttons').appendChild(btn); }); }
+    function saveCustomPreset() { const n = document.getElementById('presetName').value.trim(); if (!n) return; const c = JSON.parse(localStorage.getItem('customPresets') || '{}'); c[n] = { name: n, ...state.currentFilters }; localStorage.setItem('customPresets', JSON.stringify(c)); const btn = document.createElement('button'); btn.className = 'btn-preset'; btn.textContent = n; btn.onclick = () => selectPreset(n); btn.dataset.preset = n; document.querySelector('.presets-buttons-inline').appendChild(btn); document.getElementById('presetName').value = ''; document.getElementById('saveBtn').disabled = true; }
+    function loadCustomPresets() { const c = JSON.parse(localStorage.getItem('customPresets') || '{}'); Object.entries(c).forEach(([k, p]) => { const btn = document.createElement('button'); btn.className = 'btn-preset'; btn.textContent = p.name; btn.onclick = () => { state.currentFilters = { ...p }; state.activePreset = k; updateFilterDisplay(); updatePresetsUI(); if (state.isScanning) performScan(); }; btn.dataset.preset = k; document.querySelector('.presets-buttons-inline').appendChild(btn); }); }
     function toggleEditMode() { const e = document.getElementById('filterEditor'); const b = document.getElementById('editToggle'); e.classList.toggle('active'); b.classList.toggle('active'); if (e.classList.contains('active')) updateFilterDisplay(); }
-    function updateFilters() { state.currentFilters = { price: { min: parseFloat(document.getElementById('priceMin').value) || 1, max: parseFloat(document.getElementById('priceMax').value) || 20 }, change: { min: parseFloat(document.getElementById('changeMin').value) || 10 }, float: { max: parseFloat(document.getElementById('floatMax').value) || 20e6 }, relVol: { min: parseFloat(document.getElementById('relVolMin').value) || 1.5 }, volume: { min: parseFloat(document.getElementById('volumeMin').value) || 250000 }, mktCap: state.currentFilters.mktCap }; updateFilterDisplay(); if (state.isScanning) performScan(); }
+    function updateFilters() { 
+      state.currentFilters = { 
+        price: { min: parseFloat(document.getElementById('priceMin').value) || 1, max: parseFloat(document.getElementById('priceMax').value) || 20 }, 
+        change: { min: parseFloat(document.getElementById('changeMin').value) || 10 }, 
+        float: { max: parseFloat(document.getElementById('floatMax').value) || 20e6 }, 
+        relVol: { min: parseFloat(document.getElementById('relVolMin').value) || 1.5 }, 
+        volume: { min: parseFloat(document.getElementById('volumeMin').value) || 250000 }, 
+        mktCap: state.currentFilters.mktCap 
+      }; 
+      updateFilterDisplay(); 
+      saveScannerState();
+      if (state.isScanning) performScan(); 
+    }
     function updateFilterDisplay() { document.getElementById('priceMin').value = state.currentFilters.price.min; document.getElementById('priceMax').value = state.currentFilters.price.max; document.getElementById('changeMin').value = state.currentFilters.change.min; document.getElementById('floatMax').value = state.currentFilters.float.max; document.getElementById('relVolMin').value = state.currentFilters.relVol.min; document.getElementById('volumeMin').value = state.currentFilters.volume.min; document.getElementById('priceMinVal').textContent = `$${state.currentFilters.price.min}`; document.getElementById('priceMaxVal').textContent = `$${state.currentFilters.price.max}`; document.getElementById('changeMinVal').textContent = `${state.currentFilters.change.min}%`; document.getElementById('floatMaxVal').textContent = `${(state.currentFilters.float.max / 1e6).toFixed(1)}M`; document.getElementById('relVolMinVal').textContent = `${state.currentFilters.relVol.min}x`; document.getElementById('volumeMinVal').textContent = `${(state.currentFilters.volume.min / 1000).toFixed(0)}K`; }
-    function renderResults() { const tbody = document.getElementById('resultsBody'); const count = document.getElementById('resultCount'); const lastUpdate = document.getElementById('lastUpdate'); if (state.results.length === 0) { tbody.innerHTML = `<tr><td colspan="7" class="results-empty"><p>No results match your filters</p><p class="results-empty-sub">Try broadening the filters or wait for market data</p></td></tr>`; return; } tbody.innerHTML = state.results.map(r => `<tr onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap})"><td class="col-ticker">${r.ticker}</td><td class="col-price">$${r.price.toFixed(2)}</td><td class="col-pct positive">${r.change >= 0 ? '+' : ''}${r.change.toFixed(2)}%</td><td class="col-volume">${(r.volume / 1e6).toFixed(2)}M</td><td class="col-metric ${r.relVol >= 1.5 ? 'positive' : 'neutral'}">${r.relVol.toFixed(2)}x</td><td class="col-metric ${r.float <= 20e6 ? 'positive' : 'neutral'}">${(r.float / 1e6).toFixed(2)}M</td><td class="col-metric">${(r.mktCap / 1e9).toFixed(2)}B</td></tr>`).join(''); count.textContent = state.results.length; if (state.lastUpdate) lastUpdate.textContent = `Updated ${state.lastUpdate.toLocaleTimeString()}`; }
-    function showTickerModal(t, p, c, v, rv, f, mc) { state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc }; document.getElementById('modalTicker').textContent = t; document.getElementById('modalPrice').textContent = `$${p.toFixed(2)}`; document.getElementById('modalChange').textContent = `${c >= 0 ? '+' : ''}${c.toFixed(2)}%`; document.getElementById('modalChange').className = `modal-value ${c >= 0 ? 'positive' : 'negative'}`; document.getElementById('modalVolume').textContent = `${(v / 1e6).toFixed(2)}M`; document.getElementById('modalRelVol').textContent = `${rv.toFixed(2)}x`; document.getElementById('modalFloat').textContent = `${(f / 1e6).toFixed(2)}M`; document.getElementById('modalMktCap').textContent = `$${(mc / 1e9).toFixed(2)}B`; document.getElementById('tickerModal').classList.add('active'); }
+    function renderResults() { 
+      const tbody = document.getElementById('resultsBody'); 
+      const count = document.getElementById('resultCount'); 
+      const lastUpdate = document.getElementById('lastUpdate'); 
+      if (state.results.length === 0) { 
+        tbody.innerHTML = `<tr><td colspan="7" class="results-empty"><p>No results match your filters</p><p class="results-empty-sub">Try broadening the filters or wait for market data</p></td></tr>`; 
+        return; 
+      } 
+      tbody.innerHTML = state.results.map(r => {
+        const history = state.tickerHistory[r.ticker];
+        const hitCount = history ? history.totalHits : 0;
+        const priceRange = history ? getPriceRange(history.hits) : { min: r.price, max: r.price };
+        return `<tr onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap})" title="Hit ${hitCount}x - Range: $${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}">
+          <td class="col-ticker">${r.ticker}<span class="ticker-badge">${hitCount}</span></td>
+          <td class="col-price">$${r.price.toFixed(2)}</td>
+          <td class="col-pct positive">${r.change >= 0 ? '+' : ''}${r.change.toFixed(2)}%</td>
+          <td class="col-volume">${(r.volume / 1e6).toFixed(2)}M</td>
+          <td class="col-metric ${r.relVol >= 1.5 ? 'positive' : 'neutral'}">${r.relVol.toFixed(2)}x</td>
+          <td class="col-metric ${r.float <= 20e6 ? 'positive' : 'neutral'}">${(r.float / 1e6).toFixed(2)}M</td>
+          <td class="col-metric">${(r.mktCap / 1e9).toFixed(2)}B</td>
+        </tr>`;
+      }).join(''); 
+      count.textContent = state.results.length; 
+      if (state.lastUpdate) lastUpdate.textContent = `Updated ${state.lastUpdate.toLocaleTimeString()}`; 
+    }
+
+    function getPriceRange(hits) {
+      const prices = hits.map(h => h.price);
+      return { min: Math.min(...prices), max: Math.max(...prices) };
+    }
+    function showTickerModal(t, p, c, v, rv, f, mc) { 
+      state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc }; 
+      document.getElementById('modalTicker').textContent = t; 
+      document.getElementById('modalPrice').textContent = `$${p.toFixed(2)}`; 
+      document.getElementById('modalChange').textContent = `${c >= 0 ? '+' : ''}${c.toFixed(2)}%`; 
+      document.getElementById('modalChange').className = `modal-value ${c >= 0 ? 'positive' : 'negative'}`; 
+      document.getElementById('modalVolume').textContent = `${(v / 1e6).toFixed(2)}M`; 
+      document.getElementById('modalRelVol').textContent = `${rv.toFixed(2)}x`; 
+      document.getElementById('modalFloat').textContent = `${(f / 1e6).toFixed(2)}M`; 
+      document.getElementById('modalMktCap').textContent = `$${(mc / 1e9).toFixed(2)}B`; 
+      
+      // Add ticker history
+      const history = state.tickerHistory[t];
+      const historyHTML = history ? `
+        <div class="modal-history">
+          <div class="history-header">
+            <span>Hit Count: ${history.totalHits}</span>
+            <span>First Seen: ${new Date(history.firstSeen).toLocaleDateString()}</span>
+          </div>
+          <div class="history-prices">
+            <div class="history-row"><strong>Price Range:</strong> $${Math.min(...history.hits.map(h => h.price)).toFixed(2)} - $${Math.max(...history.hits.map(h => h.price)).toFixed(2)}</div>
+            <div class="history-list">
+              <strong>Recent Hits:</strong>
+              <div class="hit-items">
+                ${history.hits.slice(-5).reverse().map(h => `<div class="hit-item">$${h.price.toFixed(2)} - ${new Date(h.timestamp).toLocaleString()}</div>`).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      ` : '<div class="modal-history"><p>No history yet</p></div>';
+      
+      document.getElementById('tickerHistoryContainer').innerHTML = historyHTML;
+      document.getElementById('tickerModal').classList.add('active'); 
+    }
     function closeModal() { document.getElementById('tickerModal').classList.remove('active'); }
     function addToWatchlist() { alert(`Added ${state.selectedTicker.ticker} to watchlist`); closeModal(); }
     function startTrade() { alert(`Starting trade for ${state.selectedTicker.ticker}`); closeModal(); }

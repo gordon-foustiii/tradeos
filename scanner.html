@@ -364,88 +364,132 @@
       color: #666;
     }
 
-    /* Table styling */
-    .results-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      table-layout: fixed;
+    /* Results Cards Grid */
+    .results-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
     }
 
-    .results-table thead {
-      background: rgba(255, 255, 255, 0.04);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    @media (max-width: 768px) {
+      .results-container {
+        grid-template-columns: 1fr;
+      }
     }
 
-    .results-table th {
-      padding: 10px 12px;
-      text-align: left;
-      font-weight: 500;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-      font-size: 10px;
-      border-right: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .results-table th:last-child {
-      border-right: none;
-    }
-
-    .results-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      border-right: 1px solid rgba(255, 255, 255, 0.03);
-    }
-
-    .results-table td:last-child {
-      border-right: none;
-    }
-
-    .results-table tbody tr {
-      transition: background 0.15s;
+    .result-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
       cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    .results-table tbody tr:hover {
-      background: rgba(255, 215, 61, 0.08);
+    .result-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
     }
 
-    /* Cell styling */
-    .col-ticker {
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-ticker {
+      font-size: 20px;
       font-weight: 700;
       color: #ffd93d;
-      width: 50px;
-      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .ticker-badge {
-      display: inline-block;
+    .card-ticker .hit-badge {
+      font-size: 11px;
       background: linear-gradient(135deg, #ff6b6b, #ff5252);
       color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
+      padding: 4px 8px;
       border-radius: 4px;
-      margin-left: 6px;
-      min-width: 20px;
-      text-align: center;
+      font-weight: 700;
     }
 
-    .col-price {
-      text-align: right;
-      width: 60px;
+    .card-change {
+      font-size: 18px;
+      font-weight: 700;
     }
 
-    .col-pct {
-      text-align: right;
-      width: 60px;
+    .card-change.positive {
+      color: #4ade80;
+    }
+
+    .card-change.negative {
+      color: #ff6b6b;
+    }
+
+    .card-price {
+      font-size: 16px;
       font-weight: 600;
+      color: #bbb;
     }
 
-    .col-volume {
-      text-align: right;
-      width: 70px;
+    .card-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .metric-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric-label {
+      color: #888;
+      text-transform: uppercase;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-value {
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .metric-value.positive {
+      color: #4ade80;
+    }
+
+    .metric-value.neutral {
+      color: #bbb;
+    }
+
+    .results-empty {
+      grid-column: 1 / -1;
+      padding: 60px 20px;
+      text-align: center;
+      color: #666;
+    }
+
+    .results-empty p {
+      margin: 8px 0;
+    }
+
+    .results-empty-sub {
+      font-size: 12px;
+      color: #555;
     }
 
     .col-metric {
@@ -798,28 +842,11 @@
         <span class="results-count"><span id="resultCount">0</span> tickers matched</span>
         <span class="results-update" id="lastUpdate"></span>
       </div>
-      <div style="overflow-x: auto;">
-        <table class="results-table">
-          <thead>
-            <tr>
-              <th class="col-ticker">Ticker</th>
-              <th class="col-price">Price</th>
-              <th class="col-pct">Change %</th>
-              <th class="col-volume">Volume</th>
-              <th class="col-metric">Rel Vol</th>
-              <th class="col-metric">Float</th>
-              <th class="col-metric">Mkt Cap</th>
-            </tr>
-          </thead>
-          <tbody id="resultsBody">
-            <tr>
-              <td colspan="7" class="results-empty">
-                <p>No results yet</p>
-                <p class="results-empty-sub">Start a scan to see live results</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="results-container" id="resultsBody">
+        <div class="results-empty">
+          <p>No results yet</p>
+          <p class="results-empty-sub">Start a scan to see live results</p>
+        </div>
       </div>
     </div>
   </div>
@@ -1027,26 +1054,43 @@
     }
     function updateFilterDisplay() { document.getElementById('priceMin').value = state.currentFilters.price.min; document.getElementById('priceMax').value = state.currentFilters.price.max; document.getElementById('changeMin').value = state.currentFilters.change.min; document.getElementById('floatMax').value = state.currentFilters.float.max; document.getElementById('relVolMin').value = state.currentFilters.relVol.min; document.getElementById('volumeMin').value = state.currentFilters.volume.min; document.getElementById('priceMinVal').textContent = `$${state.currentFilters.price.min}`; document.getElementById('priceMaxVal').textContent = `$${state.currentFilters.price.max}`; document.getElementById('changeMinVal').textContent = `${state.currentFilters.change.min}%`; document.getElementById('floatMaxVal').textContent = `${(state.currentFilters.float.max / 1e6).toFixed(1)}M`; document.getElementById('relVolMinVal').textContent = `${state.currentFilters.relVol.min}x`; document.getElementById('volumeMinVal').textContent = `${(state.currentFilters.volume.min / 1000).toFixed(0)}K`; }
     function renderResults() { 
-      const tbody = document.getElementById('resultsBody'); 
+      const container = document.getElementById('resultsBody'); 
       const count = document.getElementById('resultCount'); 
       const lastUpdate = document.getElementById('lastUpdate'); 
       if (state.results.length === 0) { 
-        tbody.innerHTML = `<tr><td colspan="7" class="results-empty"><p>No results match your filters</p><p class="results-empty-sub">Try broadening the filters or wait for market data</p></td></tr>`; 
+        container.innerHTML = `<div class="results-empty"><p>No results match your filters</p><p class="results-empty-sub">Try broadening the filters or wait for market data</p></div>`; 
         return; 
       } 
-      tbody.innerHTML = state.results.map(r => {
+      container.innerHTML = state.results.map(r => {
         const history = state.tickerHistory[r.ticker];
         const hitCount = history ? history.totalHits : 0;
         const priceRange = history ? getPriceRange(history.hits) : { min: r.price, max: r.price };
-        return `<tr onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap})" title="Hit ${hitCount}x - Range: $${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}">
-          <td class="col-ticker">${r.ticker}<span class="ticker-badge">${hitCount}</span></td>
-          <td class="col-price">$${r.price.toFixed(2)}</td>
-          <td class="col-pct positive">${r.change >= 0 ? '+' : ''}${r.change.toFixed(2)}%</td>
-          <td class="col-volume">${(r.volume / 1e6).toFixed(2)}M</td>
-          <td class="col-metric ${r.relVol >= 1.5 ? 'positive' : 'neutral'}">${r.relVol.toFixed(2)}x</td>
-          <td class="col-metric ${r.float <= 20e6 ? 'positive' : 'neutral'}">${(r.float / 1e6).toFixed(2)}M</td>
-          <td class="col-metric">${(r.mktCap / 1e9).toFixed(2)}B</td>
-        </tr>`;
+        const changeClass = r.change >= 0 ? 'positive' : 'negative';
+        return `<div class="result-card" onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap})" title="Hit ${hitCount}x - Range: $${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}">
+          <div class="card-header">
+            <div class="card-ticker">${r.ticker}<span class="hit-badge">${hitCount}</span></div>
+            <div class="card-change ${changeClass}">${r.change >= 0 ? '+' : ''}${r.change.toFixed(2)}%</div>
+          </div>
+          <div class="card-price">$${r.price.toFixed(2)}</div>
+          <div class="card-metrics">
+            <div class="metric-item">
+              <div class="metric-label">Volume</div>
+              <div class="metric-value">${(r.volume / 1e6).toFixed(2)}M</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-label">Rel Vol</div>
+              <div class="metric-value ${r.relVol >= 1.5 ? 'positive' : 'neutral'}">${r.relVol.toFixed(2)}x</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-label">Float</div>
+              <div class="metric-value ${r.float <= 20e6 ? 'positive' : 'neutral'}">${(r.float / 1e6).toFixed(2)}M</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-label">Mkt Cap</div>
+              <div class="metric-value">$${(r.mktCap / 1e9).toFixed(2)}B</div>
+            </div>
+          </div>
+        </div>`;
       }).join(''); 
       count.textContent = state.results.length; 
       if (state.lastUpdate) lastUpdate.textContent = `Updated ${state.lastUpdate.toLocaleTimeString()}`; 

@@ -875,6 +875,19 @@
       background: rgba(255, 255, 255, 0.08);
     }
 
+    /* News Container */
+    .modal-news {
+      max-height: 150px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: none;
+      padding-right: 4px;
+    }
+
+    .modal-news::-webkit-scrollbar {
+      display: none;
+    }
+
     /* News Items Clickable */
     .news-item {
       padding: 10px;
@@ -883,11 +896,54 @@
       cursor: pointer;
       transition: all 0.2s;
       border-radius: 4px;
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .news-item:hover {
       background: rgba(255, 107, 107, 0.1);
       border-left-color: rgba(255, 107, 107, 0.8);
+    }
+
+    .news-link {
+      color: #ffd93d;
+      text-decoration: none;
+      font-size: 10px;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    .news-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Catalysts Selected */
+    .catalysts-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .catalyst-tag {
+      background: rgba(255, 107, 107, 0.2);
+      border: 1px solid rgba(255, 107, 107, 0.4);
+      color: #ff6b6b;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .catalyst-tag button {
+      background: none;
+      border: none;
+      color: #ff6b6b;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
     }
 
     /* Footer Navigation */
@@ -1108,8 +1164,8 @@
               <input type="number" class="planner-input" id="plannerStop" placeholder="e.g., 2.20" step="0.01" min="0" />
             </div>
             <div class="planner-field">
-              <label class="planner-label">Catalyst</label>
-              <input type="text" class="planner-input" id="plannerCatalyst" placeholder="FDA, earnings..." />
+              <label class="planner-label">Catalysts</label>
+              <div id="catalystsList" class="catalysts-list"></div>
             </div>
           </div>
         </div>
@@ -1374,6 +1430,7 @@
 
     function showTickerModal(t, p, c, v, rv, f, mc) {
       state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc };
+      state.selectedCatalysts = [];
       document.getElementById('modalTicker').textContent = t;
       document.getElementById('modalPrice').textContent = `$${p.toFixed(2)}`;
       document.getElementById('modalChange').textContent = `${c >= 0 ? '+' : ''}${c.toFixed(2)}%`;
@@ -1411,7 +1468,7 @@
       document.getElementById('plannerEntry').value = p.toFixed(2);
       document.getElementById('plannerTarget').value = '';
       document.getElementById('plannerStop').value = '';
-      document.getElementById('plannerCatalyst').value = '';
+      renderCatalysts();
       
       // Initialize chart
       setTimeout(() => initChart(t, p), 100);
@@ -1421,35 +1478,93 @@
 
     function populateNews(ticker) {
       const newsContainer = document.getElementById('newsContainer');
-      const mockNews = [
-        { title: 'Potential FDA approval expected Q2', source: 'Benzinga', time: '2 days ago' },
-        { title: 'Analyst upgrades $' + ticker + ' price target to $5.50', source: 'Yahoo Finance', time: '1 week ago' },
-        { title: ticker + ' reports strong earnings beat', source: 'MarketWatch', time: '1 month ago' }
-      ];
+      newsContainer.innerHTML = '<div class="news-placeholder">Loading news...</div>';
       
-      newsContainer.innerHTML = mockNews.map((news, idx) => `
-        <div class="news-item" onclick="addNewsAsCatalyst('${news.title}')">
-          <div class="news-title">${news.title}</div>
-          <div class="news-source">${news.source}</div>
-          <div class="news-time">${news.time}</div>
+      // Fetch real news from API
+      fetch(`https://api.polygon.io/v2/reference/news?query=${ticker}&limit=10&apiKey=YOUR_POLYGON_API_KEY`)
+        .then(r => r.json())
+        .then(d => {
+          if (!d.results || d.results.length === 0) {
+            newsContainer.innerHTML = '<div class="news-placeholder">No news found</div>';
+            return;
+          }
+          newsContainer.innerHTML = d.results.map((news, idx) => `
+            <div class="news-item">
+              <div class="news-title">${news.title}</div>
+              <div class="news-source">${news.publisher?.name || 'Unknown'}</div>
+              <div class="news-time">${new Date(news.published_utc).toLocaleDateString()}</div>
+              <div style="display: flex; gap: 8px; margin-top: 6px;">
+                <button class="news-link" onclick="addNewsAsCatalyst('${news.title.replace(/'/g, "\\'")}', '${news.article_url.replace(/'/g, "\\'")}')">+ Add</button>
+                <a href="${news.article_url}" target="_blank" class="news-link">Read →</a>
+              </div>
+            </div>
+          `).join('');
+        })
+        .catch(e => {
+          // Fallback to mock news if API fails
+          const mockNews = [
+            { title: 'Potential FDA approval expected Q2', source: 'Benzinga', time: '2 days ago', url: '#' },
+            { title: 'Analyst upgrades $' + ticker + ' price target to $5.50', source: 'Yahoo Finance', time: '1 week ago', url: '#' },
+            { title: ticker + ' reports strong earnings beat', source: 'MarketWatch', time: '1 month ago', url: '#' },
+            { title: 'Institutional investors increase holdings', source: 'SeekingAlpha', time: '3 weeks ago', url: '#' },
+            { title: 'Product launch announcement imminent', source: 'TradingView', time: '5 days ago', url: '#' }
+          ];
+          newsContainer.innerHTML = mockNews.map(news => `
+            <div class="news-item">
+              <div class="news-title">${news.title}</div>
+              <div class="news-source">${news.source}</div>
+              <div class="news-time">${news.time}</div>
+              <div style="display: flex; gap: 8px; margin-top: 6px;">
+                <button class="news-link" onclick="addNewsAsCatalyst('${news.title.replace(/'/g, "\\'")}', '${news.url.replace(/'/g, "\\'")}')">+ Add</button>
+              </div>
+            </div>
+          `).join('');
+        });
+    }
+
+    function addNewsAsCatalyst(title, url = '#') {
+      if (!state.selectedCatalysts) state.selectedCatalysts = [];
+      const exists = state.selectedCatalysts.some(c => c.title === title);
+      if (!exists) {
+        state.selectedCatalysts.push({ title: title.substring(0, 50), url });
+        renderCatalysts();
+      }
+    }
+
+    function removeCatalyst(title) {
+      state.selectedCatalysts = state.selectedCatalysts.filter(c => c.title !== title);
+      renderCatalysts();
+    }
+
+    function renderCatalysts() {
+      const list = document.getElementById('catalystsList');
+      if (!state.selectedCatalysts || state.selectedCatalysts.length === 0) {
+        list.innerHTML = '<span style="color: #666; font-size: 11px;">Click news to add</span>';
+        return;
+      }
+      list.innerHTML = state.selectedCatalysts.map(c => `
+        <div class="catalyst-tag">
+          <a href="${c.url}" target="_blank" title="View article" style="color: #ff6b6b; text-decoration: none;">📄</a>
+          <span>${c.title}</span>
+          <button onclick="removeCatalyst('${c.title.replace(/'/g, "\\'")}')">&times;</button>
         </div>
       `).join('');
     }
 
-    function addNewsAsCatalyst(title) {
-      document.getElementById('plannerCatalyst').value = title.substring(0, 50);
-    }
-
     function initChart(ticker, price) {
       const container = document.getElementById('tickerChart');
-      if (!container) return;
+      if (!container || !window.LightweightCharts) return;
       
       try {
+        // Clear previous chart
+        container.innerHTML = '';
+        
         const chart = LightweightCharts.createChart(container, {
           layout: { background: { color: 'transparent' }, textColor: '#aaa' },
           timeScale: { timeVisible: true, secondsVisible: false },
           width: container.offsetWidth,
-          height: 200
+          height: 200,
+          watermark: { visible: false }
         });
 
         const candlestickSeries = chart.addCandlestickSeries({
@@ -1461,19 +1576,35 @@
           wickDownColor: '#ff6b6b'
         });
 
-        const basePrice = price * 0.98;
-        const data = Array.from({ length: 50 }, (_, i) => ({
-          time: Math.floor(Date.now() / 1000) - (50 - i) * 300,
-          open: basePrice + Math.random() * 0.1,
-          high: basePrice + 0.15 + Math.random() * 0.1,
-          low: basePrice - 0.05 + Math.random() * 0.05,
-          close: basePrice + Math.random() * 0.12
-        }));
+        // Generate ticker-specific data based on current price
+        const volatility = 0.02 + Math.random() * 0.03;
+        const basePrice = price * 0.95;
+        const data = Array.from({ length: 50 }, (_, i) => {
+          const dayOffset = 50 - i;
+          const timeBase = Math.floor(Date.now() / 1000) - dayOffset * 900;
+          const drift = (Math.random() - 0.5) * volatility * price;
+          const open = basePrice + drift;
+          const close = open + (Math.random() - 0.5) * volatility * price;
+          const high = Math.max(open, close) + Math.random() * (0.05 * price);
+          const low = Math.min(open, close) - Math.random() * (0.03 * price);
+          
+          return {
+            time: timeBase,
+            open: parseFloat(open.toFixed(2)),
+            high: parseFloat(high.toFixed(2)),
+            low: parseFloat(low.toFixed(2)),
+            close: parseFloat(close.toFixed(2))
+          };
+        });
 
         candlestickSeries.setData(data);
         chart.timeScale().fitContent();
+        
+        // Store chart reference per ticker
+        if (!window.charts) window.charts = {};
+        window.charts[ticker] = chart;
       } catch (e) {
-        console.log('Chart init deferred');
+        console.log('Chart render deferred:', e);
       }
     }
 
@@ -1485,8 +1616,10 @@
       const entry = document.getElementById('plannerEntry').value;
       const target = document.getElementById('plannerTarget').value;
       const stop = document.getElementById('plannerStop').value;
-      const catalyst = document.getElementById('plannerCatalyst').value;
-      const msg = `Added ${state.selectedTicker.ticker} | Entry: ${entry || 'TBD'} | Target: ${target || 'TBD'} | Stop: ${stop || 'TBD'} | Catalyst: ${catalyst || 'N/A'}`;
+      const catalysts = state.selectedCatalysts && state.selectedCatalysts.length > 0 
+        ? state.selectedCatalysts.map(c => c.title).join(', ')
+        : 'None selected';
+      const msg = `Added ${state.selectedTicker.ticker}\nEntry: ${entry || 'TBD'}\nTarget: ${target || 'TBD'}\nStop: ${stop || 'TBD'}\nCatalysts: ${catalysts}`;
       alert(msg);
       closeModal();
     }

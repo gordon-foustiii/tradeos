@@ -499,21 +499,8 @@
       padding: 28px;
       width: 100%;
       max-height: 90vh;
-      overflow: hidden;
-      animation: slideUp 0.3s ease;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .modal-content-scroll {
       overflow-y: auto;
-      overflow-x: hidden;
-      flex: 1;
-      scrollbar-width: none;
-    }
-
-    .modal-content-scroll::-webkit-scrollbar {
-      display: none;
+      animation: slideUp 0.3s ease;
     }
 
     @media (min-width: 768px) {
@@ -804,147 +791,6 @@
       display: block;
     }
 
-    /* Chart Section */
-    .modal-chart-container {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 20px;
-      height: 200px;
-      overflow: hidden;
-    }
-
-    #tickerChart {
-      width: 100%;
-      height: 100%;
-    }
-
-    /* Play Planner */
-    .play-planner {
-      background: rgba(255, 107, 107, 0.05);
-      border: 1px solid rgba(255, 107, 107, 0.2);
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 20px;
-    }
-
-    .play-planner-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #ff6b6b;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 12px;
-    }
-
-    .planner-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .planner-field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .planner-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .planner-input {
-      padding: 8px 10px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
-      color: #fff;
-      font-size: 12px;
-    }
-
-    .planner-input:focus {
-      outline: none;
-      border-color: rgba(255, 107, 107, 0.5);
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    /* News Container */
-    .modal-news {
-      max-height: 150px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-width: none;
-      padding-right: 4px;
-    }
-
-    .modal-news::-webkit-scrollbar {
-      display: none;
-    }
-
-    /* News Items Clickable */
-    .news-item {
-      padding: 10px;
-      border-left: 2px solid rgba(255, 107, 107, 0.4);
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.03);
-    }
-
-    .news-item:hover {
-      background: rgba(255, 107, 107, 0.1);
-      border-left-color: rgba(255, 107, 107, 0.8);
-    }
-
-    .news-link {
-      color: #ffd93d;
-      text-decoration: none;
-      font-size: 10px;
-      margin-top: 4px;
-      display: inline-block;
-    }
-
-    .news-link:hover {
-      text-decoration: underline;
-    }
-
-    /* Catalysts Selected */
-    .catalysts-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-
-    .catalyst-tag {
-      background: rgba(255, 107, 107, 0.2);
-      border: 1px solid rgba(255, 107, 107, 0.4);
-      color: #ff6b6b;
-      padding: 6px 10px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .catalyst-tag button {
-      background: none;
-      border: none;
-      color: #ff6b6b;
-      cursor: pointer;
-      font-size: 12px;
-      padding: 0;
-    }
-
     /* Footer Navigation */
     .footer-nav {
       display: grid;
@@ -1104,70 +950,47 @@
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
 
-      <div class="modal-content-scroll">
-        <div class="modal-chart-container">
-          <div id="tickerChart"></div>
-        </div>
-
-        <div class="modal-section">
-          <span class="modal-section-title">Metrics</span>
-          <div class="modal-grid">
-            <div class="modal-stat">
-              <div class="modal-stat-label">Volume</div>
-              <div class="modal-stat-value" id="modalVolume">0M</div>
-            </div>
-            <div class="modal-stat">
-              <div class="modal-stat-label">Rel Vol</div>
-              <div class="modal-stat-value" id="modalRelVol">0x</div>
-            </div>
-            <div class="modal-stat">
-              <div class="modal-stat-label">Float</div>
-              <div class="modal-stat-value" id="modalFloat">0M</div>
-            </div>
-            <div class="modal-stat">
-              <div class="modal-stat-label">Mkt Cap</div>
-              <div class="modal-stat-value" id="modalMktCap">$0B</div>
-            </div>
+      <div class="modal-section">
+        <span class="modal-section-title">Metrics</span>
+        <div class="modal-grid">
+          <div class="modal-stat">
+            <div class="modal-stat-label">Volume</div>
+            <div class="modal-stat-value" id="modalVolume">0M</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">Rel Vol</div>
+            <div class="modal-stat-value" id="modalRelVol">0x</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">Float</div>
+            <div class="modal-stat-value" id="modalFloat">0M</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">Mkt Cap</div>
+            <div class="modal-stat-value" id="modalMktCap">$0B</div>
           </div>
         </div>
+      </div>
 
-        <div class="modal-section" id="tickerHistoryContainer">
-          <span class="modal-section-title">Scanner History</span>
-          <div class="modal-history">
-            <p>Loading...</p>
+      <div class="modal-section" id="tickerHistoryContainer">
+        <span class="modal-section-title">Scanner History</span>
+        <div class="modal-history">
+          <p>Loading...</p>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-section-title">Relevant News</span>
+        <div class="modal-news" id="newsContainer">
+          <div class="news-placeholder">
+            News integration coming soon
           </div>
         </div>
+      </div>
 
-        <div class="modal-section">
-          <span class="modal-section-title">Relevant News</span>
-          <div class="modal-news" id="newsContainer">
-            <div class="news-placeholder">
-              News integration coming soon
-            </div>
-          </div>
-        </div>
-
-        <div class="play-planner">
-          <div class="play-planner-title">Play Planner</div>
-          <div class="planner-grid">
-            <div class="planner-field">
-              <label class="planner-label">Entry Price</label>
-              <input type="number" class="planner-input" id="plannerEntry" placeholder="e.g., 2.45" step="0.01" min="0" />
-            </div>
-            <div class="planner-field">
-              <label class="planner-label">Target Price</label>
-              <input type="number" class="planner-input" id="plannerTarget" placeholder="e.g., 3.50" step="0.01" min="0" />
-            </div>
-            <div class="planner-field">
-              <label class="planner-label">Stop Loss</label>
-              <input type="number" class="planner-input" id="plannerStop" placeholder="e.g., 2.20" step="0.01" min="0" />
-            </div>
-            <div class="planner-field">
-              <label class="planner-label">Catalysts</label>
-              <div id="catalystsList" class="catalysts-list"></div>
-            </div>
-          </div>
-        </div>
+      <div class="modal-input-group">
+        <label class="modal-input-label">Add Catalyst (for Play)</label>
+        <input type="text" id="catalystInput" class="modal-input" placeholder="e.g., FDA approval, earnings, product launch..." />
       </div>
 
       <div class="modal-actions">
@@ -1429,7 +1252,6 @@
 
     function showTickerModal(t, p, c, v, rv, f, mc) {
       state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc };
-      state.selectedCatalysts = [];
       document.getElementById('modalTicker').textContent = t;
       document.getElementById('modalPrice').textContent = `$${p.toFixed(2)}`;
       document.getElementById('modalChange').textContent = `${c >= 0 ? '+' : ''}${c.toFixed(2)}%`;
@@ -1459,116 +1281,8 @@
       ` : '<div class="modal-history"><p>No history yet</p></div>';
 
       document.getElementById('tickerHistoryContainer').innerHTML = historyHTML;
-      
-      // Populate news
-      populateNews(t);
-      
-      // Clear planner inputs
-      document.getElementById('plannerEntry').value = p.toFixed(2);
-      document.getElementById('plannerTarget').value = '';
-      document.getElementById('plannerStop').value = '';
-      renderCatalysts();
-      
-      // Initialize chart
-      setTimeout(() => initChart(t, p), 100);
-      
+      document.getElementById('catalystInput').value = '';
       document.getElementById('tickerModal').classList.add('active');
-    }
-
-    function populateNews(ticker) {
-      const newsContainer = document.getElementById('newsContainer');
-      newsContainer.innerHTML = '<div class="news-placeholder">Loading news...</div>';
-      
-      // Fetch real news from API
-      fetch(`https://api.polygon.io/v2/reference/news?query=${ticker}&limit=10&apiKey=YOUR_POLYGON_API_KEY`)
-        .then(r => r.json())
-        .then(d => {
-          if (!d.results || d.results.length === 0) {
-            newsContainer.innerHTML = '<div class="news-placeholder">No news found</div>';
-            return;
-          }
-          newsContainer.innerHTML = d.results.map((news, idx) => `
-            <div class="news-item">
-              <div class="news-title">${news.title}</div>
-              <div class="news-source">${news.publisher?.name || 'Unknown'}</div>
-              <div class="news-time">${new Date(news.published_utc).toLocaleDateString()}</div>
-              <div style="display: flex; gap: 8px; margin-top: 6px;">
-                <button class="news-link" onclick="addNewsAsCatalyst('${news.title.replace(/'/g, "\\'")}', '${news.article_url.replace(/'/g, "\\'")}')">+ Add</button>
-                <a href="${news.article_url}" target="_blank" class="news-link">Read →</a>
-              </div>
-            </div>
-          `).join('');
-        })
-        .catch(e => {
-          // Fallback to mock news if API fails
-          const mockNews = [
-            { title: 'Potential FDA approval expected Q2', source: 'Benzinga', time: '2 days ago', url: '#' },
-            { title: 'Analyst upgrades $' + ticker + ' price target to $5.50', source: 'Yahoo Finance', time: '1 week ago', url: '#' },
-            { title: ticker + ' reports strong earnings beat', source: 'MarketWatch', time: '1 month ago', url: '#' },
-            { title: 'Institutional investors increase holdings', source: 'SeekingAlpha', time: '3 weeks ago', url: '#' },
-            { title: 'Product launch announcement imminent', source: 'TradingView', time: '5 days ago', url: '#' }
-          ];
-          newsContainer.innerHTML = mockNews.map(news => `
-            <div class="news-item">
-              <div class="news-title">${news.title}</div>
-              <div class="news-source">${news.source}</div>
-              <div class="news-time">${news.time}</div>
-              <div style="display: flex; gap: 8px; margin-top: 6px;">
-                <button class="news-link" onclick="addNewsAsCatalyst('${news.title.replace(/'/g, "\\'")}', '${news.url.replace(/'/g, "\\'")}')">+ Add</button>
-              </div>
-            </div>
-          `).join('');
-        });
-    }
-
-    function addNewsAsCatalyst(title, url = '#') {
-      if (!state.selectedCatalysts) state.selectedCatalysts = [];
-      const exists = state.selectedCatalysts.some(c => c.title === title);
-      if (!exists) {
-        state.selectedCatalysts.push({ title: title.substring(0, 50), url });
-        renderCatalysts();
-      }
-    }
-
-    function removeCatalyst(title) {
-      state.selectedCatalysts = state.selectedCatalysts.filter(c => c.title !== title);
-      renderCatalysts();
-    }
-
-    function renderCatalysts() {
-      const list = document.getElementById('catalystsList');
-      if (!state.selectedCatalysts || state.selectedCatalysts.length === 0) {
-        list.innerHTML = '<span style="color: #666; font-size: 11px;">Click news to add</span>';
-        return;
-      }
-      list.innerHTML = state.selectedCatalysts.map(c => `
-        <div class="catalyst-tag">
-          <a href="${c.url}" target="_blank" title="View article" style="color: #ff6b6b; text-decoration: none;">📄</a>
-          <span>${c.title}</span>
-          <button onclick="removeCatalyst('${c.title.replace(/'/g, "\\'")}')">&times;</button>
-        </div>
-      `).join('');
-    }
-
-    function initChart(ticker, price) {
-      const container = document.getElementById('tickerChart');
-      if (!container) return;
-      
-      try {
-        // Create clickable chart link with real data sources
-        container.innerHTML = `
-          <div style="padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; text-align: center;">
-            <div style="font-size: 12px; color: #888; margin-bottom: 8px;">Real-time chart via:</div>
-            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-              <a href="https://finviz.com/quote.ashx?t=${ticker}" target="_blank" class="btn-action secondary" style="padding: 8px 12px; text-decoration: none; display: inline-block;">Finviz →</a>
-              <a href="https://www.tradingview.com/symbols/${ticker}/" target="_blank" class="btn-action secondary" style="padding: 8px 12px; text-decoration: none; display: inline-block;">TradingView →</a>
-              <a href="https://www.benzinga.com/quote/${ticker}" target="_blank" class="btn-action secondary" style="padding: 8px 12px; text-decoration: none; display: inline-block;">Benzinga →</a>
-            </div>
-          </div>
-        `;
-      } catch (e) {
-        console.log('Chart link error:', e);
-      }
     }
 
     function closeModal() {
@@ -1576,13 +1290,8 @@
     }
 
     function addToPlay() {
-      const entry = document.getElementById('plannerEntry').value;
-      const target = document.getElementById('plannerTarget').value;
-      const stop = document.getElementById('plannerStop').value;
-      const catalysts = state.selectedCatalysts && state.selectedCatalysts.length > 0 
-        ? state.selectedCatalysts.map(c => c.title).join(', ')
-        : 'None selected';
-      const msg = `Added ${state.selectedTicker.ticker}\nEntry: ${entry || 'TBD'}\nTarget: ${target || 'TBD'}\nStop: ${stop || 'TBD'}\nCatalysts: ${catalysts}`;
+      const catalyst = document.getElementById('catalystInput').value.trim();
+      const msg = catalyst ? `Added ${state.selectedTicker.ticker} to Play with catalyst: "${catalyst}"` : `Added ${state.selectedTicker.ticker} to Play`;
       alert(msg);
       closeModal();
     }

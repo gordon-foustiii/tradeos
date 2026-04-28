@@ -249,10 +249,8 @@
 
     async function handleGoogleCallback(code) {
       try {
-        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ code: code })
+        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback?code=' + encodeURIComponent(code), {
+			headers: { 'Authorization': 'Bearer ' + localStorage.getItem('id_token') }
 		});
         var data = await res.json();
 

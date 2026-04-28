@@ -113,16 +113,22 @@
     }
 
     .content {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 40px 20px;
+      background: transparent;
+      border: none;
+      padding: 0;
       text-align: center;
-      min-height: 400px;
+      min-height: 200px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+    }
+
+    .content.empty {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 40px 20px;
     }
 
     .content-icon {
@@ -144,7 +150,7 @@
 
     .footer-nav {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       position: fixed;
       bottom: 0;
       left: 0;
@@ -187,36 +193,136 @@
       color: #ffd93d;
       border-bottom: 2px solid #ffd93d;
     }
+
+    .plays-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .play-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+
+    .play-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-4px);
+    }
+
+    .play-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+
+    .play-ticker {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .play-status {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+      font-weight: 600;
+    }
+
+    .play-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .play-label {
+      color: #888;
+    }
+
+    .play-value {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .play-catalyst {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    .play-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .play-btn {
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .play-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .play-btn.delete {
+      background: rgba(255, 107, 107, 0.1);
+      border-color: rgba(255, 107, 107, 0.3);
+      color: #ff6b6b;
+    }
+
+    .play-btn.delete:hover {
+      background: rgba(255, 107, 107, 0.2);
+    }
   </style>
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-brand">
+    <div class="topbar-brand" onclick="goHome()" style="cursor: pointer;">
       ⚔️ Trade<span>OS</span>
     </div>
     <div class="topbar-menu">
-      <button class="btn-icon" onclick="goHome()" title="Home">🏠</button>
-      <button class="btn-icon" onclick="signOut()" title="Sign out">⚙️</button>
+      <button class="btn-icon" onclick="goProfile()" title="Profile">⚙️</button>
     </div>
   </div>
 
   <div class="container">
     <div class="header">
-      <div class="page-title">📋 Playbook</div>
-      <div class="page-subtitle">Your trading strategies and setups</div>
+      <div class="page-title">Playbook</div>
+      <div class="page-subtitle">Your active trading plays</div>
     </div>
 
-    <div class="content">
-      <div class="content-icon">📖</div>
-      <div class="content-text">Playbook Coming Soon</div>
-      <div class="content-subtext">Trading strategies, setups, and rules in development</div>
+    <div id="playsContainer" class="content">
+      <div class="content-icon">📋</div>
+      <div class="content-text">No Plays Yet</div>
+      <div class="content-subtext">Add plays from the Scanner to get started</div>
     </div>
 
         <div class="footer-nav">
-      <a href="/tradeos/index.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Home
-      </a>
       <a href="/tradeos/scanner.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         Scanner
@@ -241,18 +347,78 @@
   </div>
 
   <script>
+    function loadPlays() {
+      const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+      const container = document.getElementById('playsContainer');
+      
+      if (plays.length === 0) {
+        container.className = 'content empty';
+        container.innerHTML = `
+          <div class="content-icon">📋</div>
+          <div class="content-text">No Plays Yet</div>
+          <div class="content-subtext">Add plays from the Scanner to get started</div>
+        `;
+        return;
+      }
+
+      container.className = 'plays-grid';
+      container.innerHTML = plays.map(p => `
+        <div class="play-card">
+          <div class="play-header">
+            <div class="play-ticker">${p.ticker}</div>
+            <div class="play-status">${p.status}</div>
+          </div>
+          <div class="play-row">
+            <span class="play-label">Price</span>
+            <span class="play-value">$${p.price.toFixed(2)}</span>
+          </div>
+          <div class="play-row">
+            <span class="play-label">Entry</span>
+            <span class="play-value">${p.entry ? '$' + p.entry.toFixed(2) : 'N/A'}</span>
+          </div>
+          <div class="play-row">
+            <span class="play-label">Target</span>
+            <span class="play-value">${p.target ? '$' + p.target.toFixed(2) : 'N/A'}</span>
+          </div>
+          <div class="play-row">
+            <span class="play-label">Stop Loss</span>
+            <span class="play-value">${p.stop ? '$' + p.stop.toFixed(2) : 'N/A'}</span>
+          </div>
+          <div class="play-row">
+            <span class="play-label">Shares</span>
+            <span class="play-value">${p.shares || 'N/A'}</span>
+          </div>
+          ${p.catalyst ? `<div class="play-catalyst"><strong>Catalyst:</strong> ${p.catalyst}</div>` : ''}
+          <div class="play-actions">
+            <button class="play-btn" onclick="executePlay(${p.id})">Execute</button>
+            <button class="play-btn delete" onclick="deletePlay(${p.id})">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function deletePlay(id) {
+      if (confirm('Delete this play?')) {
+        let plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+        plays = plays.filter(p => p.id !== id);
+        localStorage.setItem('tradeos_plays', JSON.stringify(plays));
+        loadPlays();
+      }
+    }
+
+    function executePlay(id) {
+      alert('Execute play ' + id);
+    }
+
     function goHome() {
       window.location.href = '/tradeos/';
     }
 
-    function signOut() {
-      if (confirm('Sign out of TradeOS?')) {
-        localStorage.removeItem('tradeos_id_token');
-        localStorage.removeItem('tradeos_access_token');
-        localStorage.removeItem('tradeos_token_expiry');
-        window.location.href = '/tradeos/login.html';
-      }
+    function goProfile() {
+      window.location.href = '/tradeos/settings.html';
     }
+
+    document.addEventListener('DOMContentLoaded', loadPlays);
   </script>
 </body>
 </html>

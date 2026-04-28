@@ -1279,6 +1279,11 @@
       document.getElementById('volumeMinVal').textContent = `${(state.currentFilters.volume.min / 1000).toFixed(0)}K`;
     }
 
+    function getPriceRange(hits) {
+      const prices = hits.map(h => h.price);
+      return { min: Math.min(...prices), max: Math.max(...prices) };
+    }
+
     function renderResults() {
       const container = document.getElementById('resultsBody');
       const count = document.getElementById('resultCount');
@@ -1351,11 +1356,6 @@
       `).join('') : '<div class="news-placeholder">No news available</div>';
       
       document.getElementById('newsContainer').innerHTML = newsHTML;
-    }
-
-    function getPriceRange(hits) {
-      const prices = hits.map(h => h.price);
-      return { min: Math.min(...prices), max: Math.max(...prices) };
     }
 
     function showTickerModal(t, p, c, v, rv, f, mc) {

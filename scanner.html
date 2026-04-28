@@ -951,13 +951,6 @@
       </div>
 
       <div class="modal-section">
-        <span class="modal-section-title">Price Action</span>
-        <div id="tickerChart" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; text-align: center; font-size: 12px; color: #888;">
-          <a href="#" id="chartLink" target="_blank" style="display: inline-block; padding: 8px 16px; background: rgba(255,107,107,0.2); border: 1px solid rgba(255,107,107,0.4); border-radius: 6px; color: #ff6b6b; text-decoration: none; font-weight: 600;">View Chart on Finviz →</a>
-        </div>
-      </div>
-
-      <div class="modal-section">
         <span class="modal-section-title">Metrics</span>
         <div class="modal-grid">
           <div class="modal-stat">
@@ -1289,7 +1282,6 @@
 
       document.getElementById('tickerHistoryContainer').innerHTML = historyHTML;
       document.getElementById('catalystInput').value = '';
-      document.getElementById('chartLink').href = `https://finviz.com/quote.ashx?t=${t}`;
       document.getElementById('tickerModal').classList.add('active');
     }
 

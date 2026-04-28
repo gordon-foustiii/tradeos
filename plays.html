@@ -93,6 +93,11 @@
       border-color: rgba(255, 255, 255, 0.2);
     }
 
+    .btn-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -154,7 +159,7 @@
 
     .footer-nav {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       position: fixed;
       bottom: 0;
       left: 0;
@@ -310,7 +315,9 @@
       TRADEOS
     </div>
     <div class="topbar-menu">
-      <button class="btn-icon" onclick="goProfile()" title="Profile">⚙️</button>
+      <button class="btn-icon" onclick="goProfile()" title="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
     </div>
   </div>
 
@@ -326,7 +333,7 @@
       <div class="content-subtext">Add plays from the Scanner to get started</div>
     </div>
 
-        <div class="footer-nav">
+    <div class="footer-nav">
       <a href="/tradeos/scanner.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         Scanner
@@ -342,10 +349,6 @@
       <a href="/tradeos/tools.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
         Tools
-      </a>
-      <a href="/tradeos/settings.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Profile
       </a>
     </div>
   </div>

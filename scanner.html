@@ -1353,6 +1353,11 @@
       document.getElementById('newsContainer').innerHTML = newsHTML;
     }
 
+    function getPriceRange(hits) {
+      const prices = hits.map(h => h.price);
+      return { min: Math.min(...prices), max: Math.max(...prices) };
+    }
+
     function showTickerModal(t, p, c, v, rv, f, mc) {
       state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc };
       document.getElementById('modalTicker').textContent = t;

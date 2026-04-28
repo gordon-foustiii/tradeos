@@ -8,7 +8,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Scanner — TradeOS</title>
   <link rel="manifest" href="/tradeos/manifest.json">
-  <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     * {
       margin: 0;
@@ -1553,58 +1552,23 @@
 
     function initChart(ticker, price) {
       const container = document.getElementById('tickerChart');
-      if (!container || !window.LightweightCharts) return;
+      if (!container) return;
       
       try {
-        // Clear previous chart
-        container.innerHTML = '';
-        
-        const chart = LightweightCharts.createChart(container, {
-          layout: { background: { color: 'transparent' }, textColor: '#aaa' },
-          timeScale: { timeVisible: true, secondsVisible: false },
-          width: container.offsetWidth,
-          height: 200,
-          watermark: { visible: false }
-        });
-
-        const candlestickSeries = chart.addCandlestickSeries({
-          upColor: '#4ade80',
-          downColor: '#ff6b6b',
-          borderUpColor: '#4ade80',
-          borderDownColor: '#ff6b6b',
-          wickUpColor: '#4ade80',
-          wickDownColor: '#ff6b6b'
-        });
-
-        // Generate ticker-specific data based on current price
-        const volatility = 0.02 + Math.random() * 0.03;
-        const basePrice = price * 0.95;
-        const data = Array.from({ length: 50 }, (_, i) => {
-          const dayOffset = 50 - i;
-          const timeBase = Math.floor(Date.now() / 1000) - dayOffset * 900;
-          const drift = (Math.random() - 0.5) * volatility * price;
-          const open = basePrice + drift;
-          const close = open + (Math.random() - 0.5) * volatility * price;
-          const high = Math.max(open, close) + Math.random() * (0.05 * price);
-          const low = Math.min(open, close) - Math.random() * (0.03 * price);
-          
-          return {
-            time: timeBase,
-            open: parseFloat(open.toFixed(2)),
-            high: parseFloat(high.toFixed(2)),
-            low: parseFloat(low.toFixed(2)),
-            close: parseFloat(close.toFixed(2))
-          };
-        });
-
-        candlestickSeries.setData(data);
-        chart.timeScale().fitContent();
-        
-        // Store chart reference per ticker
-        if (!window.charts) window.charts = {};
-        window.charts[ticker] = chart;
+        // Use Finviz embedded chart - real-time accurate data
+        const finvizUrl = `https://finviz.com/quote.ashx?t=${ticker}`;
+        container.innerHTML = `
+          <iframe 
+            src="https://www.tradingview.com/widgetprices/?symbol=${ticker}&theme=dark&locale=en" 
+            width="100%" 
+            height="200" 
+            frameborder="0" 
+            allowtransparency="true"
+            style="border: none; border-radius: 8px;"
+          ></iframe>
+        `;
       } catch (e) {
-        console.log('Chart render deferred:', e);
+        console.log('Chart embed error:', e);
       }
     }
 

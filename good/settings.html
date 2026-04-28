@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#0f0f0f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Profile — TradeOS</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      background-attachment: fixed;
+      color: #fff;
+      line-height: 1.6;
+      overflow-x: hidden;
+      padding-bottom: 80px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding-bottom: 100px;
+      }
+    }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%);
+      padding: 40px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin: 0 auto 16px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    .user-name {
+      font-size: 28px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-email {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+      letter-spacing: 0.5px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-brand {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .topbar-brand span {
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      cursor: pointer;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 18px;
+    }
+
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffd93d;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    .section {
+      margin-bottom: 32px;
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section:nth-child(1) { animation-delay: 0.1s; }
+    .section:nth-child(2) { animation-delay: 0.2s; }
+    .section:nth-child(3) { animation-delay: 0.3s; }
+    .section:nth-child(4) { animation-delay: 0.4s; }
+    .section:nth-child(5) { animation-delay: 0.5s; }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 16px;
+      background: linear-gradient(180deg, #ff6b6b 0%, #ffd93d 100%);
+      border-radius: 2px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-badge.connected {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+
+    .status-badge.disconnected {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .dot.green { background: #4ade80; }
+    .dot.red { background: #ef4444; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: #ffd93d;
+      box-shadow: 0 0 0 3px rgba(255, 217, 61, 0.1);
+      background: rgba(255, 217, 61, 0.02);
+    }
+
+    .input:disabled {
+      background: rgba(255, 255, 255, 0.05);
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .toggle-switch {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+    }
+
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .switch.active {
+      background: linear-gradient(90deg, #ff6b6b 0%, #ffd93d 100%);
+      border-color: #ffd93d;
+    }
+
+    .switch::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: left 0.3s;
+    }
+
+    .switch.active::after {
+      left: 22px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%);
+      color: #000;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #aaa;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffd93d;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat-mini {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-mini-label {
+      font-size: 10px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .stat-mini-value {
+      font-size: 18px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .api-key-display {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #aaa;
+      word-break: break-all;
+      margin-top: 8px;
+    }
+
+    .footer-nav {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 4px;
+      background: rgba(0, 0, 0, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 4px;
+      text-decoration: none;
+      color: #aaa;
+      border-radius: 8px;
+      transition: all 0.2s;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .nav-link svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
+    }
+
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
+      border-bottom: 2px solid #ffd93d;
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 16px 0;
+    }
+
+    @media (max-width: 600px) {
+      .hero {
+        padding: 32px 16px;
+      }
+
+      .user-name {
+        font-size: 24px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      ⚔️ Trade<span>OS</span>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <button class="btn-icon" onclick="goHome()" title="Home">🏠</button>
+      <button class="btn-icon" onclick="signOut()" title="Sign out">🚪</button>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <div class="hero">
+    <div class="hero-content">
+      <div class="avatar" id="user-avatar">⚔️</div>
+      <div class="user-name" id="user-name">Loading...</div>
+      <div class="user-email" id="user-email">Fetching profile</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Account Settings -->
+    <div class="section">
+      <div class="section-title">Account</div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Email Address</div>
+            <div class="card-subtitle">Your account email</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <input type="email" class="input" id="email-input" disabled>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Account Created</div>
+            <div class="card-subtitle">When you joined</div>
+          </div>
+        </div>
+        <div style="padding: 12px 0; font-size: 14px; color: #aaa;" id="account-created">Loading...</div>
+      </div>
+    </div>
+
+    <!-- Trading Stats -->
+    <div class="section">
+      <div class="section-title">Trading Overview</div>
+      
+      <div class="card">
+        <div class="stats-grid">
+          <div class="stat-mini">
+            <div class="stat-mini-label">Total Trades</div>
+            <div class="stat-mini-value" id="stat-trades">—</div>
+          </div>
+          <div class="stat-mini">
+            <div class="stat-mini-label">Win Rate</div>
+            <div class="stat-mini-value" id="stat-winrate">—</div>
+          </div>
+          <div class="stat-mini">
+            <div class="stat-mini-label">Total P&L</div>
+            <div class="stat-mini-value" id="stat-pnl">—</div>
+          </div>
+          <div class="stat-mini">
+            <div class="stat-mini-label">Best Trade</div>
+            <div class="stat-mini-value" id="stat-best">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Integrations -->
+    <div class="section">
+      <div class="section-title">Integrations</div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Schwab API</div>
+            <div class="card-subtitle">Broker connection for live quotes</div>
+          </div>
+          <div class="status-badge disconnected" id="schwab-status">
+            <span class="dot red"></span>
+            Disconnected
+          </div>
+        </div>
+        <div style="font-size: 13px; color: #aaa; margin-top: 12px; line-height: 1.5;">
+          Connect your Schwab account to enable live market data, real-time quotes, and automated trade sync.
+        </div>
+        <div class="divider"></div>
+        <div class="button-group">
+          <button class="btn btn-primary" onclick="connectSchwab()" id="schwab-btn">Connect Schwab</button>
+          <button class="btn btn-secondary" onclick="testSchwab()" id="schwab-test">Test Connection</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Google Sheets</div>
+            <div class="card-subtitle">Backup & sync your trades</div>
+          </div>
+          <div class="status-badge connected" id="sheets-status">
+            <span class="dot green"></span>
+            Connected
+          </div>
+        </div>
+        <div style="font-size: 13px; color: #aaa; margin-top: 12px;">
+          Your trades are automatically synced to Google Sheets for backup and analysis.
+        </div>
+      </div>
+    </div>
+
+    <!-- Preferences -->
+    <div class="section">
+      <div class="section-title">Preferences</div>
+      
+      <div class="card">
+        <div class="toggle-switch">
+          <div>
+            <div class="card-title">Push Notifications</div>
+            <div class="card-subtitle">Trade alerts & updates</div>
+          </div>
+          <div class="switch active" onclick="togglePref('notifications', this)"></div>
+        </div>
+        <div class="divider"></div>
+        <div class="toggle-switch">
+          <div>
+            <div class="card-title">Email Digest</div>
+            <div class="card-subtitle">Weekly performance summary</div>
+          </div>
+          <div class="switch active" onclick="togglePref('digest', this)"></div>
+        </div>
+        <div class="divider"></div>
+        <div class="toggle-switch">
+          <div>
+            <div class="card-title">Dark Mode</div>
+            <div class="card-subtitle">Always enabled for TradeOS</div>
+          </div>
+          <div class="switch active" onclick="return false" style="cursor: not-allowed; opacity: 0.5;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Developer -->
+    <div class="section">
+      <div class="section-title">Developer</div>
+      
+      <div class="card">
+        <div class="card-title" style="margin-bottom: 12px;">API Key</div>
+        <div class="card-subtitle">For custom integrations</div>
+        <div class="api-key-display" id="api-key-display">
+          Click "Generate" to create your API key
+        </div>
+        <div class="divider"></div>
+        <div class="button-group">
+          <button class="btn btn-primary" onclick="generateApiKey()">Generate Key</button>
+          <button class="btn btn-secondary" onclick="copyApiKey()">Copy</button>
+          <button class="btn btn-danger" onclick="revokeApiKey()">Revoke</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="section">
+      <div class="section-title" style="color: #ef4444;">Danger Zone</div>
+      
+      <div class="card" style="border-color: rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);">
+        <div class="card-title" style="color: #ef4444; margin-bottom: 12px;">Delete Account</div>
+        <div class="card-subtitle" style="color: #aaa;">This action cannot be undone. All trades and data will be permanently removed.</div>
+        <div class="divider"></div>
+        <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+      </div>
+    </div>
+
+    <!-- Footer Navigation -->
+        <div class="footer-nav">
+      <a href="/tradeos/index.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+      <a href="/tradeos/scanner.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Scanner
+      </a>
+      <a href="/tradeos/plays.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Plays
+      </a>
+      <a href="/tradeos/journal.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Journal
+      </a>
+      <a href="/tradeos/tools.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Tools
+      </a>
+      <a href="/tradeos/settings.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </a>
+    </div>
+  </div>
+
+  <script src="/tradeos/js/api.js"></script>
+  <script>
+    let apiKey = null;
+
+    function goHome() {
+      window.location.href = '/tradeos/';
+    }
+
+    function isLoggedIn() {
+      const token = localStorage.getItem('tradeos_id_token');
+      const expiry = localStorage.getItem('tradeos_token_expiry');
+      return token && expiry && Date.now() < parseInt(expiry);
+    }
+
+    function signOut() {
+      if (confirm('Sign out of TradeOS?')) {
+        localStorage.removeItem('tradeos_id_token');
+        localStorage.removeItem('tradeos_access_token');
+        localStorage.removeItem('tradeos_token_expiry');
+        window.location.href = '/tradeos/login.html';
+      }
+    }
+
+    function loadProfile() {
+      if (!isLoggedIn()) {
+        window.location.href = '/tradeos/login.html';
+        return;
+      }
+
+      const token = localStorage.getItem('tradeos_id_token');
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        document.getElementById('user-name').textContent = payload.name || 'Trader';
+        document.getElementById('user-email').textContent = payload.email || '';
+        document.getElementById('email-input').value = payload.email || '';
+        
+        const iat = new Date(payload.iat * 1000);
+        const formatted = iat.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        document.getElementById('account-created').textContent = formatted;
+      } catch(e) {
+        console.error('Failed to decode token', e);
+      }
+
+      if (typeof getStats === 'function') {
+        getStats().then(stats => {
+          if (!stats) return;
+          document.getElementById('stat-trades').textContent = stats.total || 0;
+          document.getElementById('stat-winrate').textContent = (stats.winRate || 0) + '%';
+          const pnl = stats.totalPnl || 0;
+          document.getElementById('stat-pnl').textContent = '$' + pnl.toFixed(0);
+          document.getElementById('stat-best').textContent = '$' + (stats.bestTrade || 0).toFixed(0);
+        }).catch(e => {
+          console.error('Failed to load stats', e);
+        });
+      }
+
+      checkSchwabStatus();
+      loadPreferences();
+      checkApiKeyStatus();
+    }
+
+    function checkSchwabStatus() {
+      const schwabToken = localStorage.getItem('schwab_access_token');
+      const schwabExpiry = localStorage.getItem('schwab_token_expiry');
+      
+      if (schwabToken && schwabExpiry && Date.now() < parseInt(schwabExpiry)) {
+        document.getElementById('schwab-status').className = 'status-badge connected';
+        document.getElementById('schwab-status').innerHTML = '<span class="dot green"></span>Connected';
+        document.getElementById('schwab-btn').textContent = 'Reconnect';
+      }
+    }
+
+    function connectSchwab() {
+      const state = Math.random().toString(36).substring(7);
+      sessionStorage.setItem('schwab_state', state);
+      alert('Schwab integration setup:\n\n1. Get credentials from: https://developer.schwab.com\n2. Update client_id in settings.html\n3. Schwab OAuth will launch here');
+    }
+
+    function testSchwab() {
+      const token = localStorage.getItem('schwab_access_token');
+      if (!token) {
+        alert('Schwab is not connected. Connect first.');
+        return;
+      }
+      alert('Testing Schwab connection...');
+    }
+
+    function togglePref(pref, el) {
+      el.classList.toggle('active');
+      const prefs = JSON.parse(localStorage.getItem('tradeos_prefs') || '{}');
+      prefs[pref] = el.classList.contains('active');
+      localStorage.setItem('tradeos_prefs', JSON.stringify(prefs));
+    }
+
+    function loadPreferences() {
+      const prefs = JSON.parse(localStorage.getItem('tradeos_prefs') || '{"notifications":true,"digest":true}');
+      const switches = document.querySelectorAll('.switch');
+      if (prefs.notifications && switches[0]) {
+        switches[0].classList.toggle('active', true);
+      }
+      if (prefs.digest && switches[1]) {
+        switches[1].classList.toggle('active', true);
+      }
+    }
+
+    function checkApiKeyStatus() {
+      const key = localStorage.getItem('tradeos_api_key');
+      if (key) {
+        apiKey = key;
+        document.getElementById('api-key-display').textContent = maskKey(key);
+      }
+    }
+
+    function maskKey(key) {
+      if (!key || key.length < 8) return '••••••••';
+      return key.substring(0, 4) + '••••••••••••••••' + key.substring(key.length - 4);
+    }
+
+    function generateApiKey() {
+      const newKey = 'sk_tradeos_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      apiKey = newKey;
+      localStorage.setItem('tradeos_api_key', newKey);
+      document.getElementById('api-key-display').textContent = maskKey(newKey);
+      alert('API key generated! Click Copy to see the full key.');
+    }
+
+    function copyApiKey() {
+      if (!apiKey) {
+        alert('Generate an API key first');
+        return;
+      }
+      navigator.clipboard.writeText(apiKey).then(() => {
+        alert('API key copied to clipboard');
+      }).catch(() => {
+        alert('Full API key: ' + apiKey);
+      });
+    }
+
+    function revokeApiKey() {
+      if (confirm('Revoke this API key? Any apps using it will stop working.')) {
+        apiKey = null;
+        localStorage.removeItem('tradeos_api_key');
+        document.getElementById('api-key-display').textContent = 'Click "Generate" to create your API key';
+        alert('API key revoked');
+      }
+    }
+
+    function deleteAccount() {
+      if (confirm('🚨 This will permanently delete your account and ALL trades. Are you sure?')) {
+        if (confirm('Really? Type your email to confirm deletion.')) {
+          const email = prompt('Type your email to confirm:');
+          if (email) {
+            alert('Account deletion requested. Check your email to confirm.');
+            localStorage.clear();
+            window.location.href = '/tradeos/login.html';
+          }
+        }
+      }
+    }
+
+    window.addEventListener('load', loadProfile);
+  </script>
+</body>
+</html>

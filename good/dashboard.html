@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#0f0f0f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Dashboard — TradeOS</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      background-attachment: fixed;
+      color: #fff;
+      line-height: 1.5;
+      min-height: 100vh;
+      padding-bottom: 80px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding-bottom: 100px;
+      }
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 72px;
+      flex-shrink: 0;
+    }
+
+    .topbar-brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .topbar-brand span {
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .topbar-menu {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      cursor: pointer;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 18px;
+    }
+
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffd93d;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      flex: 1;
+      width: 100%;
+    }
+
+    .header {
+      margin-bottom: 32px;
+      animation: slideDown 0.6s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .welcome {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: -1px;
+    }
+
+    .welcome-sub {
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      animation: fadeIn 0.6s ease-out;
+      animation-fill-mode: both;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: -1px;
+    }
+
+    .stat-change {
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-change.positive {
+      color: #4ade80;
+    }
+
+    .stat-change.negative {
+      color: #ef4444;
+    }
+
+    .stat-change.neutral {
+      color: #aaa;
+    }
+
+    .stat-icon {
+      font-size: 24px;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      opacity: 0.3;
+    }
+
+    .card {
+      position: relative;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 32px 0 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #aaa;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 12px;
+    }
+
+    .trades-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .trades-table thead {
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .trades-table th {
+      text-align: left;
+      padding: 12px 0;
+      color: #aaa;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 11px;
+    }
+
+    .trades-table td {
+      padding: 12px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .trade-ticker {
+      font-weight: 700;
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      min-width: 60px;
+    }
+
+    .trade-pnl {
+      font-weight: 700;
+      text-align: right;
+      min-width: 80px;
+    }
+
+    .trade-pnl.win {
+      color: #4ade80;
+    }
+
+    .trade-pnl.loss {
+      color: #ef4444;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #aaa;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.3;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .btn-action {
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-action:active {
+      transform: translateY(0);
+    }
+
+    .footer-nav {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 4px;
+      background: rgba(0, 0, 0, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 4px;
+      text-decoration: none;
+      color: #aaa;
+      border-radius: 8px;
+      transition: all 0.2s;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .nav-link svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
+    }
+
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
+      border-bottom: 2px solid #ffd93d;
+    }
+
+    .loading {
+      color: #aaa;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #ffd93d;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand">
+      ⚔️ Trade<span>OS</span>
+    </div>
+    <div class="topbar-menu">
+      <button class="btn-icon" onclick="refreshStats()" title="Refresh">🔄</button>
+      <button class="btn-icon" onclick="signOut()" title="Sign out">⚙️</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="welcome">Welcome back, trader</div>
+      <div class="welcome-sub" id="greeting"></div>
+    </div>
+
+    <div class="quick-actions">
+      <button class="btn-action" onclick="goTo('journal.html')">+ New Trade</button>
+      <button class="btn-action" onclick="goTo('scanner.html')">Scanner</button>
+      <button class="btn-action" onclick="goTo('candies.html')">Candies</button>
+      <button class="btn-action" onclick="goTo('plays.html')">Playbook</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="stat-label">Total Trades</div>
+        <div class="stat-value" id="total-trades">—</div>
+        <div class="stat-change neutral">
+          <span id="total-change">Loading...</span>
+        </div>
+        <div class="stat-icon">📊</div>
+      </div>
+
+      <div class="card">
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-value" id="win-rate">—</div>
+        <div class="stat-change" id="win-rate-change">
+          <span>—</span>
+        </div>
+        <div class="stat-icon">🎯</div>
+      </div>
+
+      <div class="card">
+        <div class="stat-label">Total P&L</div>
+        <div class="stat-value" id="total-pnl">—</div>
+        <div class="stat-change" id="pnl-change">
+          <span>—</span>
+        </div>
+        <div class="stat-icon">💰</div>
+      </div>
+
+      <div class="card">
+        <div class="stat-label">This Month</div>
+        <div class="stat-value" id="month-pnl">—</div>
+        <div class="stat-change" id="month-change">
+          <span>—</span>
+        </div>
+        <div class="stat-icon">📈</div>
+      </div>
+    </div>
+
+    <div class="section-title">Recent Trades</div>
+    <div style="overflow-x: auto;">
+      <table class="trades-table" id="trades-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Ticker</th>
+            <th>Entry</th>
+            <th>Exit</th>
+            <th>Qty</th>
+            <th>P&L</th>
+          </tr>
+        </thead>
+        <tbody id="trades-body">
+          <tr><td colspan="6" class="loading"><div class="spinner"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+        <div class="footer-nav">
+      <a href="/tradeos/index.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </a>
+      <a href="/tradeos/scanner.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Scanner
+      </a>
+      <a href="/tradeos/plays.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Plays
+      </a>
+      <a href="/tradeos/journal.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Journal
+      </a>
+      <a href="/tradeos/tools.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Tools
+      </a>
+      <a href="/tradeos/settings.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </a>
+    </div>
+  </div>
+
+  <script src="/tradeos/js/api.js"></script>
+  <script>
+    function goTo(page) {
+      window.location.href = '/tradeos/' + page;
+    }
+
+    function getGreeting() {
+      const hour = new Date().getHours();
+      if (hour < 12) return 'Market opens in...';
+      if (hour < 17) return 'Trading session active';
+      return 'Market closed';
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
+    }
+
+    function formatMoney(num) {
+      return '$' + Math.abs(num).toFixed(2);
+    }
+
+    function loadDashboard() {
+      if (!isLoggedIn()) {
+        window.location.href = '/tradeos/login.html';
+        return;
+      }
+
+      document.getElementById('greeting').textContent = getGreeting();
+
+      // Load stats
+      if (typeof getStats === 'function') {
+        getStats().then(function(stats) {
+          if (!stats) return;
+
+          document.getElementById('total-trades').textContent = stats.total || 0;
+          document.getElementById('win-rate').textContent = (stats.winRate || 0) + '%';
+          
+          const pnl = stats.totalPnl || 0;
+          document.getElementById('total-pnl').textContent = formatMoney(pnl);
+          const pnlEl = document.getElementById('pnl-change');
+          pnlEl.className = 'stat-change ' + (pnl > 0 ? 'positive' : pnl < 0 ? 'negative' : 'neutral');
+          pnlEl.innerHTML = (pnl > 0 ? '↑ ' : pnl < 0 ? '↓ ' : '') + formatMoney(pnl);
+
+          document.getElementById('month-pnl').textContent = '$0.00';
+          document.getElementById('month-change').innerHTML = 'No trades this month';
+        });
+      }
+
+      // Load trades
+      if (typeof getTrades === 'function') {
+        getTrades().then(function(data) {
+          const trades = data && data.trades ? data.trades : [];
+          const tbody = document.getElementById('trades-body');
+
+          if (trades.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">📭</div><div>No trades yet. Start trading!</div></td></tr>';
+            return;
+          }
+
+          const recent = trades.slice(-10).reverse();
+          tbody.innerHTML = recent.map(function(t) {
+            const pnl = parseFloat(t.pnl) || 0;
+            return `
+              <tr>
+                <td>${formatDate(t.createdAt || t.date)}</td>
+                <td class="trade-ticker">${t.ticker}</td>
+                <td>$${(t.entry || 0).toFixed(2)}</td>
+                <td>$${(t.exit || 0).toFixed(2)}</td>
+                <td>${t.qty}</td>
+                <td class="trade-pnl ${pnl > 0 ? 'win' : pnl < 0 ? 'loss' : ''}">${pnl > 0 ? '+' : ''}${formatMoney(pnl)}</td>
+              </tr>
+            `;
+          }).join('');
+        });
+      }
+    }
+
+    function refreshStats() {
+      if (typeof clearApiCache === 'function') clearApiCache();
+      loadDashboard();
+    }
+
+    function isLoggedIn() {
+      const token = localStorage.getItem('tradeos_id_token');
+      const expiry = localStorage.getItem('tradeos_token_expiry');
+      return token && expiry && Date.now() < parseInt(expiry);
+    }
+
+    function signOut() {
+      if (confirm('Sign out of TradeOS?')) {
+        localStorage.removeItem('tradeos_id_token');
+        localStorage.removeItem('tradeos_access_token');
+        localStorage.removeItem('tradeos_token_expiry');
+        window.location.href = '/tradeos/login.html';
+      }
+    }
+
+    // Load on page load
+    window.addEventListener('load', function() {
+      loadDashboard();
+    });
+  </script>
+</body>
+</html>

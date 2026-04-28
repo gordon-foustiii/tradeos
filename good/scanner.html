@@ -503,10 +503,6 @@
       animation: slideUp 0.3s ease;
     }
 
-    .modal-content::-webkit-scrollbar {
-      width: 0;
-    }
-
     @media (min-width: 768px) {
       .modal-content {
         border-radius: 16px;
@@ -705,56 +701,6 @@
       color: #666;
       font-size: 12px;
       padding: 20px 10px;
-    }
-
-    /* Play Planner */
-    .play-planner {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 20px;
-    }
-
-    .planner-fields {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .planner-field {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .planner-field.full {
-      grid-column: 1 / -1;
-    }
-
-    .planner-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 6px;
-    }
-
-    .planner-input {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 6px;
-      padding: 10px;
-      color: #fff;
-      font-size: 13px;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-
-    .planner-input:focus {
-      outline: none;
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 107, 107, 0.4);
     }
 
     /* Action Buttons */
@@ -1042,32 +988,9 @@
         </div>
       </div>
 
-      <div class="modal-section">
-        <span class="modal-section-title">Play Planner</span>
-        <div class="play-planner">
-          <div class="planner-fields">
-            <div class="planner-field">
-              <div class="planner-label">Entry</div>
-              <input type="number" class="planner-input" id="plannerEntry" placeholder="e.g., 1.50" step="0.01" />
-            </div>
-            <div class="planner-field">
-              <div class="planner-label">Target</div>
-              <input type="number" class="planner-input" id="plannerTarget" placeholder="e.g., 2.50" step="0.01" />
-            </div>
-            <div class="planner-field">
-              <div class="planner-label">Stop Loss</div>
-              <input type="number" class="planner-input" id="plannerStop" placeholder="e.g., 1.20" step="0.01" />
-            </div>
-            <div class="planner-field">
-              <div class="planner-label">Shares</div>
-              <input type="number" class="planner-input" id="plannerShares" placeholder="e.g., 1000" />
-            </div>
-            <div class="planner-field full">
-              <div class="planner-label">Catalyst / Notes</div>
-              <input type="text" class="planner-input" id="catalystInput" placeholder="e.g., FDA approval, earnings, PR..." />
-            </div>
-          </div>
-        </div>
+      <div class="modal-input-group">
+        <label class="modal-input-label">Add Catalyst (for Play)</label>
+        <input type="text" id="catalystInput" class="modal-input" placeholder="e.g., FDA approval, earnings, product launch..." />
       </div>
 
       <div class="modal-actions">
@@ -1322,35 +1245,9 @@
       if (state.lastUpdate) lastUpdate.textContent = `Updated ${state.lastUpdate.toLocaleTimeString()}`;
     }
 
-    function getMockNews(ticker) {
-      const sources = ['Benzinga', 'SeekingAlpha', 'MarketWatch', 'Reuters', 'Yahoo Finance'];
-      const headlines = [
-        `${ticker} Reports Strong Q3 Earnings Beat`,
-        `Analyst Upgrades ${ticker} to Buy Rating`,
-        `${ticker} Announces New Product Launch`,
-        `${ticker} Secures Major Partnership Deal`,
-        `Insider Buying Detected at ${ticker}`,
-        `${ticker} FDA Approval Expected This Quarter`
-      ];
-      
-      return headlines.slice(0, 3).map((h, i) => ({
-        title: h,
-        source: sources[i % sources.length],
-        time: `${i + 1}h ago`,
-        url: `https://finance.yahoo.com/quote/${ticker}`
-      }));
-    }
-
-    function populateNews(ticker) {
-      const news = getMockNews(ticker);
-      const newsHTML = news.length > 0 ? news.map(n => `
-        <div class="news-item">
-          <a href="${n.url}" target="_blank" class="news-title" style="color: #fff; text-decoration: none; cursor: pointer;">${n.title}</a>
-          <div class="news-time">${n.time} • ${n.source}</div>
-        </div>
-      `).join('') : '<div class="news-placeholder">No news available</div>';
-      
-      document.getElementById('newsContainer').innerHTML = newsHTML;
+    function getPriceRange(hits) {
+      const prices = hits.map(h => h.price);
+      return { min: Math.min(...prices), max: Math.max(...prices) };
     }
 
     function showTickerModal(t, p, c, v, rv, f, mc) {
@@ -1384,12 +1281,7 @@
       ` : '<div class="modal-history"><p>No history yet</p></div>';
 
       document.getElementById('tickerHistoryContainer').innerHTML = historyHTML;
-      populateNews(t);
       document.getElementById('catalystInput').value = '';
-      document.getElementById('plannerEntry').value = '';
-      document.getElementById('plannerTarget').value = '';
-      document.getElementById('plannerStop').value = '';
-      document.getElementById('plannerShares').value = '';
       document.getElementById('tickerModal').classList.add('active');
     }
 
@@ -1399,21 +1291,7 @@
 
     function addToPlay() {
       const catalyst = document.getElementById('catalystInput').value.trim();
-      const entry = document.getElementById('plannerEntry').value;
-      const target = document.getElementById('plannerTarget').value;
-      const stop = document.getElementById('plannerStop').value;
-      const shares = document.getElementById('plannerShares').value;
-      
-      const play = {
-        ticker: state.selectedTicker.ticker,
-        catalyst: catalyst || '(no catalyst)',
-        entry: entry || 'N/A',
-        target: target || 'N/A',
-        stop: stop || 'N/A',
-        shares: shares || 'N/A'
-      };
-      
-      const msg = `Added ${play.ticker} with catalyst: "${play.catalyst}"\nEntry: $${play.entry} | Target: $${play.target} | Stop: $${play.stop}`;
+      const msg = catalyst ? `Added ${state.selectedTicker.ticker} to Play with catalyst: "${catalyst}"` : `Added ${state.selectedTicker.ticker} to Play`;
       alert(msg);
       closeModal();
     }

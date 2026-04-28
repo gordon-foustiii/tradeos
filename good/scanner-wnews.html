@@ -675,13 +675,6 @@
       padding: 10px;
       border-left: 2px solid rgba(255, 107, 107, 0.4);
       margin-bottom: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .news-item:hover {
-      background: rgba(255, 107, 107, 0.1);
-      border-left-color: rgba(255, 107, 107, 0.8);
     }
 
     .news-item:last-child {
@@ -1356,19 +1349,13 @@
     function populateNews(ticker) {
       const news = getMockNews(ticker);
       const newsHTML = news.length > 0 ? news.map(n => `
-        <div class="news-item" onclick="addNewsToCatalyst('${n.title.replace(/'/g, "\\'")}')">
-          <div class="news-title">${n.title}</div>
+        <div class="news-item">
+          <a href="${n.url}" target="_blank" class="news-title" style="color: #fff; text-decoration: none; cursor: pointer;">${n.title}</a>
           <div class="news-time">${n.time} • ${n.source}</div>
         </div>
       `).join('') : '<div class="news-placeholder">No news available</div>';
       
       document.getElementById('newsContainer').innerHTML = newsHTML;
-    }
-
-    function addNewsToCatalyst(headline) {
-      const currentCatalyst = document.getElementById('catalystInput').value.trim();
-      const newCatalyst = currentCatalyst ? `${currentCatalyst} | ${headline}` : headline;
-      document.getElementById('catalystInput').value = newCatalyst;
     }
 
     function showTickerModal(t, p, c, v, rv, f, mc) {
@@ -1423,25 +1410,17 @@
       const shares = document.getElementById('plannerShares').value;
       
       const play = {
-        id: Date.now(),
         ticker: state.selectedTicker.ticker,
-        price: state.selectedTicker.price,
         catalyst: catalyst || '(no catalyst)',
-        entry: entry ? parseFloat(entry) : null,
-        target: target ? parseFloat(target) : null,
-        stop: stop ? parseFloat(stop) : null,
-        shares: shares ? parseInt(shares) : null,
-        createdAt: new Date().toISOString(),
-        status: 'pending'
+        entry: entry || 'N/A',
+        target: target || 'N/A',
+        stop: stop || 'N/A',
+        shares: shares || 'N/A'
       };
       
-      let plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
-      plays.push(play);
-      localStorage.setItem('tradeos_plays', JSON.stringify(plays));
-      
-      alert(`Added ${play.ticker} to Plays`);
+      const msg = `Added ${play.ticker} with catalyst: "${play.catalyst}"\nEntry: $${play.entry} | Target: $${play.target} | Stop: $${play.stop}`;
+      alert(msg);
       closeModal();
-      window.location.href = '/tradeos/plays.html';
     }
 
     function loadCustomPresets() {

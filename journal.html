@@ -471,17 +471,17 @@
 
   <script>
     let currentTab = 'active';
-    const POLYGON_API_KEY = 'PlRZwYUIEzNyxe3uqN7H88yrJlUGPxNL';
+    // Your existing scanner worker URL
+    const WORKER_URL = 'https://your-worker-subdomain.workers.dev';
 
     async function fetchLivePrice(ticker) {
       try {
-        const res = await fetch(
-          `https://api.polygon.io/v1/last/quote/STOCKS/${ticker}?apiKey=${POLYGON_API_KEY}`
-        );
+        const res = await fetch(`${WORKER_URL}/quote/${ticker}`);
         if (!res.ok) return null;
+        
         const data = await res.json();
-        if (data.status === 'OK' && data.result) {
-          return data.result.last || null;
+        if (data.price) {
+          return data.price;
         }
       } catch (e) {
         console.error('Price fetch failed for ' + ticker, e.message);

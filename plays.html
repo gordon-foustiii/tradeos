@@ -354,6 +354,80 @@
   </div>
 
   <script>
+    // ========== GOOGLE DRIVE SYNC ==========
+    const DRIVE_FILE_ID = 'tradeos_plays.json';
+    
+    async function syncPlaysFromDrive() {
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        if (!token) return;
+        
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const files = (await listRes.json()).files || [];
+        if (!files.length) return;
+        
+        const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${files[0].id}?alt=media`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const driveData = await fileRes.json();
+        const local = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+        const drive = driveData.plays || [];
+        
+        // Merge by id, prefer most recent createdAt
+        const merged = {};
+        [...local, ...drive].forEach(p => {
+          if (!merged[p.id] || new Date(p.createdAt) > new Date(merged[p.id].createdAt)) {
+            merged[p.id] = p;
+          }
+        });
+        
+        const result = Object.values(merged);
+        localStorage.setItem('tradeos_plays', JSON.stringify(result));
+      } catch (e) {
+        console.error('Drive sync read plays:', e);
+      }
+    }
+
+    async function syncPlaysToDrive() {
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        if (!token) return;
+        
+        const payload = {
+          plays: JSON.parse(localStorage.getItem('tradeos_plays') || '[]'),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const fileId = (await listRes.json()).files?.[0]?.id;
+        
+        if (fileId) {
+          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          const boundary = '===============abc123==';
+          const body = `--${boundary}\nContent-Type: application/json\n\n${JSON.stringify({name: DRIVE_FILE_ID, parents: ['appDataFolder']})}\n--${boundary}\nContent-Type: application/json\n\n${JSON.stringify(payload)}\n--${boundary}--`;
+          await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': `multipart/related; boundary="===============abc123=="` },
+            body
+          });
+        }
+      } catch (e) {
+        console.error('Drive sync write plays:', e);
+      }
+    }
+
     function loadPlays() {
       const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
       const container = document.getElementById('playsContainer');
@@ -409,6 +483,7 @@
         let plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
         plays = plays.filter(p => p.id !== id);
         localStorage.setItem('tradeos_plays', JSON.stringify(plays));
+        syncPlaysToDrive(); // Push to Drive
         loadPlays();
       }
     }
@@ -425,7 +500,11 @@
       window.location.href = '/tradeos/settings.html';
     }
 
-    document.addEventListener('DOMContentLoaded', loadPlays);
+    document.addEventListener('DOMContentLoaded', async () => {
+      await syncPlaysFromDrive();
+      loadPlays();
+      setInterval(syncPlaysToDrive, 30000); // Auto-sync every 30s
+    });
   </script>
 </body>
 </html>

@@ -1394,6 +1394,43 @@
       }
     }
 
+    // ========== PLAYS SYNC ==========
+    async function syncPlaysToDrive() {
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        if (!token) return;
+        
+        const payload = {
+          plays: JSON.parse(localStorage.getItem('tradeos_plays') || '[]'),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='tradeos_plays.json'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const fileId = (await listRes.json()).files?.[0]?.id;
+        
+        if (fileId) {
+          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          const boundary = '===============abc123==';
+          const body = `--${boundary}\nContent-Type: application/json\n\n${JSON.stringify({name: 'tradeos_plays.json', parents: ['appDataFolder']})}\n--${boundary}\nContent-Type: application/json\n\n${JSON.stringify(payload)}\n--${boundary}--`;
+          await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': `multipart/related; boundary="===============abc123=="` },
+            body
+          });
+        }
+      } catch (e) {
+        console.error('Drive sync write plays:', e);
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       try {
         loadScannerState();
@@ -1750,6 +1787,7 @@
       let plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
       plays.push(play);
       localStorage.setItem('tradeos_plays', JSON.stringify(plays));
+      syncPlaysToDrive(); // Push to Drive
       
       alert(`Added ${play.ticker} to Plays`);
       closeModal();

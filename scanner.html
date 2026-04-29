@@ -1829,8 +1829,8 @@
             <span style="color: #666;">${scan.results.length} tickers</span>
           </div>
           <div class="scan-tickers">
-            ${scan.results.slice(0, 10).map(t => `<div class="scan-ticker-tag">${t}</div>`).join('')}
-            ${scan.results.length > 10 ? `<div class="scan-ticker-tag">+${scan.results.length - 10}</div>` : ''}
+            ${scan.results.slice(0, 10).map(t => `<div class="scan-ticker-tag" onclick="openScanResultsModal(${scan.timestamp})" style="cursor: pointer; transition: all 0.2s;">${t}</div>`).join('')}
+            ${scan.results.length > 10 ? `<div class="scan-ticker-tag" onclick="openScanResultsModal(${scan.timestamp})" style="cursor: pointer;">+${scan.results.length - 10}</div>` : ''}
           </div>
         </div>`;
       }).join('');
@@ -1893,9 +1893,80 @@
       a.click();
     }
 
-    function sortTickerHistory(sortBy) {
-      // Toggle sort or implement secondary sort
-      alert(`Sorting by ${sortBy} - Feature in development`);
+    function openScanResultsModal(timestamp) {
+      const scanHistory = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
+      const scan = scanHistory.find(s => s.timestamp === timestamp);
+      
+      if (!scan) {
+        alert('Scan data not found');
+        return;
+      }
+      
+      // Create modal
+      let modal = document.getElementById('scanResultsModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'scanResultsModal';
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+          <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+            <div class="modal-header">
+              <h2>Scan Results</h2>
+              <button class="modal-close" onclick="closeScanResultsModal()">×</button>
+            </div>
+            <div id="scanResultsBody" style="padding: 20px;"></div>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+      
+      // Populate results
+      const resultsHTML = `
+        <div style="color: #aaa; margin-bottom: 16px; font-size: 13px;">
+          ${new Date(scan.timestamp).toLocaleString()} • ${scan.results.length} tickers
+        </div>
+        <div style="display: grid; gap: 12px;">
+          ${scan.results.map(ticker => {
+            const tickerHistory = state.tickerHistory[ticker] || { hits: [] };
+            const lastHit = tickerHistory.hits[tickerHistory.hits.length - 1];
+            const scanPrice = lastHit ? lastHit.price : '--';
+            
+            return `
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; align-items: center;">
+                <div>
+                  <div style="font-weight: 600; font-size: 14px;">${ticker}</div>
+                  <div style="color: #888; font-size: 12px;">Scanner price</div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="color: #ffd93d; font-weight: 600;">$${typeof scanPrice === 'number' ? scanPrice.toFixed(2) : scanPrice}</div>
+                  <div style="color: #888; font-size: 12px;">At scan</div>
+                </div>
+                <div style="text-align: right;">
+                  <button onclick="loadTickerModal('${ticker}')" style="padding: 8px 12px; background: rgba(255,217,61,0.1); border: 1px solid rgba(255,217,61,0.3); color: #ffd93d; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">View</button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+      
+      document.getElementById('scanResultsBody').innerHTML = resultsHTML;
+      modal.classList.add('active');
+    }
+    
+    function closeScanResultsModal() {
+      const modal = document.getElementById('scanResultsModal');
+      if (modal) modal.classList.remove('active');
+    }
+    
+    function loadTickerModal(ticker) {
+      closeScanResultsModal();
+      // Call existing openModal logic
+      const tickerData = state.tickerHistory[ticker];
+      if (tickerData) {
+        state.selectedTicker = { ticker, ...tickerData };
+        openModal(ticker);
+      }
     }
 
     function loadCustomPresets() {

@@ -1829,7 +1829,13 @@
             <span style="color: #666;">${scan.results.length} tickers</span>
           </div>
           <div class="scan-tickers">
-            ${scan.results.slice(0, 10).map(t => `<div class="scan-ticker-tag" onclick="openScanResultsModal(${scan.timestamp})" style="cursor: pointer; transition: all 0.2s;">${t}</div>`).join('')}
+            ${scan.results.slice(0, 10).map(t => {
+              const tickerHistory = state.tickerHistory[t] || { hits: [] };
+              const lastHit = tickerHistory.hits[tickerHistory.hits.length - 1];
+              const scanPrice = lastHit ? lastHit.price : null;
+              const priceDisplay = scanPrice !== null ? ` $${scanPrice.toFixed(2)}` : '';
+              return `<div class="scan-ticker-tag" onclick="openScanResultsModal(${scan.timestamp})" style="cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px;"><div>${t}</div><div style="font-size: 10px; opacity: 0.8;">${priceDisplay}</div></div>`;
+            }).join('')}
             ${scan.results.length > 10 ? `<div class="scan-ticker-tag" onclick="openScanResultsModal(${scan.timestamp})" style="cursor: pointer;">+${scan.results.length - 10}</div>` : ''}
           </div>
         </div>`;
@@ -1929,17 +1935,21 @@
           ${scan.results.map(ticker => {
             const tickerHistory = state.tickerHistory[ticker] || { hits: [] };
             const lastHit = tickerHistory.hits[tickerHistory.hits.length - 1];
-            const scanPrice = lastHit ? lastHit.price : '--';
+            const scanPrice = lastHit ? lastHit.price : null;
             
             return `
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; align-items: center;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; align-items: center;">
                 <div>
                   <div style="font-weight: 600; font-size: 14px;">${ticker}</div>
-                  <div style="color: #888; font-size: 12px;">Scanner price</div>
+                  <div style="color: #888; font-size: 12px;">Ticker</div>
                 </div>
                 <div style="text-align: center;">
-                  <div style="color: #ffd93d; font-weight: 600;">$${typeof scanPrice === 'number' ? scanPrice.toFixed(2) : scanPrice}</div>
-                  <div style="color: #888; font-size: 12px;">At scan</div>
+                  <div style="color: #ffd93d; font-weight: 600;">$${scanPrice !== null ? scanPrice.toFixed(2) : '--'}</div>
+                  <div style="color: #888; font-size: 12px;">Scanner</div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="color: #aaa; font-weight: 600;">$${scanPrice !== null ? scanPrice.toFixed(2) : '--'}</div>
+                  <div style="color: #888; font-size: 12px;">Current</div>
                 </div>
                 <div style="text-align: right;">
                   <button onclick="loadTickerModal('${ticker}')" style="padding: 8px 12px; background: rgba(255,217,61,0.1); border: 1px solid rgba(255,217,61,0.3); color: #ffd93d; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">View</button>

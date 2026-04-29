@@ -212,11 +212,286 @@
       <div class="page-subtitle">Calculators, timers, and trading utilities</div>
     </div>
 
-    <div class="content">
-      <div class="content-icon">⚙️</div>
-      <div class="content-text">Tools Coming Soon</div>
-      <div class="content-subtext">Position sizing, calculators, and timers in development</div>
+    <div class="content" style="background: transparent; border: none; padding: 0; min-height: 0;">
+      <div id="app" style="width: 100%;"></div>
     </div>
+
+    <script>
+      function renderTimerApp() {
+        const app = document.getElementById('app');
+        app.innerHTML = `
+          <div style="width: 100%; max-width: 600px; margin: 0 auto;">
+            <!-- UNIFIED TIMER SECTION -->
+            <div style="margin-bottom: 32px; text-align: center;">
+              <div style="margin-bottom: 20px;">
+                <div style="font-size: 56px; font-weight: 900; letter-spacing: -2px; color: #e8e8f0; line-height: 1; font-family: 'Courier New', monospace;" id="timer-clock">--:--</div>
+                <div style="font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 8px;" id="timer-label">Loading...</div>
+                <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; margin: 12px auto 0; max-width: 200px;">
+                  <div style="height: 100%; border-radius: 4px; transition: width 0.5s linear, background 0.5s;" id="timer-bar"></div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px;" id="window-badges"></div>
+            </div>
+
+            <!-- PRESET TRADING WINDOWS SECTION -->
+            <div style="margin-bottom: 32px;">
+              <h2 style="font-size: 18px; font-weight: 500; color: #ffd93d; margin-bottom: 16px;">Trading Windows</h2>
+              
+              <!-- Ideal Trading Window -->
+              <div style="background: rgba(44,182,125,0.1); border: 1px solid rgba(44,182,125,0.3); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                <div style="font-weight: 500; color: #2cb67d; font-size: 14px; margin-bottom: 12px;">Ideal Trading Window</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div>
+                    <label style="display: block; font-size: 13px; color: #aaa; margin-bottom: 6px;">Start</label>
+                    <input type="time" id="idealStart" style="width: 100%; padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 14px;" />
+                  </div>
+                  <div>
+                    <label style="display: block; font-size: 13px; color: #aaa; margin-bottom: 6px;">End</label>
+                    <input type="time" id="idealEnd" style="width: 100%; padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 14px;" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- NO TRADE Window -->
+              <div style="background: rgba(239,69,101,0.1); border: 1px solid rgba(239,69,101,0.3); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                <div style="font-weight: 500; color: #ef4565; font-size: 14px; margin-bottom: 12px;">NO TRADE Window</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                  <div>
+                    <label style="display: block; font-size: 13px; color: #aaa; margin-bottom: 6px;">Start</label>
+                    <input type="time" id="notradeStart" style="width: 100%; padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 14px;" />
+                  </div>
+                  <div>
+                    <label style="display: block; font-size: 13px; color: #aaa; margin-bottom: 6px;">End</label>
+                    <input type="time" id="notradeEnd" style="width: 100%; padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 14px;" />
+                  </div>
+                </div>
+              </div>
+
+              <button id="saveWindowsBtn" style="width: 100%; padding: 10px; background: rgba(255,215,61,0.1); color: #ffd93d; border: 1px solid rgba(255,215,61,0.3); border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,215,61,0.2)'" onmouseout="this.style.background='rgba(255,215,61,0.1)'">Save Windows</button>
+            </div>
+
+            <!-- INFO -->
+            <div style="background: rgba(255,215,61,0.08); border: 1px solid rgba(255,215,61,0.2); border-radius: 8px; padding: 12px; font-size: 13px; color: #ccc; line-height: 1.6;">
+              <strong style="color: #ffd93d;">Single unified timer</strong><br/>
+              Shows current market phase and countdown to next event. Badges highlight active/upcoming windows.
+            </div>
+          </div>
+        `;
+
+        // Market events in EST (in order through the day)
+        const events = [
+          { name: 'London Open', time: '04:30', phase: 'London Trading' },
+          { name: 'Premarket Open', time: '07:30', phase: 'Premarket' },
+          { name: 'NY Market Open', time: '09:30', phase: 'Market Open' },
+          { name: 'NY Market Close', time: '16:00', phase: 'Afterhours' },
+          { name: 'Afterhours Close', time: '20:00', phase: 'Closed' }
+        ];
+
+        // Preset trading windows (only these two)
+        let windows = JSON.parse(localStorage.getItem('tradingWindows')) || {
+          ideal: { start: '08:00', end: '11:00' },
+          notrade: { start: '09:30', end: '09:45' }
+        };
+
+        function getTimeInMinutes(timeStr) {
+          const [h, m] = timeStr.split(':').map(Number);
+          return h * 60 + m;
+        }
+
+        function getCountdownToNextEvent() {
+          const now = new Date();
+          const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+          const h = et.getHours(), m = et.getMinutes(), s = et.getSeconds();
+          const totalMins = h * 60 + m;
+          const totalSecs = totalMins * 60 + s;
+
+          // Define event boundaries in seconds
+          const LONDON = getTimeInMinutes('04:30') * 60;
+          const PREMARKET = getTimeInMinutes('07:30') * 60;
+          const OPEN = getTimeInMinutes('09:30') * 60;
+          const CLOSE = getTimeInMinutes('16:00') * 60;
+          const AFTERHOURS_CLOSE = getTimeInMinutes('20:00') * 60;
+
+          // Determine current phase and next event
+          let currentEvent = null;
+          let nextEvent = null;
+          let nextEventSecs = null;
+
+          if (totalSecs >= LONDON && totalSecs < PREMARKET) {
+            currentEvent = events[0]; // London
+            nextEvent = events[1];    // Premarket
+            nextEventSecs = PREMARKET;
+          } else if (totalSecs >= PREMARKET && totalSecs < OPEN) {
+            currentEvent = events[1]; // Premarket
+            nextEvent = events[2];    // Open
+            nextEventSecs = OPEN;
+          } else if (totalSecs >= OPEN && totalSecs < CLOSE) {
+            currentEvent = events[2]; // Open
+            nextEvent = events[3];    // Market Close → Afterhours
+            nextEventSecs = CLOSE;
+          } else if (totalSecs >= CLOSE && totalSecs < AFTERHOURS_CLOSE) {
+            // Afterhours (4pm-8pm)
+            currentEvent = events[3]; // Afterhours
+            nextEvent = events[4];    // Afterhours Close → Closed
+            nextEventSecs = AFTERHOURS_CLOSE;
+          } else if (totalSecs >= AFTERHOURS_CLOSE) {
+            // Closed (8pm-4:30am next day)
+            currentEvent = events[4]; // Closed
+            nextEvent = events[0];    // London Open
+            nextEventSecs = LONDON + (24 * 3600); // Tomorrow at 4:30am
+          } else {
+            // Before 4:30am (closed period from 8pm previous day)
+            currentEvent = events[4]; // Closed
+            nextEvent = events[0];    // London Open
+            nextEventSecs = LONDON;
+          }
+
+          let diffSecs = nextEventSecs - totalSecs;
+          if (diffSecs <= 0) {
+            diffSecs += 24 * 3600; // Safety: add a day if somehow negative
+          }
+
+          const hours = Math.floor(diffSecs / 3600);
+          const mins = Math.floor((diffSecs % 3600) / 60);
+          const secs = Math.floor(diffSecs % 60);
+
+          return {
+            hours, mins, secs,
+            currentEvent,
+            nextEvent,
+            phase: currentEvent.phase,
+            diffSecs,
+            totalSecs,
+            nextEventSecs,
+            totalMins,
+            now: { h, m, s }
+          };
+        }
+
+        function getClockColor(phase) {
+          if (phase === 'Closed') return '#ef4565';
+          if (phase === 'Afterhours') return '#f4b942'; // amber/orange for afterhours
+          if (phase === 'Market Open') return '#2cb67d';
+          if (phase === 'Premarket') return '#7f5af0';
+          if (phase === 'London Trading') return '#6b9bd1';
+          return '#7f5af0';
+        }
+
+        function renderTimer() {
+          const state = getCountdownToNextEvent();
+          const { hours, mins, secs, currentEvent, nextEvent, phase, totalMins } = state;
+
+          const clock = document.getElementById('timer-clock');
+          const label = document.getElementById('timer-label');
+          const bar = document.getElementById('timer-bar');
+
+          // Format time
+          clock.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+          clock.style.color = getClockColor(phase);
+
+          // Determine label based on phase
+          if (phase.includes('Closed')) {
+            label.textContent = 'Market closed — next: ' + nextEvent.name.toLowerCase();
+          } else if (phase.includes('Afterhours')) {
+            label.textContent = 'After hours — next: ' + nextEvent.name.toLowerCase();
+          } else if (phase.includes('NO TRADE')) {
+            label.textContent = '⚠️ NO TRADE ZONE — ' + nextEvent.name.toLowerCase() + ' in ' + mins + 'm';
+          } else if (phase.includes('Market Open')) {
+            label.textContent = 'Market open — next: ' + nextEvent.name.toLowerCase() + ' in ' + mins + 'm';
+          } else if (phase.includes('Prime')) {
+            label.textContent = 'Prime window — ' + mins + ' min remaining';
+          } else {
+            label.textContent = phase.toLowerCase() + ' — next: ' + nextEvent.name.toLowerCase() + ' in ' + mins + 'm';
+          }
+
+          // Progress bar (0-100% of time until next event)
+          const pct = Math.max(0, Math.min(100, 100 - (state.diffSecs / (state.nextEventSecs > state.totalSecs ? state.nextEventSecs - state.totalSecs + 1 : 24 * 3600)) * 100));
+          bar.style.width = pct + '%';
+          bar.style.background = getClockColor(phase);
+
+          // Update window badges
+          renderWindowBadges(totalMins);
+        }
+
+        function renderWindowBadges(totalMins) {
+          const container = document.getElementById('window-badges');
+          const idealStart = getTimeInMinutes(windows.ideal.start);
+          const idealEnd = getTimeInMinutes(windows.ideal.end);
+          const notradeStart = getTimeInMinutes(windows.notrade.start);
+          const notradeEnd = getTimeInMinutes(windows.notrade.end);
+
+          const idealActive = totalMins >= idealStart && totalMins < idealEnd;
+          const notradeActive = totalMins >= notradeStart && totalMins < notradeEnd;
+
+          const badges = `
+            <div style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; 
+              background: ${idealActive ? 'rgba(44,182,125,0.15)' : 'rgba(255,255,255,0.05)'}; 
+              color: ${idealActive ? '#2cb67d' : 'rgba(255,255,255,0.35)'};">
+              Ideal Window${idealActive ? ' ●' : ''}
+            </div>
+            <div style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; 
+              background: ${notradeActive ? 'rgba(239,69,101,0.1)' : 'rgba(255,255,255,0.05)'}; 
+              color: ${notradeActive ? '#ef4565' : 'rgba(255,255,255,0.35)'};">
+              NO TRADE${notradeActive ? ' ●' : ''}
+            </div>
+          `;
+
+          container.innerHTML = badges;
+        }
+
+        // Initialize window inputs from localStorage
+        function initWindowInputs() {
+          document.getElementById('idealStart').value = windows.ideal.start;
+          document.getElementById('idealEnd').value = windows.ideal.end;
+          document.getElementById('notradeStart').value = windows.notrade.start;
+          document.getElementById('notradeEnd').value = windows.notrade.end;
+        }
+
+        // Save windows button handler
+        document.getElementById('saveWindowsBtn').addEventListener('click', function() {
+          const idealStart = document.getElementById('idealStart').value;
+          const idealEnd = document.getElementById('idealEnd').value;
+          const notradeStart = document.getElementById('notradeStart').value;
+          const notradeEnd = document.getElementById('notradeEnd').value;
+
+          if (!idealStart || !idealEnd || !notradeStart || !notradeEnd) {
+            alert('Please fill in all fields');
+            return;
+          }
+
+          if (idealStart >= idealEnd) {
+            alert('Ideal window: End time must be after start time');
+            return;
+          }
+
+          if (notradeStart >= notradeEnd) {
+            alert('NO TRADE window: End time must be after start time');
+            return;
+          }
+
+          windows = {
+            ideal: { start: idealStart, end: idealEnd },
+            notrade: { start: notradeStart, end: notradeEnd }
+          };
+
+          localStorage.setItem('tradingWindows', JSON.stringify(windows));
+          alert('Windows saved!');
+          renderWindowBadges(getCountdownToNextEvent().totalMins);
+        });
+
+        // Initial render
+        initWindowInputs();
+        renderTimer();
+        renderWindowBadges(getCountdownToNextEvent().totalMins);
+
+        // Update every second
+        setInterval(() => {
+          renderTimer();
+        }, 1000);
+      }
+
+      renderTimerApp();
+    </script>
 
         <div class="footer-nav">
       <a href="/tradeos/scanner.html" class="nav-link">

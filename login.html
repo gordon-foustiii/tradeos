@@ -183,7 +183,7 @@
     </div>
 
     <script>
-        const WORKER_URL = 'tradeos-proxy.gordon-foustiii.workers.dev';
+        const WORKER_URL = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
         const CLIENT_ID = '421306806975-bnktjac5i2g8js8sadr8lrfdtm0age02.apps.googleusercontent.com';
         const REDIRECT_URI = 'https://gordon-foustiii.github.io/tradeos/auth.html';
 
@@ -205,15 +205,20 @@
             return false;
         }
 
-			// Check worker health (disabled - comment in when worker URL is correct)
-			fetch(`${WORKER_URL}/scan/latest`)
-				.then(() => {
-					document.getElementById('worker-status').textContent = 'Online';
-				})
-				.catch(() => {
-					document.getElementById('worker-status').textContent = 'Offline';
-					document.querySelector('.indicator.online').classList.add('offline');
-				});
+        // Check worker health (non-blocking - won't prevent login)
+        try {
+            fetch(`${WORKER_URL}/scan/latest`, { mode: 'no-cors' })
+                .then(() => {
+                    document.getElementById('worker-status').textContent = 'Online';
+                })
+                .catch(() => {
+                    document.getElementById('worker-status').textContent = 'Offline';
+                    document.querySelector('.indicator.online').classList.add('offline');
+                });
+        } catch (e) {
+            // Silently fail
+            document.getElementById('worker-status').textContent = 'Offline';
+        }
 
         function signInGoogle() {
             var params = new URLSearchParams({

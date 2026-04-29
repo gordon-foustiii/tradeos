@@ -471,6 +471,25 @@
 
   <script>
     let currentTab = 'active';
+    const POLYGON_API_KEY = 'PlRZwYUIEzNyxe3uqN7H88yrJlUGPxNL';
+
+    async function fetchLivePrice(ticker) {
+      try {
+        // Polygon returns real-time quotes for extended hours (4am-8pm EST)
+        const res = await fetch(
+          `https://api.polygon.io/v1/last/quote/STOCKS/${ticker}?apiKey=${POLYGON_API_KEY}`
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (data.status === 'OK' && data.result) {
+          // Returns last trade price during extended hours
+          return data.result.last || null;
+        }
+      } catch (e) {
+        console.error('Price fetch failed for ' + ticker, e.message);
+      }
+      return null;
+    }
 
     function switchTab(tab) {
       currentTab = tab;
@@ -638,23 +657,29 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       loadTrades();
-      // Simulate live price updates every 3 seconds
-      setInterval(() => {
+      // Update live prices every 5 seconds
+      setInterval(async () => {
         if (currentTab === 'active') {
           const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
           const activeTrades = trades.filter(t => t.status === 'ACTIVE');
+          let updated = false;
           
-          activeTrades.forEach(t => {
-            const newPrice = t.currentPrice + (Math.random() - 0.5) * 0.15;
-            t.currentPrice = Math.max(0.01, newPrice);
-            t.high = Math.max(t.high, t.currentPrice);
-            t.low = Math.min(t.low, t.currentPrice);
-          });
+          for (const t of activeTrades) {
+            const livePrice = await fetchLivePrice(t.ticker);
+            if (livePrice && livePrice !== t.currentPrice) {
+              t.currentPrice = livePrice;
+              t.high = Math.max(t.high, livePrice);
+              t.low = Math.min(t.low, livePrice);
+              updated = true;
+            }
+          }
 
-          localStorage.setItem('tradeos_journal', JSON.stringify(trades));
-          loadTrades();
+          if (updated) {
+            localStorage.setItem('tradeos_journal', JSON.stringify(trades));
+            loadTrades();
+          }
         }
-      }, 3000);
+      }, 5000);
     });
   </script>
 </body>

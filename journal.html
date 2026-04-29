@@ -475,14 +475,12 @@
 
     async function fetchLivePrice(ticker) {
       try {
-        // Polygon returns real-time quotes for extended hours (4am-8pm EST)
         const res = await fetch(
           `https://api.polygon.io/v1/last/quote/STOCKS/${ticker}?apiKey=${POLYGON_API_KEY}`
         );
         if (!res.ok) return null;
         const data = await res.json();
         if (data.status === 'OK' && data.result) {
-          // Returns last trade price during extended hours
           return data.result.last || null;
         }
       } catch (e) {

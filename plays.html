@@ -586,32 +586,17 @@
     const charts = {};
     const chartData = {};
     
-    // Worker endpoint - replace with your actual Cloudflare Worker URL
-    const WORKER_URL = 'https://tradeos-data.YOUR_SUBDOMAIN.workers.dev';
-    
-    // Fallback to direct Polygon if worker unavailable
+    // Direct Polygon API (no worker required, works immediately)
     const POLYGON_API_KEY = 'PlRZwYUIEzNyxe3uqN7H88yrJlUGPxNL';
 
     async function fetchChartData(ticker) {
       try {
-        // Try worker first (aggregates IEX + Polygon with extended hours)
-        try {
-          const workerRes = await fetch(`${WORKER_URL}/bars/${ticker}`, { signal: AbortSignal.timeout(5000) });
-          if (workerRes.ok) {
-            const data = await workerRes.json();
-            if (data.bars && data.bars.length > 0) {
-              console.log(`Loaded ${data.count} bars for ${ticker} from ${data.source} (pre/regular/after-hours)`);
-              return data.bars;
-            }
-          }
-        } catch (workerErr) {
-          console.warn('Worker unavailable, falling back to Polygon:', workerErr.message);
-        }
-
-        // Fallback: Direct Polygon (still includes extended hours)
         const today = new Date();
         const dateStr = today.toISOString().split('T')[0];
         
+        console.log(`Fetching bars for ${ticker} from Polygon...`);
+        
+        // Fetch extended hours bars (includes pre-market 4am and after-hours until 8pm EST)
         const polyRes = await fetch(
           `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/minute/${dateStr}/${dateStr}?sort=asc&limit=960&apiKey=${POLYGON_API_KEY}`
         );
@@ -619,8 +604,7 @@
         if (polyRes.ok) {
           const data = await polyRes.json();
           if (data.results && data.results.length > 0) {
-            console.log(`Loaded ${data.results.length} bars for ${ticker} from Polygon (extended hours)`);
-            return data.results.map(bar => ({
+            const bars = data.results.map(bar => ({
               time: Math.floor(bar.t / 1000),
               open: bar.o,
               high: bar.h,
@@ -628,10 +612,13 @@
               close: bar.c,
               volume: bar.v
             })).sort((a, b) => a.time - b.time);
+            
+            console.log(`✓ Loaded ${bars.length} bars for ${ticker} from Polygon (extended hours: pre-market + regular + after-hours)`);
+            return bars;
           }
         }
 
-        console.warn(`No extended hours data for ${ticker}, using mock`);
+        console.warn(`Polygon returned no bars for ${ticker}:`, data);
         return generateMockChartData();
       } catch (e) {
         console.error('Chart data fetch failed for ' + ticker + ':', e.message);
@@ -641,32 +628,8 @@
 
     async function fetchLivePrice(ticker) {
       try {
-        // Try worker first (aggregates IEX + Polygon)
-        try {
-          const workerRes = await fetch(`${WORKER_URL}/quote/${ticker}`, { signal: AbortSignal.timeout(5000) });
-          if (workerRes.ok) {
-            const data = await workerRes.json();
-            if (data.price) {
-              return {
-                price: data.price,
-                bid: data.bid,
-                ask: data.ask,
-                bidSize: data.bidSize,
-                askSize: data.askSize,
-                high: data.high,
-                low: data.low,
-                volume: data.volume,
-                marketStatus: data.marketStatus,
-                timestamp: data.timestamp,
-                source: data.source
-              };
-            }
-          }
-        } catch (workerErr) {
-          console.warn('Worker quote unavailable, using Polygon');
-        }
-
-        // Fallback to direct Polygon
+        console.log(`Fetching live price for ${ticker}...`);
+        
         const polyRes = await fetch(
           `https://api.polygon.io/v1/last/quote/STOCKS/${ticker}?apiKey=${POLYGON_API_KEY}`
         );
@@ -674,17 +637,20 @@
         if (polyRes.ok) {
           const data = await polyRes.json();
           if (data.status === 'OK' && data.result) {
-            return {
+            const result = {
               price: data.result.last,
               bid: data.result.bid,
               ask: data.result.ask,
               bidSize: data.result.bid_size,
               askSize: data.result.ask_size,
-              timestamp: data.result.timestamp,
-              source: 'Polygon'
+              timestamp: data.result.timestamp
             };
+            console.log(`✓ Got live price for ${ticker}: $${result.price}`);
+            return result;
           }
         }
+        
+        console.warn(`Polygon quote failed for ${ticker}:`, data);
       } catch (e) {
         console.error('Live price fetch failed for ' + ticker + ':', e.message);
       }

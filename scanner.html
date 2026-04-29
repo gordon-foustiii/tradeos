@@ -1923,7 +1923,10 @@
         modal.innerHTML = `
           <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
             <div class="modal-header">
-              <h2>Scan Results</h2>
+              <div class="modal-title-block">
+                <h2 style="margin: 0; font-size: 18px;">Scan Results</h2>
+                <p style="margin: 4px 0 0 0; color: #888; font-size: 12px;">${new Date(scan.timestamp).toLocaleString()}</p>
+              </div>
               <button class="modal-close" onclick="closeScanResultsModal()">×</button>
             </div>
             <div id="scanResultsBody" style="padding: 20px;"></div>
@@ -1934,7 +1937,7 @@
       
       // Populate results with proper escaping
       let resultsHTML = `<div style="color: #aaa; margin-bottom: 16px; font-size: 13px;">
-          ${new Date(scan.timestamp).toLocaleString()} • ${scan.results.length} tickers
+          ${scan.results.length} tickers found
         </div>
         <div style="display: grid; gap: 12px;">`;
       

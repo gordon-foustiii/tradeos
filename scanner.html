@@ -1279,8 +1279,114 @@
       selectedTicker: null,
       currentFilters: { ...FILTERS.standard },
       tickerHistory: {},
-      scanInterval: null
+      scanInterval: null,
+      driveSync: { lastSync: 0, isSyncing: false }
     };
+
+    // ========== GOOGLE DRIVE SYNC ==========
+    const DRIVE_FILE_ID = 'tradeos_scanner_history.json';
+    
+    async function initDriveSync() {
+      try {
+        const token = localStorage.getItem('ya29.a0AQvPyIOJSLE7FUF9dHtznrdpGs2ZURrTiB9MIlFgsGDZanM6mLCKPol-paTUE_FXdJ-nesS2BFJQyKhihcBH37beRrvj9gtMjyJ9otG_ghqQS4KoKdIMFserpNH1Pa6MQCyx3WpAMVIrFzhQkeqfk9OknPg0UbuEa1R1h0To8BnXh76O-GIMqVvySms8-sbRPsu2iXwaCgYKAf8SARESFQHGX2MiS00W-lKIe_Iqj3-7qYT68g0206');
+        if (!token) return;
+        await syncFromDrive();
+        setInterval(syncToDrive, 30000); // Auto-sync every 30s
+      } catch (e) {
+        console.log('Drive sync unavailable');
+      }
+    }
+
+    async function syncFromDrive() {
+      if (state.driveSync.isSyncing) return;
+      state.driveSync.isSyncing = true;
+      
+      try {
+        const token = localStorage.getItem('ya29.a0AQvPyIOJSLE7FUF9dHtznrdpGs2ZURrTiB9MIlFgsGDZanM6mLCKPol-paTUE_FXdJ-nesS2BFJQyKhihcBH37beRrvj9gtMjyJ9otG_ghqQS4KoKdIMFserpNH1Pa6MQCyx3WpAMVIrFzhQkeqfk9OknPg0UbuEa1R1h0To8BnXh76O-GIMqVvySms8-sbRPsu2iXwaCgYKAf8SARESFQHGX2MiS00W-lKIe_Iqj3-7qYT68g0206');
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const files = (await listRes.json()).files || [];
+        if (!files.length) return;
+        
+        const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${files[0].id}?alt=media`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const driveData = await fileRes.json();
+        
+        // Merge scan history (dedup by timestamp)
+        const local = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
+        const drive = driveData.scanHistory || [];
+        const merged = [...local, ...drive]
+          .filter((v, i, a) => a.findIndex(x => x.timestamp === v.timestamp) === i)
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+          .slice(0, 500); // Keep last 500
+        localStorage.setItem('tradeos_scan_history', JSON.stringify(merged));
+        
+        // Merge ticker history
+        const localTickers = JSON.parse(localStorage.getItem('tradeos_ticker_history') || '{}');
+        Object.entries(driveData.tickerHistory || {}).forEach(([ticker, driveData]) => {
+          if (!localTickers[ticker]) {
+            localTickers[ticker] = driveData;
+          } else {
+            const merged = [...(localTickers[ticker].hits || []), ...(driveData.hits || [])]
+              .filter((v, i, a) => a.findIndex(x => x.timestamp === v.timestamp) === i);
+            localTickers[ticker].hits = merged;
+            localTickers[ticker].totalHits = merged.length;
+          }
+        });
+        localStorage.setItem('tradeos_ticker_history', JSON.stringify(localTickers));
+        state.tickerHistory = localTickers;
+        state.driveSync.lastSync = Date.now();
+      } catch (e) {
+        console.error('Drive sync read:', e);
+      } finally {
+        state.driveSync.isSyncing = false;
+      }
+    }
+
+    async function syncToDrive() {
+      if (state.driveSync.isSyncing) return;
+      state.driveSync.isSyncing = true;
+      
+      try {
+        const token = localStorage.getItem('ya29.a0AQvPyIOJSLE7FUF9dHtznrdpGs2ZURrTiB9MIlFgsGDZanM6mLCKPol-paTUE_FXdJ-nesS2BFJQyKhihcBH37beRrvj9gtMjyJ9otG_ghqQS4KoKdIMFserpNH1Pa6MQCyx3WpAMVIrFzhQkeqfk9OknPg0UbuEa1R1h0To8BnXh76O-GIMqVvySms8-sbRPsu2iXwaCgYKAf8SARESFQHGX2MiS00W-lKIe_Iqj3-7qYT68g0206');
+        const payload = {
+          scanHistory: JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]'),
+          tickerHistory: JSON.parse(localStorage.getItem('tradeos_ticker_history') || '{}'),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const fileId = (await listRes.json()).files?.[0]?.id;
+        
+        if (fileId) {
+          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          const boundary = '===============abc123==';
+          const body = `--${boundary}\nContent-Type: application/json\n\n${JSON.stringify({name: DRIVE_FILE_ID, parents: ['appDataFolder']})}\n--${boundary}\nContent-Type: application/json\n\n${JSON.stringify(payload)}\n--${boundary}--`;
+          await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': `multipart/related; boundary="===============abc123=="` },
+            body
+          });
+        }
+        state.driveSync.lastSync = Date.now();
+      } catch (e) {
+        console.error('Drive sync write:', e);
+      } finally {
+        state.driveSync.isSyncing = false;
+      }
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       try {
@@ -1288,6 +1394,7 @@
         loadCustomPresets();
         updateFilterDisplay();
         updatePresetsUI();
+        initDriveSync();
         updateStatusDot();
       } catch (e) {
         console.error('Init error:', e);
@@ -1329,10 +1436,12 @@
 
     function recordTickerHit(ticker, price) {
       if (!state.tickerHistory[ticker]) {
-        state.tickerHistory[ticker] = { totalHits: 0, firstSeen: new Date(), hits: [] };
+        state.tickerHistory[ticker] = { totalHits: 0, firstSeen: new Date().toISOString(), hits: [] };
       }
       state.tickerHistory[ticker].totalHits++;
-      state.tickerHistory[ticker].hits.push({ price, timestamp: new Date() });
+      state.tickerHistory[ticker].hits.push({ price, timestamp: new Date().toISOString() });
+      localStorage.setItem('tradeos_ticker_history', JSON.stringify(state.tickerHistory));
+      syncToDrive(); // Push to Google Drive
     }
 
     function toggleScanner() {
@@ -1391,6 +1500,7 @@
           results: state.results.map(r => r.ticker)
         });
         localStorage.setItem('tradeos_scan_history', JSON.stringify(scanHistory.slice(-100))); // Keep last 100 scans
+        syncToDrive(); // Push to Google Drive
         
         state.lastUpdate = new Date();
         renderResults();
@@ -1769,7 +1879,7 @@
     function signOut() {
       if (confirm('Sign out of TradeOS?')) {
         localStorage.removeItem('tradeos_id_token');
-        localStorage.removeItem('tradeos_access_token');
+        localStorage.removeItem('ya29.a0AQvPyIOJSLE7FUF9dHtznrdpGs2ZURrTiB9MIlFgsGDZanM6mLCKPol-paTUE_FXdJ-nesS2BFJQyKhihcBH37beRrvj9gtMjyJ9otG_ghqQS4KoKdIMFserpNH1Pa6MQCyx3WpAMVIrFzhQkeqfk9OknPg0UbuEa1R1h0To8BnXh76O-GIMqVvySms8-sbRPsu2iXwaCgYKAf8SARESFQHGX2MiS00W-lKIe_Iqj3-7qYT68g0206');
         localStorage.removeItem('tradeos_token_expiry');
         window.location.href = '/tradeos/login.html';
       }

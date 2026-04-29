@@ -175,12 +175,146 @@
       border-color: rgba(255, 255, 255, 0.4);
     }
 
-    .scan-status {
+    /* Tabs */
+    .tabs-nav {
       display: flex;
-      gap: 8px;
-      align-items: center;
-      font-size: 13px;
+      gap: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      padding: 12px 20px;
+      background: none;
+      border: none;
       color: #aaa;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+    }
+
+    .tab-btn.active {
+      color: #ffd93d;
+      border-bottom-color: #ffd93d;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .history-controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .history-search {
+      flex: 1;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .history-search::placeholder {
+      color: #666;
+    }
+
+    .scan-history-list,
+    .ticker-history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .scan-history-item,
+    .ticker-history-item {
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .scan-history-item:hover,
+    .ticker-history-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .scan-history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .scan-time {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .scan-tickers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .scan-ticker-tag {
+      padding: 4px 8px;
+      background: rgba(255, 107, 107, 0.2);
+      border-radius: 4px;
+      font-size: 12px;
+      color: #ff6b6b;
+    }
+
+    .ticker-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      color: #666;
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .empty-state p {
+      margin: 0;
     }
 
     .status-dot {
@@ -984,16 +1118,43 @@
       </div>
     </div>
 
-    <div class="results-info">
-      <span><strong id="resultCount">0</strong> results</span>
-      <span id="lastUpdate" style="color: #666;"></span>
+    <!-- Tabs Navigation -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" data-tab="live-results" onclick="switchTab('live-results')">Live Results</button>
+      <button class="tab-btn" data-tab="result-history" onclick="switchTab('result-history')">Result History</button>
+      <button class="tab-btn" data-tab="ticker-history" onclick="switchTab('ticker-history')">Ticker History</button>
     </div>
 
-    <div id="resultsBody" class="results-grid">
-      <div class="results-empty">
-        <p>No scans yet</p>
-        <p class="results-empty-sub">Click "Scan" to begin</p>
+    <!-- Live Results Tab -->
+    <div id="live-results" class="tab-content active">
+      <div class="results-info">
+        <span><strong id="resultCount">0</strong> results</span>
+        <span id="lastUpdate" style="color: #666;"></span>
       </div>
+      <div id="resultsBody" class="results-grid">
+        <div class="results-empty">
+          <p>No scans yet</p>
+          <p class="results-empty-sub">Click "Scan" to begin</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result History Tab -->
+    <div id="result-history" class="tab-content">
+      <div class="history-controls">
+        <input type="text" id="resultHistorySearch" placeholder="Search ticker..." class="history-search" />
+        <button class="btn-secondary" onclick="exportScanHistory()">Export</button>
+      </div>
+      <div class="scan-history-list" id="scanHistoryList"></div>
+    </div>
+
+    <!-- Ticker History Tab -->
+    <div id="ticker-history" class="tab-content">
+      <div class="history-controls">
+        <input type="text" id="tickerHistorySearch" placeholder="Search ticker..." class="history-search" />
+        <button class="btn-secondary" onclick="sortTickerHistory('hits')">Sort by Hits</button>
+      </div>
+      <div class="ticker-history-list" id="tickerHistoryList"></div>
     </div>
   </div>
 
@@ -1222,6 +1383,15 @@
         state.results = results.sort((a, b) => b.changePercent - a.changePercent);
 
         state.results.forEach(r => recordTickerHit(r.ticker, r.price));
+        
+        // Save scan history
+        const scanHistory = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
+        scanHistory.push({
+          timestamp: new Date().toISOString(),
+          results: state.results.map(r => r.ticker)
+        });
+        localStorage.setItem('tradeos_scan_history', JSON.stringify(scanHistory.slice(-100))); // Keep last 100 scans
+        
         state.lastUpdate = new Date();
         renderResults();
         saveScannerState();
@@ -1468,6 +1638,110 @@
       alert(`Added ${play.ticker} to Plays`);
       closeModal();
       window.location.href = '/tradeos/plays.html';
+    }
+
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      
+      // Show selected tab
+      document.getElementById(tabName).classList.add('active');
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+      
+      // Populate tab data
+      if (tabName === 'result-history') {
+        renderScanHistory();
+      } else if (tabName === 'ticker-history') {
+        renderTickerHistory();
+      }
+    }
+
+    function renderScanHistory() {
+      const container = document.getElementById('scanHistoryList');
+      const scanHistory = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
+      
+      if (scanHistory.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>No scan history yet</p></div>';
+        return;
+      }
+      
+      container.innerHTML = scanHistory.slice().reverse().map((scan, idx) => {
+        const time = new Date(scan.timestamp).toLocaleTimeString();
+        const date = new Date(scan.timestamp).toLocaleDateString();
+        return `<div class="scan-history-item">
+          <div class="scan-history-header">
+            <span>${date} ${time}</span>
+            <span style="color: #666;">${scan.results.length} tickers</span>
+          </div>
+          <div class="scan-tickers">
+            ${scan.results.slice(0, 10).map(t => `<div class="scan-ticker-tag">${t}</div>`).join('')}
+            ${scan.results.length > 10 ? `<div class="scan-ticker-tag">+${scan.results.length - 10}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderTickerHistory() {
+      const container = document.getElementById('tickerHistoryList');
+      const tickers = state.tickerHistory;
+      
+      if (Object.keys(tickers).length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>No ticker history yet</p></div>';
+        return;
+      }
+      
+      const tickerArray = Object.entries(tickers).map(([ticker, data]) => ({
+        ticker,
+        ...data
+      }));
+      
+      container.innerHTML = tickerArray.map(t => {
+        const priceRange = getPriceRange(t.hits);
+        return `<div class="ticker-history-item">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-weight: 600; font-size: 14px;">${t.ticker}</span>
+            <span style="color: #ffd93d; font-size: 12px; background: rgba(255, 217, 61, 0.2); padding: 2px 8px; border-radius: 4px;">Hit ${t.totalHits}x</span>
+          </div>
+          <div class="ticker-stats">
+            <div class="stat-item">
+              <div class="stat-label">Current</div>
+              <div class="stat-value">$${t.hits[t.hits.length - 1].price.toFixed(2)}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">First Hit</div>
+              <div class="stat-value">$${t.hits[0].price.toFixed(2)}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Range</div>
+              <div class="stat-value">$${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Last Seen</div>
+              <div class="stat-value" style="font-size: 11px;">${new Date(t.hits[t.hits.length - 1].timestamp).toLocaleTimeString()}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function exportScanHistory() {
+      const history = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
+      const csv = ['Timestamp,Tickers,Count'].concat(
+        history.map(h => `"${new Date(h.timestamp).toISOString()}","${h.results.join(', ')}",${h.results.length}`)
+      ).join('\n');
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `scan_history_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+    }
+
+    function sortTickerHistory(sortBy) {
+      // Toggle sort or implement secondary sort
+      alert(`Sorting by ${sortBy} - Feature in development`);
     }
 
     function loadCustomPresets() {

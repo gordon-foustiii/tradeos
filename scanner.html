@@ -1015,14 +1015,6 @@
         <span class="modal-section-title">Metrics</span>
         <div class="modal-grid">
           <div class="modal-stat">
-            <div class="modal-stat-label">High</div>
-            <div class="modal-stat-value" id="modalHigh">—</div>
-          </div>
-          <div class="modal-stat">
-            <div class="modal-stat-label">Low</div>
-            <div class="modal-stat-value" id="modalLow">—</div>
-          </div>
-          <div class="modal-stat">
             <div class="modal-stat-label">Volume</div>
             <div class="modal-stat-value" id="modalVolume">0M</div>
           </div>
@@ -1041,9 +1033,26 @@
         </div>
       </div>
 
-      <div class="modal-section" id="tickerHistoryContainer">
+      <div class="modal-section">
+        <span class="modal-section-title">Performance</span>
+        <div class="modal-grid">
+          <div class="modal-stat">
+            <div class="modal-stat-label">Change Since Scan</div>
+            <div class="modal-stat-value" id="modalChangeSinceScan">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
         <span class="modal-section-title">Scanner History</span>
-        <div class="modal-history">
+        <div class="modal-history" id="scannerHistoryContainer">
+          <p>Loading...</p>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-section-title">Ticker History</span>
+        <div class="modal-history" id="tickerHistoryContainer">
           <p>Loading...</p>
         </div>
       </div>
@@ -1312,7 +1321,7 @@
         const hitCount = history ? history.totalHits : 0;
         const priceRange = history ? getPriceRange(history.hits) : { min: r.price, max: r.price };
         const changeClass = r.change >= 0 ? 'positive' : 'negative';
-        return `<div class="result-card" onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap}, ${r.high || r.price}, ${r.low || r.price})" title="Hit ${hitCount}x - Range: $${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}">
+        return `<div class="result-card" onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap})" title="Hit ${hitCount}x - Range: $${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}">
           <div class="card-header">
             <div class="card-ticker">${r.ticker}<span class="hit-badge">${hitCount}</span></div>
             <div class="card-change ${changeClass}">${r.change >= 0 ? '+' : ''}${r.change.toFixed(2)}%</div>
@@ -1379,39 +1388,48 @@
       document.getElementById('catalystInput').value = newCatalyst;
     }
 
-    function showTickerModal(t, p, c, v, rv, f, mc, h, l) {
-      state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc, high: h, low: l };
+    function showTickerModal(t, p, c, v, rv, f, mc) {
+      state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc };
       document.getElementById('modalTicker').textContent = t;
       document.getElementById('modalPrice').textContent = `$${p.toFixed(2)}`;
-      document.getElementById('modalHigh').textContent = `$${h.toFixed(2)}`;
-      document.getElementById('modalLow').textContent = `$${l.toFixed(2)}`;
       document.getElementById('modalChange').textContent = `${c >= 0 ? '+' : ''}${c.toFixed(2)}%`;
       document.getElementById('modalChange').className = `modal-value ${c >= 0 ? 'positive' : 'negative'}`;
+      
+      const history = state.tickerHistory[t];
+      const firstHitPrice = history && history.hits.length > 0 ? history.hits[0].price : p;
+      const changeSinceScan = history && history.hits.length > 0 ? ((p - firstHitPrice) / firstHitPrice) * 100 : 0;
+      const changeSinceScanClass = changeSinceScan >= 0 ? 'positive' : 'negative';
+      document.getElementById('modalChangeSinceScan').textContent = `${changeSinceScan >= 0 ? '+' : ''}${changeSinceScan.toFixed(2)}%`;
+      document.getElementById('modalChangeSinceScan').className = `modal-stat-value ${changeSinceScanClass}`;
       document.getElementById('modalVolume').textContent = `${(v / 1e6).toFixed(2)}M`;
       document.getElementById('modalRelVol').textContent = `${rv.toFixed(2)}x`;
       document.getElementById('modalFloat').textContent = `${(f / 1e6).toFixed(2)}M`;
       document.getElementById('modalMktCap').textContent = `$${(mc / 1e9).toFixed(2)}B`;
 
       const history = state.tickerHistory[t];
-      const historyHTML = history ? `
+      
+      // Scanner History: first hit details
+      const scannerHistoryHTML = history ? `
         <div class="modal-history">
-          <div class="history-header">
-            <span>Hit Count: ${history.totalHits}</span>
-            <span>First Seen: ${new Date(history.firstSeen).toLocaleDateString()}</span>
-          </div>
-          <div class="history-prices">
-            <div class="history-row"><strong>Price Range:</strong> $${Math.min(...history.hits.map(h => h.price)).toFixed(2)} - $${Math.max(...history.hits.map(h => h.price)).toFixed(2)}</div>
-            <div class="history-list">
-              <strong>Recent Hits:</strong>
-              <div class="hit-items">
-                ${history.hits.slice(-5).reverse().map(h => `<div class="hit-item">$${h.price.toFixed(2)} - ${new Date(h.timestamp).toLocaleString()}</div>`).join('')}
-              </div>
+          <div class="history-row"><strong>First Hit:</strong> $${history.hits[0].price.toFixed(2)} - ${new Date(history.firstSeen).toLocaleDateString()}</div>
+          <div class="history-row"><strong>Total Hits:</strong> ${history.totalHits}</div>
+        </div>
+      ` : '<div class="modal-history"><p>No scanner history</p></div>';
+      document.getElementById('scannerHistoryContainer').innerHTML = scannerHistoryHTML;
+      
+      // Ticker History: all hits + range
+      const tickerHistoryHTML = history ? `
+        <div class="modal-history">
+          <div class="history-row"><strong>Range:</strong> $${Math.min(...history.hits.map(h => h.price)).toFixed(2)} - $${Math.max(...history.hits.map(h => h.price)).toFixed(2)}</div>
+          <div class="history-list">
+            <strong>Recent Hits:</strong>
+            <div class="hit-items">
+              ${history.hits.slice(-5).reverse().map(h => `<div class="hit-item">$${h.price.toFixed(2)} - ${new Date(h.timestamp).toLocaleString()}</div>`).join('')}
             </div>
           </div>
         </div>
-      ` : '<div class="modal-history"><p>No history yet</p></div>';
-
-      document.getElementById('tickerHistoryContainer').innerHTML = historyHTML;
+      ` : '<div class="modal-history"><p>No ticker history</p></div>';
+      document.getElementById('tickerHistoryContainer').innerHTML = tickerHistoryHTML;
       populateNews(t);
       document.getElementById('catalystInput').value = '';
       document.getElementById('plannerEntry').value = '';

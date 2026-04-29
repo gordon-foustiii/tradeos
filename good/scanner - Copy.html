@@ -1015,6 +1015,14 @@
         <span class="modal-section-title">Metrics</span>
         <div class="modal-grid">
           <div class="modal-stat">
+            <div class="modal-stat-label">High</div>
+            <div class="modal-stat-value" id="modalHigh">—</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">Low</div>
+            <div class="modal-stat-value" id="modalLow">—</div>
+          </div>
+          <div class="modal-stat">
             <div class="modal-stat-label">Volume</div>
             <div class="modal-stat-value" id="modalVolume">0M</div>
           </div>
@@ -1304,7 +1312,7 @@
         const hitCount = history ? history.totalHits : 0;
         const priceRange = history ? getPriceRange(history.hits) : { min: r.price, max: r.price };
         const changeClass = r.change >= 0 ? 'positive' : 'negative';
-        return `<div class="result-card" onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap})" title="Hit ${hitCount}x - Range: $${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}">
+        return `<div class="result-card" onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap}, ${r.high || r.price}, ${r.low || r.price})" title="Hit ${hitCount}x - Range: $${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}">
           <div class="card-header">
             <div class="card-ticker">${r.ticker}<span class="hit-badge">${hitCount}</span></div>
             <div class="card-change ${changeClass}">${r.change >= 0 ? '+' : ''}${r.change.toFixed(2)}%</div>
@@ -1371,10 +1379,12 @@
       document.getElementById('catalystInput').value = newCatalyst;
     }
 
-    function showTickerModal(t, p, c, v, rv, f, mc) {
-      state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc };
+    function showTickerModal(t, p, c, v, rv, f, mc, h, l) {
+      state.selectedTicker = { ticker: t, price: p, change: c, volume: v, relVol: rv, float: f, mktCap: mc, high: h, low: l };
       document.getElementById('modalTicker').textContent = t;
       document.getElementById('modalPrice').textContent = `$${p.toFixed(2)}`;
+      document.getElementById('modalHigh').textContent = `$${h.toFixed(2)}`;
+      document.getElementById('modalLow').textContent = `$${l.toFixed(2)}`;
       document.getElementById('modalChange').textContent = `${c >= 0 ? '+' : ''}${c.toFixed(2)}%`;
       document.getElementById('modalChange').className = `modal-value ${c >= 0 ? 'positive' : 'negative'}`;
       document.getElementById('modalVolume').textContent = `${(v / 1e6).toFixed(2)}M`;

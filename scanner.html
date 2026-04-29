@@ -54,6 +54,11 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: pointer;
     }
 
     .topbar-brand span {
@@ -989,7 +994,7 @@
     /* Footer Navigation */
     .footer-nav {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       position: fixed;
       bottom: 0;
       left: 0;
@@ -1035,12 +1040,13 @@
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-brand">
-      <span>TradeOS</span>
+    <div class="topbar-brand" onclick="goHome()" style="cursor: pointer;">
+      TRADEOS
     </div>
     <div class="topbar-menu">
-      <button class="btn-icon" title="Profile" onclick="signOut()">⚙️</button>
-      <button class="btn-icon" title="Home" onclick="goHome()">🏠</button>
+      <button class="btn-icon" onclick="goProfile()" title="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
     </div>
   </div>
 
@@ -1288,7 +1294,7 @@
     
     async function initDriveSync() {
       try {
-        const token = localStorage.getItem('ya29.a0AQvPyIOJSLE7FUF9dHtznrdpGs2ZURrTiB9MIlFgsGDZanM6mLCKPol-paTUE_FXdJ-nesS2BFJQyKhihcBH37beRrvj9gtMjyJ9otG_ghqQS4KoKdIMFserpNH1Pa6MQCyx3WpAMVIrFzhQkeqfk9OknPg0UbuEa1R1h0To8BnXh76O-GIMqVvySms8-sbRPsu2iXwaCgYKAf8SARESFQHGX2MiS00W-lKIe_Iqj3-7qYT68g0206');
+        const token = localStorage.getItem('tradeos_access_token');
         if (!token) return;
         await syncFromDrive();
         setInterval(syncToDrive, 30000); // Auto-sync every 30s
@@ -1302,7 +1308,7 @@
       state.driveSync.isSyncing = true;
       
       try {
-        const token = localStorage.getItem('ya29.a0AQvPyIOJSLE7FUF9dHtznrdpGs2ZURrTiB9MIlFgsGDZanM6mLCKPol-paTUE_FXdJ-nesS2BFJQyKhihcBH37beRrvj9gtMjyJ9otG_ghqQS4KoKdIMFserpNH1Pa6MQCyx3WpAMVIrFzhQkeqfk9OknPg0UbuEa1R1h0To8BnXh76O-GIMqVvySms8-sbRPsu2iXwaCgYKAf8SARESFQHGX2MiS00W-lKIe_Iqj3-7qYT68g0206');
+        const token = localStorage.getItem('tradeos_access_token');
         const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -1352,7 +1358,7 @@
       state.driveSync.isSyncing = true;
       
       try {
-        const token = localStorage.getItem('ya29.a0AQvPyIOJSLE7FUF9dHtznrdpGs2ZURrTiB9MIlFgsGDZanM6mLCKPol-paTUE_FXdJ-nesS2BFJQyKhihcBH37beRrvj9gtMjyJ9otG_ghqQS4KoKdIMFserpNH1Pa6MQCyx3WpAMVIrFzhQkeqfk9OknPg0UbuEa1R1h0To8BnXh76O-GIMqVvySms8-sbRPsu2iXwaCgYKAf8SARESFQHGX2MiS00W-lKIe_Iqj3-7qYT68g0206');
+        const token = localStorage.getItem('tradeos_access_token');
         const payload = {
           scanHistory: JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]'),
           tickerHistory: JSON.parse(localStorage.getItem('tradeos_ticker_history') || '{}'),
@@ -1876,10 +1882,14 @@
       window.location.href = '/tradeos/';
     }
 
+    function goProfile() {
+      window.location.href = '/tradeos/settings.html';
+    }
+
     function signOut() {
       if (confirm('Sign out of TradeOS?')) {
         localStorage.removeItem('tradeos_id_token');
-        localStorage.removeItem('ya29.a0AQvPyIOJSLE7FUF9dHtznrdpGs2ZURrTiB9MIlFgsGDZanM6mLCKPol-paTUE_FXdJ-nesS2BFJQyKhihcBH37beRrvj9gtMjyJ9otG_ghqQS4KoKdIMFserpNH1Pa6MQCyx3WpAMVIrFzhQkeqfk9OknPg0UbuEa1R1h0To8BnXh76O-GIMqVvySms8-sbRPsu2iXwaCgYKAf8SARESFQHGX2MiS00W-lKIe_Iqj3-7qYT68g0206');
+        localStorage.removeItem('');
         localStorage.removeItem('tradeos_token_expiry');
         window.location.href = '/tradeos/login.html';
       }
@@ -1887,10 +1897,6 @@
   </script>
 
   <div class="footer-nav">
-    <a href="/tradeos/index.html" class="nav-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Home
-    </a>
     <a href="/tradeos/scanner.html" class="nav-link active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       Scanner
@@ -1906,10 +1912,6 @@
     <a href="/tradeos/tools.html" class="nav-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
       Tools
-    </a>
-    <a href="/tradeos/settings.html" class="nav-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Profile
     </a>
   </div>
 </body>

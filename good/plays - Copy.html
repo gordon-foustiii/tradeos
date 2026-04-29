@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="theme-color" content="#0f0f0f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Playbook — TradeOS</title>
+  <link rel="manifest" href="/tradeos/manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      background-attachment: fixed;
+      color: #fff;
+      line-height: 1.5;
+      min-height: 100vh;
+      padding-bottom: 80px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding-bottom: 100px;
+      }
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 72px;
+      flex-shrink: 0;
+    }
+
+    .topbar-brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .topbar-brand span {
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .topbar-menu {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      cursor: pointer;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 18px;
+    }
+
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffd93d;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      flex: 1;
+      width: 100%;
+    }
+
+    .header {
+      margin-bottom: 32px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    .content {
+      background: transparent;
+      border: none;
+      padding: 0;
+      text-align: center;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .content.empty {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 40px 20px;
+    }
+
+    .content-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .content-text {
+      font-size: 18px;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+
+    .content-subtext {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .footer-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 8px 4px;
+      background: rgba(0, 0, 0, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 4px;
+      text-decoration: none;
+      color: #aaa;
+      border-radius: 8px;
+      transition: all 0.2s;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .nav-link svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
+    }
+
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.05);
+      color: #ffd93d;
+      border-bottom: 2px solid #ffd93d;
+    }
+
+    .plays-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .play-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+
+    .play-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-4px);
+    }
+
+    .play-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+
+    .play-ticker {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .play-status {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+      font-weight: 600;
+    }
+
+    .play-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .play-label {
+      color: #888;
+    }
+
+    .play-value {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .play-catalyst {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: #aaa;
+      line-height: 1.4;
+    }
+
+    .play-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .play-btn {
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .play-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .play-btn.delete {
+      background: rgba(255, 107, 107, 0.1);
+      border-color: rgba(255, 107, 107, 0.3);
+      color: #ff6b6b;
+    }
+
+    .play-btn.delete:hover {
+      background: rgba(255, 107, 107, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-brand" onclick="goHome()" style="cursor: pointer;">
+      TRADEOS
+    </div>
+    <div class="topbar-menu">
+      <button class="btn-icon" onclick="goProfile()" title="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="page-title">Playbook</div>
+      <div class="page-subtitle">Your active trading plays</div>
+    </div>
+
+    <div id="playsContainer" class="content">
+      <div class="content-icon">📋</div>
+      <div class="content-text">No Plays Yet</div>
+      <div class="content-subtext">Add plays from the Scanner to get started</div>
+    </div>
+
+    <div class="footer-nav">
+      <a href="/tradeos/scanner.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Scanner
+      </a>
+      <a href="/tradeos/plays.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Plays
+      </a>
+      <a href="/tradeos/journal.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Journal
+      </a>
+      <a href="/tradeos/tools.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Tools
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // ========== GOOGLE DRIVE SYNC ==========
+    const DRIVE_FILE_ID = 'tradeos_plays.json';
+    
+    async function syncPlaysFromDrive() {
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        if (!token) return;
+        
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const files = (await listRes.json()).files || [];
+        if (!files.length) return;
+        
+        const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${files[0].id}?alt=media`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const driveData = await fileRes.json();
+        const local = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+        const drive = driveData.plays || [];
+        
+        // Merge by id, prefer most recent createdAt
+        const merged = {};
+        [...local, ...drive].forEach(p => {
+          if (!merged[p.id] || new Date(p.createdAt) > new Date(merged[p.id].createdAt)) {
+            merged[p.id] = p;
+          }
+        });
+        
+        const result = Object.values(merged);
+        localStorage.setItem('tradeos_plays', JSON.stringify(result));
+      } catch (e) {
+        console.error('Drive sync read plays:', e);
+      }
+    }
+
+    async function syncPlaysToDrive() {
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        if (!token) return;
+        
+        const payload = {
+          plays: JSON.parse(localStorage.getItem('tradeos_plays') || '[]'),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const fileId = (await listRes.json()).files?.[0]?.id;
+        
+        if (fileId) {
+          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          const boundary = '===============abc123==';
+          const body = `--${boundary}\nContent-Type: application/json\n\n${JSON.stringify({name: DRIVE_FILE_ID, parents: ['appDataFolder']})}\n--${boundary}\nContent-Type: application/json\n\n${JSON.stringify(payload)}\n--${boundary}--`;
+          await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': `multipart/related; boundary="===============abc123=="` },
+            body
+          });
+        }
+      } catch (e) {
+        console.error('Drive sync write plays:', e);
+      }
+    }
+
+    function loadPlays() {
+      const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+      const container = document.getElementById('playsContainer');
+      
+      if (plays.length === 0) {
+        container.className = 'content empty';
+        container.innerHTML = `
+          <div class="content-icon">📋</div>
+          <div class="content-text">No Plays Yet</div>
+          <div class="content-subtext">Add plays from the Scanner to get started</div>
+        `;
+        return;
+      }
+
+      container.className = 'plays-grid';
+      container.innerHTML = plays.map(p => `
+        <div class="play-card">
+          <div class="play-header">
+            <div class="play-ticker">${p.ticker}</div>
+            <div class="play-status">${p.status}</div>
+          </div>
+          <div class="play-row">
+            <span class="play-label">Price</span>
+            <span class="play-value">$${p.price.toFixed(2)}</span>
+          </div>
+          <div class="play-row">
+            <span class="play-label">Entry</span>
+            <span class="play-value">${p.entry ? '$' + p.entry.toFixed(2) : 'N/A'}</span>
+          </div>
+          <div class="play-row">
+            <span class="play-label">Target</span>
+            <span class="play-value">${p.target ? '$' + p.target.toFixed(2) : 'N/A'}</span>
+          </div>
+          <div class="play-row">
+            <span class="play-label">Stop Loss</span>
+            <span class="play-value">${p.stop ? '$' + p.stop.toFixed(2) : 'N/A'}</span>
+          </div>
+          <div class="play-row">
+            <span class="play-label">Shares</span>
+            <span class="play-value">${p.shares || 'N/A'}</span>
+          </div>
+          ${p.catalyst ? `<div class="play-catalyst"><strong>Catalyst:</strong> ${p.catalyst}</div>` : ''}
+          <div class="play-actions">
+            <button class="play-btn" onclick="executePlay(${p.id})">Execute</button>
+            <button class="play-btn delete" onclick="deletePlay(${p.id})">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function deletePlay(id) {
+      if (confirm('Delete this play?')) {
+        let plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+        plays = plays.filter(p => p.id !== id);
+        localStorage.setItem('tradeos_plays', JSON.stringify(plays));
+        syncPlaysToDrive(); // Push to Drive
+        loadPlays();
+      }
+    }
+
+    function executePlay(id) {
+      alert('Execute play ' + id);
+    }
+
+    function goHome() {
+      window.location.href = '/tradeos/';
+    }
+
+    function goProfile() {
+      window.location.href = '/tradeos/settings.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await syncPlaysFromDrive();
+      loadPlays();
+      setInterval(syncPlaysToDrive, 30000); // Auto-sync every 30s
+    });
+  </script>
+</body>
+</html>

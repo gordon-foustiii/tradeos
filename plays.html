@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Playbook — TradeOS</title>
   <link rel="manifest" href="/tradeos/manifest.json">
+  <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
   <style>
     * {
       margin: 0;
@@ -58,6 +59,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      cursor: pointer;
     }
 
     .topbar-brand span {
@@ -205,7 +207,7 @@
 
     .plays-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 16px;
     }
 
@@ -213,8 +215,11 @@
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
-      padding: 20px;
+      padding: 0;
       transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .play-card:hover {
@@ -223,21 +228,35 @@
       transform: translateY(-4px);
     }
 
+    .play-chart {
+      height: 160px;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .play-info {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
     .play-header {
       display: flex;
       justify-content: space-between;
       align-items: start;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .play-ticker {
-      font-size: 24px;
+      font-size: 22px;
       font-weight: 800;
       color: #fff;
     }
 
     .play-status {
-      font-size: 11px;
+      font-size: 10px;
       padding: 4px 8px;
       border-radius: 4px;
       background: rgba(74, 222, 128, 0.2);
@@ -245,10 +264,10 @@
       font-weight: 600;
     }
 
-    .play-row {
+    .play-price-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       font-size: 13px;
     }
 
@@ -261,23 +280,34 @@
       font-weight: 600;
     }
 
+    .play-value.positive {
+      color: #4ade80;
+    }
+
+    .play-value.negative {
+      color: #ff6b6b;
+    }
+
     .play-catalyst {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px;
-      padding: 12px;
-      margin-top: 12px;
-      font-size: 12px;
+      border-radius: 6px;
+      padding: 8px;
+      margin-top: 8px;
+      font-size: 11px;
       color: #aaa;
-      line-height: 1.4;
+      line-height: 1.3;
+      max-height: 50px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .play-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      margin-top: 16px;
-      padding-top: 16px;
+      margin-top: 12px;
+      padding-top: 12px;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
@@ -306,6 +336,147 @@
 
     .play-btn.delete:hover {
       background: rgba(255, 107, 107, 0.2);
+    }
+
+    /* ===== MODAL STYLES ===== */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #1a1a1a;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #aaa;
+      cursor: pointer;
+      font-size: 24px;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover {
+      color: #ffd93d;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 6px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 212, 157, 0.3);
+    }
+
+    .form-input::placeholder {
+      color: #666;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-execute {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      border: none;
+      border-radius: 6px;
+      color: #0f0f0f;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+
+    .btn-execute:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-cancel {
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+    }
+
+    .btn-cancel:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
@@ -353,7 +524,161 @@
     </div>
   </div>
 
+  <!-- EXECUTE MODAL -->
+  <div id="executeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        Execute Trade
+        <button class="modal-close" onclick="closeExecuteModal()">×</button>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Ticker</div>
+        <div class="form-input" id="modalTicker" style="padding: 10px 12px; cursor: default; background: rgba(255, 255, 255, 0.03);"></div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Current Price</div>
+        <div class="form-input" id="modalCurrentPrice" style="padding: 10px 12px; cursor: default; background: rgba(255, 255, 255, 0.03);"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Entry Price</label>
+          <input type="number" id="entryPrice" class="form-input" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Shares</label>
+          <input type="number" id="shares" class="form-input" placeholder="0" step="1" min="0">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Target Exit</label>
+          <input type="number" id="targetExit" class="form-input" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stop Loss</label>
+          <input type="number" id="stopLoss" class="form-input" placeholder="0.00" step="0.01" min="0">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Trade Notes</label>
+        <textarea id="tradeNotes" class="form-input" placeholder="Optional notes..." style="resize: vertical; min-height: 60px;"></textarea>
+      </div>
+
+      <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.2); border-radius: 6px; padding: 12px; font-size: 12px; color: #ff9999; margin-bottom: 16px;">
+        💡 $50 max loss rule: Ensure shares × (entry - stop loss) ≤ $50
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeExecuteModal()">Cancel</button>
+        <button class="btn-execute" onclick="submitExecuteTrade()">Execute</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // ========== CHART MANAGEMENT ==========
+    const charts = {};
+    const chartData = {};
+
+    async function fetchChartData(ticker) {
+      try {
+        // Fetch 30 min bars from Polygon API (free tier)
+        const res = await fetch(`https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/minute/2024-01-01/2024-01-31?sort=asc&limit=390&apiKey=PLACEHOLDER`);
+        // Note: Replace PLACEHOLDER with actual API key or use mock data below
+        
+        // For demo, return mock candlestick data
+        return generateMockChartData();
+      } catch (e) {
+        console.error('Chart data fetch failed:', e);
+        return generateMockChartData();
+      }
+    }
+
+    function generateMockChartData() {
+      const data = [];
+      let basePrice = 5 + Math.random() * 15;
+      const now = Math.floor(Date.now() / 1000);
+      
+      for (let i = 390; i > 0; i--) {
+        const time = now - (i * 60);
+        const open = basePrice;
+        basePrice += (Math.random() - 0.48) * 0.5;
+        const close = basePrice;
+        const high = Math.max(open, close) + Math.random() * 0.3;
+        const low = Math.min(open, close) - Math.random() * 0.3;
+        
+        data.push({
+          time: Math.floor(time),
+          open: Math.round(open * 100) / 100,
+          high: Math.round(high * 100) / 100,
+          low: Math.round(low * 100) / 100,
+          close: Math.round(close * 100) / 100,
+          volume: Math.floor(Math.random() * 100000) + 10000
+        });
+      }
+      
+      return data;
+    }
+
+    function initChart(cardElement, ticker, price) {
+      const chartContainer = cardElement.querySelector('.play-chart');
+      if (!chartContainer) return;
+
+      const container = document.createElement('div');
+      Object.assign(container.style, {
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'transparent'
+      });
+      chartContainer.appendChild(container);
+
+      const chart = LightweightCharts.createChart(container, {
+        layout: { background: { color: 'transparent' }, textColor: '#aaa' },
+        width: chartContainer.offsetWidth,
+        height: 160,
+        timeScale: { timeVisible: true, secondsVisible: false },
+      });
+
+      const candleSeries = chart.addCandlestickSeries({
+        upColor: '#4ade80',
+        downColor: '#ff6b6b',
+        borderUpColor: '#4ade80',
+        borderDownColor: '#ff6b6b',
+        wickUpColor: '#4ade80',
+        wickDownColor: '#ff6b6b',
+      });
+
+      const data = generateMockChartData();
+      candleSeries.setData(data);
+      chart.timeScale().fitContent();
+
+      charts[ticker] = chart;
+      chartData[ticker] = data;
+
+      // Simulate live price update
+      setInterval(() => {
+        if (data.length > 0) {
+          const last = { ...data[data.length - 1] };
+          last.close = Math.max(0.5, last.close + (Math.random() - 0.5) * 0.1);
+          candleSeries.update(last);
+          updatePriceDisplay(cardElement, last.close);
+        }
+      }, 2000);
+    }
+
+    function updatePriceDisplay(cardElement, newPrice) {
+      const priceRow = cardElement.querySelector('.play-price-row');
+      if (priceRow) {
+        const priceValue = priceRow.querySelector('.play-value');
+        priceValue.textContent = '$' + newPrice.toFixed(2);
+      }
+    }
+
     // ========== GOOGLE DRIVE SYNC ==========
     const DRIVE_FILE_ID = 'tradeos_plays.json';
     
@@ -377,7 +702,6 @@
         const local = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
         const drive = driveData.plays || [];
         
-        // Merge by id, prefer most recent createdAt
         const merged = {};
         [...local, ...drive].forEach(p => {
           if (!merged[p.id] || new Date(p.createdAt) > new Date(merged[p.id].createdAt)) {
@@ -414,18 +738,86 @@
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
-        } else {
-          const boundary = '===============abc123==';
-          const body = `--${boundary}\nContent-Type: application/json\n\n${JSON.stringify({name: DRIVE_FILE_ID, parents: ['appDataFolder']})}\n--${boundary}\nContent-Type: application/json\n\n${JSON.stringify(payload)}\n--${boundary}--`;
-          await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': `multipart/related; boundary="===============abc123=="` },
-            body
-          });
         }
       } catch (e) {
         console.error('Drive sync write plays:', e);
       }
+    }
+
+    // ========== EXECUTE & JOURNAL ==========
+    let currentPlayId = null;
+
+    function openExecuteModal(id) {
+      const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+      const play = plays.find(p => p.id === id);
+      if (!play) return;
+
+      currentPlayId = id;
+      document.getElementById('modalTicker').textContent = play.ticker;
+      document.getElementById('modalCurrentPrice').textContent = '$' + play.price.toFixed(2);
+      document.getElementById('entryPrice').value = play.price.toFixed(2);
+      document.getElementById('targetExit').value = play.target ? play.target.toFixed(2) : '';
+      document.getElementById('stopLoss').value = play.stop ? play.stop.toFixed(2) : '';
+      document.getElementById('shares').value = play.shares || '';
+      document.getElementById('tradeNotes').value = '';
+
+      document.getElementById('executeModal').classList.add('active');
+    }
+
+    function closeExecuteModal() {
+      document.getElementById('executeModal').classList.remove('active');
+      currentPlayId = null;
+    }
+
+    function submitExecuteTrade() {
+      const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+      const play = plays.find(p => p.id === currentPlayId);
+      if (!play) return;
+
+      const entryPrice = parseFloat(document.getElementById('entryPrice').value);
+      const targetExit = parseFloat(document.getElementById('targetExit').value);
+      const stopLoss = parseFloat(document.getElementById('stopLoss').value);
+      const shares = parseInt(document.getElementById('shares').value);
+      const notes = document.getElementById('tradeNotes').value;
+
+      if (!entryPrice || !shares || !targetExit || !stopLoss) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      const maxLoss = shares * (entryPrice - stopLoss);
+      if (maxLoss > 50) {
+        alert(`Max loss is $${maxLoss.toFixed(2)} — exceeds $50 limit`);
+        return;
+      }
+
+      // Create journal entry
+      const journal = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+      const trade = {
+        id: Date.now(),
+        ticker: play.ticker,
+        entryPrice,
+        targetExit,
+        stopLoss,
+        shares,
+        notes,
+        currentPrice: play.price,
+        high: play.price,
+        low: play.price,
+        executedAt: new Date().toISOString(),
+        status: 'ACTIVE'
+      };
+      journal.push(trade);
+      localStorage.setItem('tradeos_journal', JSON.stringify(journal));
+
+      // Remove from plays
+      const updated = plays.filter(p => p.id !== currentPlayId);
+      localStorage.setItem('tradeos_plays', JSON.stringify(updated));
+
+      closeExecuteModal();
+      syncPlaysToDrive();
+      loadPlays();
+      alert('Trade executed! Check Journal to track.');
     }
 
     function loadPlays() {
@@ -444,38 +836,43 @@
 
       container.className = 'plays-grid';
       container.innerHTML = plays.map(p => `
-        <div class="play-card">
-          <div class="play-header">
-            <div class="play-ticker">${p.ticker}</div>
-            <div class="play-status">${p.status}</div>
-          </div>
-          <div class="play-row">
-            <span class="play-label">Price</span>
-            <span class="play-value">$${p.price.toFixed(2)}</span>
-          </div>
-          <div class="play-row">
-            <span class="play-label">Entry</span>
-            <span class="play-value">${p.entry ? '$' + p.entry.toFixed(2) : 'N/A'}</span>
-          </div>
-          <div class="play-row">
-            <span class="play-label">Target</span>
-            <span class="play-value">${p.target ? '$' + p.target.toFixed(2) : 'N/A'}</span>
-          </div>
-          <div class="play-row">
-            <span class="play-label">Stop Loss</span>
-            <span class="play-value">${p.stop ? '$' + p.stop.toFixed(2) : 'N/A'}</span>
-          </div>
-          <div class="play-row">
-            <span class="play-label">Shares</span>
-            <span class="play-value">${p.shares || 'N/A'}</span>
-          </div>
-          ${p.catalyst ? `<div class="play-catalyst"><strong>Catalyst:</strong> ${p.catalyst}</div>` : ''}
-          <div class="play-actions">
-            <button class="play-btn" onclick="executePlay(${p.id})">Execute</button>
-            <button class="play-btn delete" onclick="deletePlay(${p.id})">Delete</button>
+        <div class="play-card" id="card-${p.id}">
+          <div class="play-chart"></div>
+          <div class="play-info">
+            <div class="play-header">
+              <div class="play-ticker">${p.ticker}</div>
+              <div class="play-status">WATCH</div>
+            </div>
+            <div class="play-price-row">
+              <span class="play-label">Price</span>
+              <span class="play-value">$${p.price.toFixed(2)}</span>
+            </div>
+            <div class="play-price-row">
+              <span class="play-label">Target</span>
+              <span class="play-value">${p.target ? '$' + p.target.toFixed(2) : 'N/A'}</span>
+            </div>
+            <div class="play-price-row">
+              <span class="play-label">Change</span>
+              <span class="play-value ${p.price > p.entry ? 'positive' : 'negative'}">
+                ${((p.price - p.entry) / p.entry * 100).toFixed(1)}%
+              </span>
+            </div>
+            ${p.catalyst ? `<div class="play-catalyst"><strong>Catalyst:</strong> ${p.catalyst}</div>` : ''}
+            <div class="play-actions">
+              <button class="play-btn" onclick="openExecuteModal(${p.id})">Execute</button>
+              <button class="play-btn delete" onclick="deletePlay(${p.id})">Delete</button>
+            </div>
           </div>
         </div>
       `).join('');
+
+      // Init charts after DOM is ready
+      setTimeout(() => {
+        plays.forEach(p => {
+          const card = document.getElementById(`card-${p.id}`);
+          if (card) initChart(card, p.ticker, p.price);
+        });
+      }, 100);
     }
 
     function deletePlay(id) {
@@ -483,13 +880,9 @@
         let plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
         plays = plays.filter(p => p.id !== id);
         localStorage.setItem('tradeos_plays', JSON.stringify(plays));
-        syncPlaysToDrive(); // Push to Drive
+        syncPlaysToDrive();
         loadPlays();
       }
-    }
-
-    function executePlay(id) {
-      alert('Execute play ' + id);
     }
 
     function goHome() {
@@ -503,7 +896,11 @@
     document.addEventListener('DOMContentLoaded', async () => {
       await syncPlaysFromDrive();
       loadPlays();
-      setInterval(syncPlaysToDrive, 30000); // Auto-sync every 30s
+      setInterval(syncPlaysToDrive, 30000);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeExecuteModal();
     });
   </script>
 </body>

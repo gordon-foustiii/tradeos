@@ -205,15 +205,15 @@
             return false;
         }
 
-        // Check worker health (disabled - comment in when worker URL is correct)
-        // fetch(`${WORKER_URL}/scan/latest`)
-        //     .then(() => {
-        //         document.getElementById('worker-status').textContent = 'Online';
-        //     })
-        //     .catch(() => {
-        //         document.getElementById('worker-status').textContent = 'Offline';
-        //         document.querySelector('.indicator.online').classList.add('offline');
-        //     });
+			// Check worker health (disabled - comment in when worker URL is correct)
+			fetch(`${WORKER_URL}/scan/latest`)
+				.then(() => {
+					document.getElementById('worker-status').textContent = 'Online';
+				})
+				.catch(() => {
+					document.getElementById('worker-status').textContent = 'Offline';
+					document.querySelector('.indicator.online').classList.add('offline');
+				});
 
         function signInGoogle() {
             var params = new URLSearchParams({

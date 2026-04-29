@@ -1743,6 +1743,8 @@
       // Toggle sort or implement secondary sort
       alert(`Sorting by ${sortBy} - Feature in development`);
     }
+
+    function loadCustomPresets() {
       const c = JSON.parse(localStorage.getItem('customPresets') || '{}');
       Object.entries(c).forEach(([k, p]) => {
         const btn = document.createElement('button');

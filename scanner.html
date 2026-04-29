@@ -1910,43 +1910,40 @@
       const scan = scanHistory.find(s => s.timestamp === timestamp);
       
       if (!scan) {
-        alert('Scan data not found');
+        console.error('Scan data not found for timestamp:', timestamp);
         return;
       }
       
-      // Create modal
+      console.log('Opening scan results modal for', scan.results.length, 'tickers');
+      
+      // Create or get modal
       let modal = document.getElementById('scanResultsModal');
       if (!modal) {
         modal = document.createElement('div');
         modal.id = 'scanResultsModal';
         modal.className = 'modal-overlay';
-        modal.innerHTML = `
-          <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
-            <div class="modal-header">
-              <div class="modal-title-block">
-                <h2 style="margin: 0; font-size: 18px;">Scan Results</h2>
-                <p style="margin: 4px 0 0 0; color: #888; font-size: 12px;">${new Date(scan.timestamp).toLocaleString()}</p>
-              </div>
-              <button class="modal-close" onclick="closeScanResultsModal()">×</button>
-            </div>
-            <div id="scanResultsBody" style="padding: 20px;"></div>
-          </div>
-        `;
+        modal.onclick = function(e) {
+          if (e.target === modal) closeScanResultsModal();
+        };
         document.body.appendChild(modal);
       }
       
-      // Populate results with proper escaping
-      let resultsHTML = `<div style="color: #aaa; margin-bottom: 16px; font-size: 13px;">
-          ${scan.results.length} tickers found
-        </div>
-        <div style="display: grid; gap: 12px;">`;
+      // Build modal header and content
+      const modalTitle = `<div class="modal-title-block">
+        <h2 style="margin: 0; font-size: 18px;">Scan Results</h2>
+        <p style="margin: 4px 0 0 0; color: #888; font-size: 12px;">${new Date(scan.timestamp).toLocaleString()}</p>
+      </div>`;
       
+      const closeBtn = `<button class="modal-close" onclick="closeScanResultsModal()" style="background: none; border: none; color: #aaa; font-size: 28px; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">×</button>`;
+      
+      // Build ticker rows
+      let tickerRows = '';
       scan.results.forEach(ticker => {
         const tickerHistory = state.tickerHistory[ticker] || { hits: [] };
         const lastHit = tickerHistory.hits[tickerHistory.hits.length - 1];
         const scanPrice = lastHit ? lastHit.price : null;
         
-        resultsHTML += `<div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; align-items: center;">
+        tickerRows += `<div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; align-items: center;">
           <div>
             <div style="font-weight: 600; font-size: 14px;">${ticker}</div>
             <div style="color: #888; font-size: 12px;">Ticker</div>
@@ -1965,14 +1962,31 @@
         </div>`;
       });
       
-      resultsHTML += `</div>`;
-      document.getElementById('scanResultsBody').innerHTML = resultsHTML;
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 16px;">
+            ${modalTitle}
+            ${closeBtn}
+          </div>
+          <div style="color: #aaa; margin-bottom: 16px; font-size: 13px;">
+            ${scan.results.length} tickers found
+          </div>
+          <div style="display: grid; gap: 12px;">
+            ${tickerRows}
+          </div>
+        </div>
+      `;
+      
+      // Show modal
       modal.classList.add('active');
+      console.log('Modal shown');
     }
     
     function closeScanResultsModal() {
       const modal = document.getElementById('scanResultsModal');
-      if (modal) modal.classList.remove('active');
+      if (modal) {
+        modal.classList.remove('active');
+      }
     }
     
     function loadTickerModal(ticker) {

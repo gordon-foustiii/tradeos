@@ -307,23 +307,44 @@
 
         var data = await res.json();
         console.log('✅ Worker returned:', Object.keys(data));
+        console.log('📦 Full response:', data);
 
         if (data.id_token) {
-          console.log('✅ id_token received, storing tokens...');
+          console.log('✅ id_token received, verifying localStorage...');
+          
+          // Verify localStorage is accessible
+          try {
+            localStorage.setItem('_test', 'true');
+            localStorage.removeItem('_test');
+            console.log('✅ localStorage accessible');
+          } catch(e) {
+            console.error('❌ localStorage blocked:', e.message);
+            updateStatus('❌', 'Storage Error', 'localStorage is blocked', true);
+            return;
+          }
+          
+          console.log('✅ Storing tokens...');
           localStorage.setItem('id_token', data.id_token);
           localStorage.setItem('tradeos_id_token', data.id_token);
           localStorage.setItem('tradeos_access_token', data.access_token || '');
           localStorage.setItem('tradeos_token_expiry', Date.now() + ((data.expires_in || 3600) * 1000));
           
-          console.log('✅ Tokens stored, redirecting...');
+          console.log('✅ Verifying stored tokens...');
+          var verify = localStorage.getItem('tradeos_id_token');
+          console.log('✅ Token stored and verified:', !!verify);
+          
+          console.log('✅ Redirecting to /tradeos/dashboard.html');
           updateStatus('<div class="checkmark"></div>', 'Signed In!', 'Redirecting to dashboard...');
-          setTimeout(function() { window.location.href = '/tradeos/dashboard.html'; }, 1200);
+          setTimeout(function() { 
+            window.location.href = '/tradeos/dashboard.html'; 
+          }, 1200);
         } else {
           console.error('❌ No id_token in response:', data);
           updateStatus('❌', 'Sign In Failed', data.error || 'No token in response', true);
         }
       } catch(e) {
         console.error('❌ Exception in handleGoogleCallback:', e);
+        console.error('❌ Stack:', e.stack);
         updateStatus('❌', 'Connection Error', e.message, true);
       }
     }

@@ -166,6 +166,24 @@
     .error .status-sub {
       color: #ef4444;
     }
+
+    .retry-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .retry-link:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
   </style>
 </head>
 <body>
@@ -179,6 +197,7 @@
       </div>
       <div class="status-text" id="status">Signing you in...</div>
       <div class="status-sub" id="sub">Please wait while we authenticate</div>
+      <a href="/tradeos/login.html" class="retry-link" id="retry-link" style="display:none">Back to Sign In</a>
     </div>
   </div>
 
@@ -188,6 +207,7 @@
       const iconEl = document.getElementById('status-icon');
       const statusEl = document.getElementById('status');
       const subEl = document.getElementById('sub');
+      const retryLink = document.getElementById('retry-link');
 
       iconEl.innerHTML = icon;
       statusEl.textContent = text;
@@ -195,8 +215,10 @@
 
       if (isError) {
         container.classList.add('error');
+        retryLink.style.display = 'inline-block';
       } else {
         container.classList.remove('error');
+        retryLink.style.display = 'none';
       }
     }
 
@@ -212,7 +234,7 @@
       }
 
       if (!code) {
-        updateStatus('❌', 'No Auth Code', 'Please try signing in again', true);
+        window.location.href = '/tradeos/login.html';
         return;
       }
 
@@ -295,7 +317,7 @@
           
           console.log('✅ Tokens stored, redirecting...');
           updateStatus('<div class="checkmark"></div>', 'Signed In!', 'Redirecting to dashboard...');
-          setTimeout(function() { window.location.href = '/tradeos/'; }, 1200);
+          setTimeout(function() { window.location.href = '/tradeos/dashboard.html'; }, 1200);
         } else {
           console.error('❌ No id_token in response:', data);
           updateStatus('❌', 'Sign In Failed', data.error || 'No token in response', true);

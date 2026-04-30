@@ -166,11 +166,29 @@
     .error .status-sub {
       color: #ef4444;
     }
+
+    .retry-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: #fff;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .retry-link:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="logo">⚔️</div>
+    <div class="logo">O_O</div>
     <div class="branding">Trade<span>OS</span></div>
 
     <div class="status-container" id="status-container">
@@ -179,6 +197,7 @@
       </div>
       <div class="status-text" id="status">Signing you in...</div>
       <div class="status-sub" id="sub">Please wait while we authenticate</div>
+      <a href="/tradeos/login.html" class="retry-link" id="retry-link" style="display:none">Back to Sign In</a>
     </div>
   </div>
 
@@ -188,6 +207,7 @@
       const iconEl = document.getElementById('status-icon');
       const statusEl = document.getElementById('status');
       const subEl = document.getElementById('sub');
+      const retryLink = document.getElementById('retry-link');
 
       iconEl.innerHTML = icon;
       statusEl.textContent = text;
@@ -195,8 +215,10 @@
 
       if (isError) {
         container.classList.add('error');
+        retryLink.style.display = 'inline-block';
       } else {
         container.classList.remove('error');
+        retryLink.style.display = 'none';
       }
     }
 
@@ -212,7 +234,7 @@
       }
 
       if (!code) {
-        updateStatus('❌', 'No Auth Code', 'Please try signing in again', true);
+        window.location.href = '/tradeos/login.html';
         return;
       }
 
@@ -232,10 +254,27 @@
       updateStatus('<div class="spinner"></div>', 'Connecting Schwab', 'Linking your broker account...');
       try {
         var idToken = localStorage.getItem('id_token');
-        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/schwab/callback?code=' + encodeURIComponent(code), {
-          headers: { 'Authorization': 'Bearer ' + idToken }
+        console.log('🔐 Schwab callback - id_token exists:', !!idToken);
+        
+        var url = 'https://tradeos-proxy.gordon-foustiii.workers.dev/schwab/callback?code=' + encodeURIComponent(code);
+        console.log('📡 Calling Schwab endpoint:', url);
+        
+        var res = await fetch(url, {
+          headers: { 'Authorization': 'Bearer ' + (idToken || '') }
         });
+        
+        console.log('📊 Response status:', res.status);
+        
+        if (!res.ok) {
+          var errorText = await res.text();
+          console.error('❌ Schwab error:', errorText);
+          updateStatus('❌', 'Schwab Connection Failed', 'Status ' + res.status, true);
+          return;
+        }
+        
         var data = await res.json();
+        console.log('✅ Schwab response:', data);
+        
         if (data.ok) {
           updateStatus('<div class="checkmark"></div>', 'Schwab Connected!', 'Redirecting to profile...');
           setTimeout(function() { window.location.href = '/tradeos/settings.html'; }, 1200);
@@ -243,28 +282,70 @@
           updateStatus('❌', 'Schwab Connection Failed', data.error || 'Unknown error', true);
         }
       } catch(e) {
+        console.error('❌ Exception in handleSchwabCallback:', e);
         updateStatus('❌', 'Connection Error', e.message, true);
       }
     }
 
     async function handleGoogleCallback(code) {
       try {
-        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback?code=' + encodeURIComponent(code));
+        console.log('🔐 Starting Google callback with code:', code.substring(0, 20) + '...');
+        updateStatus('<div class="spinner"></div>', 'Verifying', 'Exchanging code for tokens...');
+        
+        var url = 'https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback?code=' + encodeURIComponent(code);
+        console.log('📡 Calling Worker:', url);
+        
+        var res = await fetch(url);
+        console.log('📊 Worker response status:', res.status);
+        
+        if (!res.ok) {
+          var errorText = await res.text();
+          console.error('❌ Worker error response:', errorText);
+          updateStatus('❌', 'Worker Error', 'Status ' + res.status + ': Check console', true);
+          return;
+        }
+
         var data = await res.json();
+        console.log('✅ Worker returned:', Object.keys(data));
+        console.log('📦 Full response:', data);
 
         if (data.id_token) {
+          console.log('✅ id_token received, verifying localStorage...');
+          
+          // Verify localStorage is accessible
+          try {
+            localStorage.setItem('_test', 'true');
+            localStorage.removeItem('_test');
+            console.log('✅ localStorage accessible');
+          } catch(e) {
+            console.error('❌ localStorage blocked:', e.message);
+            updateStatus('❌', 'Storage Error', 'localStorage is blocked', true);
+            return;
+          }
+          
+          console.log('✅ Storing tokens...');
           localStorage.setItem('id_token', data.id_token);
           localStorage.setItem('tradeos_id_token', data.id_token);
-          localStorage.setItem('tradeos_access_token', data.access_token);
-          localStorage.setItem('tradeos_token_expiry', Date.now() + (data.expires_in * 1000));
+          localStorage.setItem('tradeos_access_token', data.access_token || '');
+          localStorage.setItem('tradeos_token_expiry', Date.now() + ((data.expires_in || 3600) * 1000));
           
+          console.log('✅ Verifying stored tokens...');
+          var verify = localStorage.getItem('tradeos_id_token');
+          console.log('✅ Token stored and verified:', !!verify);
+          
+          console.log('✅ Redirecting to /tradeos/dashboard.html');
           updateStatus('<div class="checkmark"></div>', 'Signed In!', 'Redirecting to dashboard...');
-          setTimeout(function() { window.location.href = '/tradeos/'; }, 1200);
+          setTimeout(function() { 
+            window.location.href = '/tradeos/dashboard.html'; 
+          }, 1200);
         } else {
-          updateStatus('❌', 'Sign In Failed', data.error || 'Unknown error', true);
+          console.error('❌ No id_token in response:', data);
+          updateStatus('❌', 'Sign In Failed', data.error || 'No token in response', true);
         }
       } catch(e) {
-        updateStatus('❌', 'Sign In Failed', e.message, true);
+        console.error('❌ Exception in handleGoogleCallback:', e);
+        console.error('❌ Stack:', e.stack);
+        updateStatus('❌', 'Connection Error', e.message, true);
       }
     }
 

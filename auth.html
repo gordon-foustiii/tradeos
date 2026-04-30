@@ -232,10 +232,27 @@
       updateStatus('<div class="spinner"></div>', 'Connecting Schwab', 'Linking your broker account...');
       try {
         var idToken = localStorage.getItem('id_token');
-        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/schwab/callback?code=' + encodeURIComponent(code), {
-          headers: { 'Authorization': 'Bearer ' + idToken }
+        console.log('🔐 Schwab callback - id_token exists:', !!idToken);
+        
+        var url = 'https://tradeos-proxy.gordon-foustiii.workers.dev/schwab/callback?code=' + encodeURIComponent(code);
+        console.log('📡 Calling Schwab endpoint:', url);
+        
+        var res = await fetch(url, {
+          headers: { 'Authorization': 'Bearer ' + (idToken || '') }
         });
+        
+        console.log('📊 Response status:', res.status);
+        
+        if (!res.ok) {
+          var errorText = await res.text();
+          console.error('❌ Schwab error:', errorText);
+          updateStatus('❌', 'Schwab Connection Failed', 'Status ' + res.status, true);
+          return;
+        }
+        
         var data = await res.json();
+        console.log('✅ Schwab response:', data);
+        
         if (data.ok) {
           updateStatus('<div class="checkmark"></div>', 'Schwab Connected!', 'Redirecting to profile...');
           setTimeout(function() { window.location.href = '/tradeos/settings.html'; }, 1200);
@@ -243,28 +260,49 @@
           updateStatus('❌', 'Schwab Connection Failed', data.error || 'Unknown error', true);
         }
       } catch(e) {
+        console.error('❌ Exception in handleSchwabCallback:', e);
         updateStatus('❌', 'Connection Error', e.message, true);
       }
     }
 
     async function handleGoogleCallback(code) {
       try {
-        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback?code=' + encodeURIComponent(code));
+        console.log('🔐 Starting Google callback with code:', code.substring(0, 20) + '...');
+        updateStatus('<div class="spinner"></div>', 'Verifying', 'Exchanging code for tokens...');
+        
+        var url = 'https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback?code=' + encodeURIComponent(code);
+        console.log('📡 Calling Worker:', url);
+        
+        var res = await fetch(url);
+        console.log('📊 Worker response status:', res.status);
+        
+        if (!res.ok) {
+          var errorText = await res.text();
+          console.error('❌ Worker error response:', errorText);
+          updateStatus('❌', 'Worker Error', 'Status ' + res.status + ': Check console', true);
+          return;
+        }
+
         var data = await res.json();
+        console.log('✅ Worker returned:', Object.keys(data));
 
         if (data.id_token) {
+          console.log('✅ id_token received, storing tokens...');
           localStorage.setItem('id_token', data.id_token);
           localStorage.setItem('tradeos_id_token', data.id_token);
-          localStorage.setItem('tradeos_access_token', data.access_token);
-          localStorage.setItem('tradeos_token_expiry', Date.now() + (data.expires_in * 1000));
+          localStorage.setItem('tradeos_access_token', data.access_token || '');
+          localStorage.setItem('tradeos_token_expiry', Date.now() + ((data.expires_in || 3600) * 1000));
           
+          console.log('✅ Tokens stored, redirecting...');
           updateStatus('<div class="checkmark"></div>', 'Signed In!', 'Redirecting to dashboard...');
           setTimeout(function() { window.location.href = '/tradeos/'; }, 1200);
         } else {
-          updateStatus('❌', 'Sign In Failed', data.error || 'Unknown error', true);
+          console.error('❌ No id_token in response:', data);
+          updateStatus('❌', 'Sign In Failed', data.error || 'No token in response', true);
         }
       } catch(e) {
-        updateStatus('❌', 'Sign In Failed', e.message, true);
+        console.error('❌ Exception in handleGoogleCallback:', e);
+        updateStatus('❌', 'Connection Error', e.message, true);
       }
     }
 

@@ -170,7 +170,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="logo">O_O</div>
+    <div class="logo">⚔️</div>
     <div class="branding">Trade<span>OS</span></div>
 
     <div class="status-container" id="status-container">
@@ -249,19 +249,37 @@
 
     async function handleGoogleCallback(code) {
       try {
-        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback?code=' + encodeURIComponent(code));
-        var data = await res.json();
+        var codeVerifier = sessionStorage.getItem('code_verifier');
+        if (!codeVerifier) {
+          updateStatus('❌', 'Auth Error', 'Code verifier missing', true);
+          return;
+        }
+
+        var tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            client_id: '421306806975-bnktjac5i2g8js8sadr8lrfdtm0age02.apps.googleusercontent.com',
+            code: code,
+            code_verifier: codeVerifier,
+            grant_type: 'authorization_code',
+            redirect_uri: 'https://gordon-foustiii.github.io/tradeos/auth.html'
+          }).toString()
+        });
+
+        var data = await tokenRes.json();
+        sessionStorage.removeItem('code_verifier');
 
         if (data.id_token) {
           localStorage.setItem('id_token', data.id_token);
           localStorage.setItem('tradeos_id_token', data.id_token);
-          localStorage.setItem('tradeos_access_token', data.access_token);
-          localStorage.setItem('tradeos_token_expiry', Date.now() + (data.expires_in * 1000));
+          localStorage.setItem('tradeos_access_token', data.access_token || '');
+          localStorage.setItem('tradeos_token_expiry', Date.now() + (data.expires_in * 1000 || 3600000));
           
           updateStatus('<div class="checkmark"></div>', 'Signed In!', 'Redirecting to dashboard...');
           setTimeout(function() { window.location.href = '/tradeos/'; }, 1200);
         } else {
-          updateStatus('❌', 'Sign In Failed', data.error || 'Unknown error', true);
+          updateStatus('❌', 'Sign In Failed', data.error_description || data.error || 'Unknown error', true);
         }
       } catch(e) {
         updateStatus('❌', 'Sign In Failed', e.message, true);

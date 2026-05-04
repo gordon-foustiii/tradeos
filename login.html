@@ -187,6 +187,34 @@
         const CLIENT_ID = '421306806975-bnktjac5i2g8js8sadr8lrfdtm0age02.apps.googleusercontent.com';
         const REDIRECT_URI = 'https://gordon-foustiii.github.io/tradeos/auth.html';
 
+        // PKCE helpers
+        function generateRandomString(length) {
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+            var result = '';
+            for (var i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        async function sha256(str) {
+            var buf = new TextEncoder().encode(str);
+            var hash = await crypto.subtle.digest('SHA-256', buf);
+            var bytes = new Uint8Array(hash);
+            var binary = '';
+            for (var i = 0; i < bytes.length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        }
+
+        async function generatePKCE() {
+            var verifier = generateRandomString(128);
+            var challenge = await sha256(verifier);
+            sessionStorage.setItem('code_verifier', verifier);
+            return challenge;
+        }
+
         // Check if already logged in
         function checkAuth() {
             const token = localStorage.getItem('tradeos_id_token');
@@ -194,7 +222,7 @@
             
             if (token && expiry && Date.now() < parseInt(expiry)) {
                 // Token valid, redirect to dashboard
-                window.location.href = '/tradeos/dashboard.html';
+                window.location.href = '/tradeos/';
                 return true;
             }
             
@@ -215,14 +243,15 @@
                 document.querySelector('.indicator.online').classList.add('offline');
             });
 
-        function signInGoogle() {
+        async function signInGoogle() {
+            var challenge = await generatePKCE();
             var params = new URLSearchParams({
                 client_id: CLIENT_ID,
                 redirect_uri: REDIRECT_URI,
                 response_type: 'code',
                 scope: 'openid email profile',
-                access_type: 'offline',
-                prompt: 'consent'
+                code_challenge: challenge,
+                code_challenge_method: 'S256'
             });
             window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
         }

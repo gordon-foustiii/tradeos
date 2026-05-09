@@ -53,6 +53,7 @@ export default {
       if (url.pathname.startsWith("/bars/"))   return handleBarsRoute(url, env);
 
       if (url.pathname === "/health")      return jsonResponse({ ok: true, time: new Date().toISOString() });
+      if (url.pathname === "/tv-scanner")  return handleTvScanner(request, env);
 
       // Authenticated endpoints
       const userId = await verifyAuth(request, env);
@@ -639,6 +640,40 @@ async function verifyAuth(request, env) {
   } catch {
     return null;
   }
+}
+
+// =============================================================================
+// TV SCANNER WEBHOOK: /tv-scanner
+// =============================================================================
+async function handleTvScanner(request, env) {
+  if (request.method !== "POST") return jsonResponse({ error: "POST required" }, 405);
+  if (!env.DISCORD_WEBHOOK_URL) return jsonResponse({ error: "DISCORD_WEBHOOK_URL not configured" }, 500);
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return jsonResponse({ error: "Invalid JSON" }, 400);
+  }
+
+  const message = body.message || body.text || body.alert;
+  if (!message) return jsonResponse({ error: "message field required" }, 400);
+
+  const res = await fetch(env.DISCORD_WEBHOOK_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: "TradeOS Scanner",
+      content: `📡 **Scanner Alert**\n${message}`,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text().catch(() => "");
+    return jsonResponse({ error: `Discord error ${res.status}: ${err.slice(0, 200)}` }, 502);
+  }
+
+  return jsonResponse({ ok: true });
 }
 
 // =============================================================================

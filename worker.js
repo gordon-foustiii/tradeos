@@ -1,112 +1,324 @@
-// =============================================================================
-// TradeOS Scanner Worker (Combined)
-// Benzinga-powered stock screener + extended hours data aggregator
-// =============================================================================
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-const CORS_HEADERS = {
+// worker.js - Public API (no auth required)
+var CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization"
 };
-
-// API Keys
-const IEX_API_KEY = 'pk_live_YOUR_IEX_KEY'; // Get from https://iexcloud.io
-const POLYGON_API_KEY = 'PlRZwYUIEzNyxe3uqN7H88yrJlUGPxNL';
-const FINNHUB_API_KEY = 'YOUR_FINNHUB_KEY'; // Get from https://finnhub.io
-
-// Screener config
-const DEFAULT_FILTERS = {
+var POLYGON_API_KEY = "PlRZwYUIEzNyxe3uqN7H88yrJlUGPxNL";
+var DEFAULT_FILTERS = {
   priceMin: 1,
   priceMax: 20,
   changePctMin: 10,
-  volumeMin: 500_000,
+  volumeMin: 5e5,
   relVolMin: 2,
-  floatMax: 20_000_000,
-  mktCapMax: 2_000_000_000,
+  floatMax: 2e7,
+  mktCapMax: 2e9
 };
-
-const SCAN_CACHE_TTL_SEC = 60;
-const MAX_MOVERS = 200;
-const QUOTE_BATCH_SIZE = 100;
-const STALE_CACHE_TTL_SEC = 600;
-const CACHE_TTL = 60;
-
-// =============================================================================
-// Main Router
-// =============================================================================
-export default {
+var SCAN_CACHE_TTL_SEC = 60;
+var MAX_MOVERS = 200;
+var QUOTE_BATCH_SIZE = 100;
+var STALE_CACHE_TTL_SEC = 600;
+var CACHE_TTL = 60;
+var worker_default = {
   async fetch(request, env) {
     const url = new URL(request.url);
-
     if (request.method === "OPTIONS") {
-      return jsonResponse(null, 200);
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
-
     try {
-      // Screener endpoints
-      if (url.pathname === "/scan")        return handleScan(url, env);
+      if (url.pathname === "/scan") return handleScan(url, env);
       if (url.pathname === "/scan/latest") return getScanLatest(env);
-      if (url.pathname === "/news")        return handleNews(url, env);
-
-      // Extended hours endpoints
-      if (url.pathname.startsWith("/quote/"))  return handleQuoteRoute(url, env);
-      if (url.pathname.startsWith("/bars/"))   return handleBarsRoute(url, env);
-
-      if (url.pathname === "/health")      return jsonResponse({ ok: true, time: new Date().toISOString() });
-      if (url.pathname === "/tv-scanner")  return handleTvScanner(request, env);
-
-      // Authenticated endpoints
-      const userId = await verifyAuth(request, env);
-      if (!userId) return jsonResponse({ error: "Unauthorized" }, 401);
-
-      if (request.method === "GET") {
-        const action = url.searchParams.get("action");
-        if (action === "stats")  return getStats(userId, env);
-        if (action === "trades") return getTrades(userId, env);
-        return jsonResponse({ error: "Unknown action" }, 400);
-      }
-
-      if (request.method === "POST") {
-        const body = await request.json();
-        if (body.action === "submit")      return submitTrade(userId, body, env);
-        if (body.action === "updateTrade") return updateTrade(userId, body, env);
-        return jsonResponse({ error: "Unknown action" }, 400);
-      }
-
-      return jsonResponse({ error: "Method not allowed" }, 405);
+      if (url.pathname === "/scan-and-alert") return handleScanAndAlert(url, env);
+      if (url.pathname === "/tv-scanner") return handleTVScanner(request, env);
+      if (url.pathname === "/discord") return handleDiscordRelay(request, env);
+      if (url.pathname === '/auth/callback') return handleAuthCallback(request, env);
+      if (url.pathname === "/news") return handleNews(url, env);
+      if (url.pathname.startsWith("/quote/")) return handleQuoteRoute(url, env);
+      if (url.pathname.startsWith("/bars/")) return handleBarsRoute(url, env);
+      if (url.pathname === "/health") return jsonResponse({ ok: true, time: (/* @__PURE__ */ new Date()).toISOString() });
+      return jsonResponse({ error: "Not found" }, 404);
     } catch (err) {
       console.error("Top-level error:", err.stack || err.message);
       return jsonResponse({ error: err.message }, 500);
     }
-  },
+  }
 };
 
-// =============================================================================
-// SCANNER: /scan
-// =============================================================================
+async function handleAuthCallback(request, env) {
+  if (request.method !== 'POST') {
+    return jsonResponse({ error: 'POST only' }, 405);
+  }
+
+  try {
+    const body = await request.json();
+    const { code, redirect_uri } = body;
+
+    if (!code) {
+      return jsonResponse({ error: 'Authorization code required' }, 400);
+    }
+
+    if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+      return jsonResponse({ error: 'Server misconfigured: Google secrets missing' }, 500);
+    }
+
+    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: env.GOOGLE_CLIENT_ID,
+        client_secret: env.GOOGLE_CLIENT_SECRET,
+        code: code,
+        grant_type: 'authorization_code',
+        redirect_uri: redirect_uri || 'https://gordon-foustiii.github.io/tradeos/auth.html'
+      }).toString()
+    });
+
+    const data = await tokenRes.json();
+
+    if (!tokenRes.ok || !data.id_token) {
+      console.error('Google token error:', data);
+      return jsonResponse({ error: data.error_description || data.error || 'Token exchange failed' }, 400);
+    }
+
+    return jsonResponse({
+      id_token: data.id_token,
+      access_token: data.access_token || null,
+      expires_in: data.expires_in || 3600,
+      token_type: data.token_type || 'Bearer'
+    });
+  } catch (err) {
+    console.error('Auth callback error:', err.message);
+    return jsonResponse({ error: err.message }, 500);
+  }
+}
+
+// NEW: Scan + Alert handler
+async function handleScanAndAlert(url, env) {
+  if (!env.BENZINGA_API_KEY) {
+    return jsonResponse({
+      error: "Server misconfigured: BENZINGA_API_KEY secret is not set",
+      results: []
+    }, 500);
+  }
+
+  try {
+    // Run scan with default filters
+    const filters = DEFAULT_FILTERS;
+    let movers;
+    try {
+      movers = await fetchMovers(env.BENZINGA_API_KEY, "REGULAR", MAX_MOVERS);
+    } catch (e) {
+      console.error("fetchMovers error:", e.message);
+      return jsonResponse({ error: `Scan failed: ${e.message}` }, 500);
+    }
+
+    const gainers = movers.gainers || [];
+    const preSurvivors = gainers.map(normalizeMover).filter((m) => prePassesFilters(m, filters));
+
+    if (preSurvivors.length === 0) {
+      return jsonResponse({ success: true, count: 0, message: "No results found" });
+    }
+
+    let quotes = {};
+    try {
+      quotes = await fetchQuotes(env.BENZINGA_API_KEY, preSurvivors.map((s) => s.ticker));
+    } catch (e) {
+      console.error("fetchQuotes error:", e.message);
+    }
+
+    const enriched = preSurvivors.map((s) => {
+      const q = quotes[s.ticker] || {};
+      return {
+        ...s,
+        float: q.sharesFloat ?? null,
+        mktCap: q.marketCap ?? null,
+        name: q.companyStandardName || q.name || s.name
+      };
+    });
+
+    const finalResults = enriched.filter((r) => postPassesFilters(r, filters)).sort((a, b) => b.changePercent - a.changePercent);
+    const topTickers = finalResults.slice(0, 15);
+
+    // Build Discord payload
+    const discordPayload = {
+      content: "🔍 **LIVE SCANNER RESULTS**",
+      embeds: [{
+        title: `Pre-Market Scan - ${new Date().toLocaleTimeString("en-US")}`,
+        color: 3066993,
+        fields: topTickers.map(t => ({
+          name: `${t.ticker} • $${t.price}`,
+          value: `Change: ${t.changePercent}% | Vol: ${formatNumber(t.volume)} | Float: ${formatNumber(t.float)} | Cap: $${formatNumber(t.mktCap)}`,
+          inline: false
+        })),
+        footer: { text: `Total matches: ${finalResults.length} | Source: Benzinga` }
+      }]
+    };
+
+    // Send to Discord
+    const discordWebhook = env.DISCORD_WEBHOOK;
+    if (!discordWebhook) {
+      return jsonResponse({ error: "DISCORD_WEBHOOK not configured" }, 500);
+    }
+
+    const discordRes = await fetch(discordWebhook, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(discordPayload)
+    });
+
+    if (!discordRes.ok) {
+      console.error("Discord send failed:", discordRes.status);
+      return jsonResponse({ error: `Discord error: ${discordRes.status}` }, 500);
+    }
+
+    return jsonResponse({
+      success: true,
+      tickersPosted: topTickers.length,
+      totalMatches: finalResults.length
+    });
+  } catch (err) {
+    console.error("Scan and alert error:", err);
+    return jsonResponse({ error: err.message }, 500);
+  }
+}
+__name(handleScanAndAlert, "handleScanAndAlert");
+
+// NEW: TradingView Scanner webhook
+async function handleTVScanner(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse({ error: "POST only" }, 405);
+  }
+
+  try {
+    const body = await request.json();
+    const message = body.message || "";
+    
+    const lines = message.split("\n").filter(line => line.trim());
+    
+    const tickers = lines.map(line => {
+      const parts = line.split("|").map(p => p.trim());
+      return {
+        ticker: parts[0] || "?",
+        price: parts[1] || "?",
+        change: parts[2] || "?",
+        float: parts[3] || "?",
+        volume: parts[4] || "?"
+      };
+    });
+
+    const discordPayload = {
+      content: "🔍 **SCANNER HITS**",
+      embeds: [{
+        title: `TradingView Alert - ${new Date().toLocaleTimeString("en-US")}`,
+        color: 3066993,
+        fields: tickers.map(t => ({
+          name: t.ticker,
+          value: `${t.price} | ${t.change} | ${t.float} | ${t.volume}`,
+          inline: false
+        })),
+        footer: { text: "TradingView Premium Webhook" }
+      }]
+    };
+
+    const discordWebhook = env.DISCORD_WEBHOOK;
+    if (!discordWebhook) {
+      return jsonResponse({ error: "DISCORD_WEBHOOK not configured" }, 500);
+    }
+
+    await fetch(discordWebhook, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(discordPayload)
+    });
+
+    return jsonResponse({ success: true, tickersProcessed: tickers.length });
+  } catch (err) {
+    console.error("TV Scanner error:", err);
+    return jsonResponse({ error: err.message }, 500);
+  }
+}
+__name(handleTVScanner, "handleTVScanner");
+
+// Discord relay endpoint
+async function handleDiscordRelay(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse({ error: "POST only" }, 405);
+  }
+
+  try {
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseErr) {
+      console.error("JSON parse error:", parseErr.message);
+      return jsonResponse({ error: `Invalid JSON: ${parseErr.message}` }, 400);
+    }
+
+    const { webhookUrl, payload } = body;
+
+    if (!webhookUrl) {
+      return jsonResponse({ error: "Missing webhookUrl" }, 400);
+    }
+    if (!payload) {
+      return jsonResponse({ error: "Missing payload" }, 400);
+    }
+
+    console.log("Relaying to Discord:", webhookUrl.slice(0, 50) + "...");
+
+    const discordRes = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    console.log("Discord response:", discordRes.status);
+
+    if (!discordRes.ok) {
+      const discordError = await discordRes.text();
+      console.error("Discord error:", discordError);
+      return jsonResponse({ error: `Discord error: ${discordRes.status} ${discordError}` }, discordRes.status);
+    }
+
+    return jsonResponse({ success: true });
+  } catch (err) {
+    console.error("Discord relay error:", err.message, err.stack);
+    return jsonResponse({ error: err.message }, 500);
+  }
+}
+__name(handleDiscordRelay, "handleDiscordRelay");
+
+function formatNumber(n) {
+  if (!n) return "N/A";
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+  return n.toFixed(0);
+}
+__name(formatNumber, "formatNumber");
+
+// EXISTING FUNCTIONS (unchanged)
 async function handleScan(url, env) {
   if (!env.BENZINGA_API_KEY) {
     return jsonResponse({
       error: "Server misconfigured: BENZINGA_API_KEY secret is not set",
-      results: [],
+      results: []
     }, 500);
   }
-
   const filters = parseFilters(url.searchParams);
   const usingDefaults = JSON.stringify(filters) === JSON.stringify(DEFAULT_FILTERS);
-
   if (usingDefaults) {
     const cached = await kvGet(env, "scan:latest");
     if (cached) {
-      const ageSec = (Date.now() - new Date(cached.timestamp).getTime()) / 1000;
+      const ageSec = (Date.now() - new Date(cached.timestamp).getTime()) / 1e3;
       if (ageSec < SCAN_CACHE_TTL_SEC) {
         return jsonResponse({ ...cached, cached: true, ageSec: Math.round(ageSec) });
       }
     }
   }
-
   const session = (url.searchParams.get("session") || "REGULAR").toUpperCase();
-
   let movers;
   try {
     movers = await fetchMovers(env.BENZINGA_API_KEY, session, MAX_MOVERS);
@@ -114,39 +326,32 @@ async function handleScan(url, env) {
     console.error("fetchMovers error:", e.message);
     return fallbackToCachedScan(env, `movers fetch failed: ${e.message}`);
   }
-
   const gainers = movers.gainers || [];
   console.log(`Benzinga returned ${gainers.length} gainers`);
-
-  const preSurvivors = gainers
-    .map(normalizeMover)
-    .filter((m) => prePassesFilters(m, filters));
+  const preSurvivors = gainers.map(normalizeMover).filter((m) => prePassesFilters(m, filters));
   console.log(`After pre-filter: ${preSurvivors.length}`);
-
   if (preSurvivors.length === 0) {
     const empty = {
       results: [],
-      timestamp: new Date().toISOString(),
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
       count: 0,
       moversReturned: gainers.length,
       filters,
       session,
-      source: "benzinga",
+      source: "benzinga"
     };
     if (usingDefaults) await kvPut(env, "scan:latest", empty, STALE_CACHE_TTL_SEC);
     return jsonResponse(empty);
   }
-
   let quotes = {};
   try {
     quotes = await fetchQuotes(
       env.BENZINGA_API_KEY,
-      preSurvivors.map((s) => s.ticker),
+      preSurvivors.map((s) => s.ticker)
     );
   } catch (e) {
     console.error("fetchQuotes error:", e.message);
   }
-
   const enriched = preSurvivors.map((s) => {
     const q = quotes[s.ticker] || {};
     return {
@@ -154,52 +359,42 @@ async function handleScan(url, env) {
       float: q.sharesFloat ?? null,
       mktCap: q.marketCap ?? null,
       name: q.companyStandardName || q.name || s.name,
-      exchange: q.bzExchange || null,
+      exchange: q.bzExchange || null
     };
   });
-
-  const finalResults = enriched
-    .filter((r) => postPassesFilters(r, filters))
-    .sort((a, b) => b.changePercent - a.changePercent);
-
+  const finalResults = enriched.filter((r) => postPassesFilters(r, filters)).sort((a, b) => b.changePercent - a.changePercent);
   const payload = {
     results: finalResults,
-    timestamp: new Date().toISOString(),
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
     count: finalResults.length,
     moversReturned: gainers.length,
     preFilterSurvivors: preSurvivors.length,
     filters,
     session,
-    source: "benzinga",
+    source: "benzinga"
   };
-
   if (usingDefaults) await kvPut(env, "scan:latest", payload, STALE_CACHE_TTL_SEC);
-
   return jsonResponse(payload);
 }
+__name(handleScan, "handleScan");
 
-// =============================================================================
-// EXTENDED HOURS: /quote/:ticker
-// =============================================================================
 async function handleQuoteRoute(url, env) {
-  const ticker = url.pathname.split('/')[2]?.toUpperCase();
-  if (!ticker) return jsonResponse({ error: 'Ticker required' }, 400);
+  const ticker = url.pathname.split("/")[2]?.toUpperCase();
+  if (!ticker) return jsonResponse({ error: "Ticker required" }, 400);
   const data = await handleQuote(ticker, env);
   return jsonResponse(data);
 }
+__name(handleQuoteRoute, "handleQuoteRoute");
 
 async function handleQuote(ticker, env) {
   const cacheKey = `quote-${ticker}`;
   const cached = await kvGet(env, cacheKey);
   if (cached) return cached;
-
   try {
-    // Try IEX Cloud first (best extended hours data)
-    if (env.IEX_API_KEY && env.IEX_API_KEY.startsWith('pk_')) {
+    if (env.IEX_API_KEY && env.IEX_API_KEY.startsWith("pk_")) {
       const iexRes = await fetch(
         `https://cloud.iexapis.com/stable/stock/${ticker}/quote?token=${env.IEX_API_KEY}`
       );
-
       if (iexRes.ok) {
         const iexData = await iexRes.json();
         const quote = {
@@ -213,23 +408,19 @@ async function handleQuote(ticker, env) {
           low: iexData.low,
           volume: iexData.volume,
           timestamp: iexData.latestUpdate || Date.now(),
-          marketStatus: iexData.isUSMarketOpen ? 'OPEN' : getMarketStatus(),
-          source: 'IEX'
+          marketStatus: iexData.isUSMarketOpen ? "OPEN" : getMarketStatus(),
+          source: "IEX"
         };
-
         await kvPut(env, cacheKey, quote, CACHE_TTL);
         return quote;
       }
     }
-
-    // Fallback to Polygon
     const polyRes = await fetch(
       `https://api.polygon.io/v1/last/quote/STOCKS/${ticker}?apiKey=${POLYGON_API_KEY}`
     );
-
     if (polyRes.ok) {
       const polyData = await polyRes.json();
-      if (polyData.status === 'OK' && polyData.result) {
+      if (polyData.status === "OK" && polyData.result) {
         const quote = {
           ticker,
           price: polyData.result.last,
@@ -239,139 +430,111 @@ async function handleQuote(ticker, env) {
           askSize: polyData.result.ask_size,
           timestamp: polyData.result.timestamp,
           marketStatus: getMarketStatus(),
-          source: 'Polygon'
+          source: "Polygon"
         };
-
         await kvPut(env, cacheKey, quote, CACHE_TTL);
         return quote;
       }
     }
-
-    return { error: 'No data available', ticker };
+    return { error: "No data available", ticker };
   } catch (e) {
     console.error(`Quote fetch failed for ${ticker}:`, e.message);
     return { error: e.message, ticker };
   }
 }
+__name(handleQuote, "handleQuote");
 
-// =============================================================================
-// EXTENDED HOURS: /bars/:ticker
-// =============================================================================
 async function handleBarsRoute(url, env) {
-  const ticker = url.pathname.split('/')[2]?.toUpperCase();
-  if (!ticker) return jsonResponse({ error: 'Ticker required' }, 400);
+  const ticker = url.pathname.split("/")[2]?.toUpperCase();
+  if (!ticker) return jsonResponse({ error: "Ticker required" }, 400);
   const data = await handleBars(ticker, env);
   return jsonResponse(data);
 }
+__name(handleBarsRoute, "handleBarsRoute");
 
 async function handleBars(ticker, env) {
   const cacheKey = `bars-${ticker}`;
   const cached = await kvGet(env, cacheKey);
   if (cached) return cached;
-
   try {
-    const today = new Date();
-    const dateStr = today.toISOString().split('T')[0];
-
-    // Try IEX Cloud intraday (includes extended hours)
-    if (env.IEX_API_KEY && env.IEX_API_KEY.startsWith('pk_')) {
+    const today = /* @__PURE__ */ new Date();
+    const dateStr = today.toISOString().split("T")[0];
+    if (env.IEX_API_KEY && env.IEX_API_KEY.startsWith("pk_")) {
       const iexRes = await fetch(
         `https://cloud.iexapis.com/stable/stock/${ticker}/intraday-prices?token=${env.IEX_API_KEY}`
       );
-
       if (iexRes.ok) {
         const iexBars = await iexRes.json();
-        
-        const bars = iexBars
-          .filter(b => b.date === dateStr || !b.date)
-          .map(b => ({
-            time: Math.floor(new Date(b.label).getTime() / 1000),
-            open: b.open || b.price,
-            high: b.high || b.price,
-            low: b.low || b.price,
-            close: b.close || b.price,
-            volume: b.volume || 0
-          }))
-          .sort((a, b) => a.time - b.time);
-
-        const result = { ticker, bars, source: 'IEX', count: bars.length };
+        const bars = iexBars.filter((b) => b.date === dateStr || !b.date).map((b) => ({
+          time: Math.floor(new Date(b.label).getTime() / 1e3),
+          open: b.open || b.price,
+          high: b.high || b.price,
+          low: b.low || b.price,
+          close: b.close || b.price,
+          volume: b.volume || 0
+        })).sort((a, b) => a.time - b.time);
+        const result = { ticker, bars, source: "IEX", count: bars.length };
         await kvPut(env, cacheKey, result, CACHE_TTL);
         return result;
       }
     }
-
-    // Fallback to Polygon extended hours
     const polyRes = await fetch(
       `https://api.polygon.io/v2/aggs/ticker/${ticker}/range/1/minute/${dateStr}/${dateStr}?sort=asc&limit=960&apiKey=${POLYGON_API_KEY}`
     );
-
     if (polyRes.ok) {
       const polyData = await polyRes.json();
-      
-      const bars = (polyData.results || [])
-        .map(b => ({
-          time: Math.floor(b.t / 1000),
-          open: b.o,
-          high: b.h,
-          low: b.l,
-          close: b.c,
-          volume: b.v
-        }))
-        .sort((a, b) => a.time - b.time);
-
-      const result = { ticker, bars, source: 'Polygon', count: bars.length };
+      const bars = (polyData.results || []).map((b) => ({
+        time: Math.floor(b.t / 1e3),
+        open: b.o,
+        high: b.h,
+        low: b.l,
+        close: b.c,
+        volume: b.v
+      })).sort((a, b) => a.time - b.time);
+      const result = { ticker, bars, source: "Polygon", count: bars.length };
       await kvPut(env, cacheKey, result, CACHE_TTL);
       return result;
     }
-
-    return { error: 'No bar data available', ticker };
+    return { error: "No bar data available", ticker };
   } catch (e) {
     console.error(`Bars fetch failed for ${ticker}:`, e.message);
     return { error: e.message, ticker };
   }
 }
+__name(handleBars, "handleBars");
 
-// =============================================================================
-// NEWS: /news?ticker=AAPL
-// =============================================================================
 async function handleNews(url, env) {
   const ticker = url.searchParams.get("ticker");
   if (!ticker) return jsonResponse({ error: "ticker required" }, 400);
-
-  // Prefer Benzinga news if key present, fall back to Yahoo search
   if (env.BENZINGA_API_KEY) {
     try {
       const params = new URLSearchParams({
         token: env.BENZINGA_API_KEY,
         tickers: ticker,
         pageSize: "10",
-        displayOutput: "headline",
+        displayOutput: "headline"
       });
       const res = await fetch(`https://api.benzinga.com/api/v2/news?${params}`, {
-        headers: { Accept: "application/json" },
+        headers: { Accept: "application/json" }
       });
       if (res.ok) {
         const data = await res.json();
-        const items = Array.isArray(data)
-          ? data.map((n) => ({
-              title: n.title,
-              url: n.url,
-              source: n.author || "Benzinga",
-              publishedAt: n.created || n.updated || null,
-            }))
-          : [];
+        const items = Array.isArray(data) ? data.map((n) => ({
+          title: n.title,
+          url: n.url,
+          source: n.author || "Benzinga",
+          publishedAt: n.created || n.updated || null
+        })) : [];
         if (items.length) return jsonResponse({ ticker, items });
       }
     } catch (e) {
       console.warn("Benzinga news error:", e.message);
     }
   }
-
-  // Fallback: Yahoo search
   try {
     const res = await fetch(
       `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(ticker)}&newsCount=10`,
-      { headers: { "User-Agent": "Mozilla/5.0" } },
+      { headers: { "User-Agent": "Mozilla/5.0" } }
     );
     if (!res.ok) return jsonResponse({ items: [] });
     const data = await res.json();
@@ -379,23 +542,18 @@ async function handleNews(url, env) {
       title: item.title,
       url: item.link,
       source: item.publisher,
-      publishedAt: item.providerPublishTime
-        ? new Date(item.providerPublishTime * 1000).toISOString()
-        : null,
+      publishedAt: item.providerPublishTime ? new Date(item.providerPublishTime * 1e3).toISOString() : null
     }));
     return jsonResponse({ ticker, items });
   } catch (e) {
     return jsonResponse({ ticker, items: [], error: e.message }, 500);
   }
 }
+__name(handleNews, "handleNews");
 
-// =============================================================================
-// BENZINGA API CLIENTS
-// =============================================================================
 async function fetchMovers(token, session, maxResults) {
   const params = new URLSearchParams({ token, maxResults: String(maxResults) });
   if (session) params.set("session", session);
-
   const url = `https://api.benzinga.com/api/v1/market/movers?${params}`;
   const res = await fetch(url, { headers: { Accept: "application/json" } });
   if (!res.ok) {
@@ -408,6 +566,7 @@ async function fetchMovers(token, session, maxResults) {
   }
   return data.result || {};
 }
+__name(fetchMovers, "fetchMovers");
 
 async function fetchQuotes(token, tickers) {
   const out = {};
@@ -415,7 +574,7 @@ async function fetchQuotes(token, tickers) {
     const slice = tickers.slice(i, i + QUOTE_BATCH_SIZE);
     const params = new URLSearchParams({
       token,
-      symbols: slice.join(","),
+      symbols: slice.join(",")
     });
     const url = `https://api.benzinga.com/api/v2/quoteDelayed?${params}`;
     const res = await fetch(url, { headers: { Accept: "application/json" } });
@@ -430,39 +589,34 @@ async function fetchQuotes(token, tickers) {
   }
   return out;
 }
+__name(fetchQuotes, "fetchQuotes");
 
-// =============================================================================
-// SCREENER FILTERS
-// =============================================================================
 function parseFilters(searchParams) {
-  const numOr = (key, fallback) => {
+  const numOr = /* @__PURE__ */ __name((key, fallback) => {
     const v = searchParams.get(key);
     if (v == null || v === "") return fallback;
     const n = Number(v);
     return Number.isFinite(n) ? n : fallback;
-  };
+  }, "numOr");
   return {
-    priceMin:     numOr("priceMin",     DEFAULT_FILTERS.priceMin),
-    priceMax:     numOr("priceMax",     DEFAULT_FILTERS.priceMax),
+    priceMin: numOr("priceMin", DEFAULT_FILTERS.priceMin),
+    priceMax: numOr("priceMax", DEFAULT_FILTERS.priceMax),
     changePctMin: numOr("changePctMin", DEFAULT_FILTERS.changePctMin),
-    volumeMin:    numOr("volumeMin",    DEFAULT_FILTERS.volumeMin),
-    relVolMin:    numOr("relVolMin",    DEFAULT_FILTERS.relVolMin),
-    floatMax:     numOr("floatMax",     DEFAULT_FILTERS.floatMax),
-    mktCapMax:    numOr("mktCapMax",    DEFAULT_FILTERS.mktCapMax),
+    volumeMin: numOr("volumeMin", DEFAULT_FILTERS.volumeMin),
+    relVolMin: numOr("relVolMin", DEFAULT_FILTERS.relVolMin),
+    floatMax: numOr("floatMax", DEFAULT_FILTERS.floatMax),
+    mktCapMax: numOr("mktCapMax", DEFAULT_FILTERS.mktCapMax)
   };
 }
+__name(parseFilters, "parseFilters");
 
 function normalizeMover(g) {
   const volume = typeof g.volume === "string" ? Number(g.volume) : g.volume;
-  const avgVolume = typeof g.averageVolume === "string"
-    ? Number(g.averageVolume)
-    : g.averageVolume;
+  const avgVolume = typeof g.averageVolume === "string" ? Number(g.averageVolume) : g.averageVolume;
   const price = Number(g.price);
   const changePercent = Number(g.changePercent);
   const changeDollar = Number(g.change);
-
   const relVol = avgVolume && avgVolume > 0 ? volume / avgVolume : null;
-
   return {
     ticker: g.symbol,
     name: g.companyName || g.symbol,
@@ -473,9 +627,10 @@ function normalizeMover(g) {
     volume,
     avgVolume,
     relVol: round(relVol, 2),
-    sector: g.gicsSectorName || null,
+    sector: g.gicsSectorName || null
   };
 }
+__name(normalizeMover, "normalizeMover");
 
 function prePassesFilters(m, f) {
   if (m.price == null || m.changePercent == null || m.volume == null) return false;
@@ -485,42 +640,38 @@ function prePassesFilters(m, f) {
   if (m.relVol == null || m.relVol < f.relVolMin) return false;
   return true;
 }
+__name(prePassesFilters, "prePassesFilters");
 
 function postPassesFilters(r, f) {
   if (r.float != null && r.float > f.floatMax) return false;
   if (r.mktCap != null && r.mktCap > f.mktCapMax) return false;
   return true;
 }
+__name(postPassesFilters, "postPassesFilters");
 
 function round(n, digits) {
   if (n == null || !Number.isFinite(n)) return null;
   const f = Math.pow(10, digits);
   return Math.round(n * f) / f;
 }
+__name(round, "round");
 
-// =============================================================================
-// MARKET STATUS
-// =============================================================================
 function getMarketStatus() {
-  const now = new Date();
+  const now = /* @__PURE__ */ new Date();
   const hour = now.getHours();
   const day = now.getDay();
-
-  if (day === 0 || day === 6) return 'CLOSED_WEEKEND';
-  if (hour >= 4 && hour < 9) return 'PRE_MARKET';
-  if (hour === 9 && now.getMinutes() < 30) return 'PRE_MARKET';
+  if (day === 0 || day === 6) return "CLOSED_WEEKEND";
+  if (hour >= 4 && hour < 9) return "PRE_MARKET";
+  if (hour === 9 && now.getMinutes() < 30) return "PRE_MARKET";
   if (hour >= 9 && hour < 16) {
-    if (hour === 9 && now.getMinutes() >= 30) return 'OPEN';
-    if (hour > 9 && hour < 16) return 'OPEN';
+    if (hour === 9 && now.getMinutes() >= 30) return "OPEN";
+    if (hour > 9 && hour < 16) return "OPEN";
   }
-  if (hour >= 16 && hour < 20) return 'AFTER_HOURS';
-
-  return 'CLOSED';
+  if (hour >= 16 && hour < 20) return "AFTER_HOURS";
+  return "CLOSED";
 }
+__name(getMarketStatus, "getMarketStatus");
 
-// =============================================================================
-// KV CACHE HELPERS
-// =============================================================================
 async function kvGet(env, key) {
   try {
     const data = await env.TRADEOS_USERS.get(key);
@@ -530,6 +681,7 @@ async function kvGet(env, key) {
     return null;
   }
 }
+__name(kvGet, "kvGet");
 
 async function kvPut(env, key, value, ttlSec) {
   try {
@@ -538,6 +690,7 @@ async function kvPut(env, key, value, ttlSec) {
     console.error(`KV put error (${key}):`, e.message);
   }
 }
+__name(kvPut, "kvPut");
 
 async function fallbackToCachedScan(env, reason) {
   try {
@@ -550,6 +703,7 @@ async function fallbackToCachedScan(env, reason) {
   }
   return jsonResponse({ results: [], error: reason }, 502);
 }
+__name(fallbackToCachedScan, "fallbackToCachedScan");
 
 async function getScanLatest(env) {
   try {
@@ -559,129 +713,14 @@ async function getScanLatest(env) {
     return jsonResponse({ error: e.message, results: [] }, 500);
   }
 }
+__name(getScanLatest, "getScanLatest");
 
-// =============================================================================
-// TRADE JOURNAL
-// =============================================================================
-async function getStats(userId, env) {
-  try {
-    const data = await kvGet(env, `trades:${userId}`);
-    if (!data) return jsonResponse({ total: 0, winRate: 0, totalPnl: 0 });
-    const wins = data.filter((t) => t.pnl > 0).length;
-    const totalPnl = data.reduce((sum, t) => sum + (t.pnl || 0), 0);
-    const winRate = data.length ? Math.round((wins / data.length) * 100) : 0;
-    return jsonResponse({ total: data.length, winRate, totalPnl });
-  } catch (e) {
-    return jsonResponse({ error: e.message }, 500);
-  }
-}
-
-async function getTrades(userId, env) {
-  try {
-    const data = await kvGet(env, `trades:${userId}`);
-    return jsonResponse({ trades: data || [] });
-  } catch (e) {
-    return jsonResponse({ error: e.message }, 500);
-  }
-}
-
-async function submitTrade(userId, body, env) {
-  try {
-    const key = `trades:${userId}`;
-    const existing = await kvGet(env, key);
-    const trades = existing || [];
-    const trade = {
-      id: Date.now().toString(),
-      date: body.date || new Date().toISOString().split("T")[0],
-      ticker: body.ticker,
-      entry: parseFloat(body.entry) || 0,
-      exit: parseFloat(body.exit) || 0,
-      qty: parseInt(body.qty) || 0,
-      pnl: parseFloat(body.pnl) || 0,
-      createdAt: new Date().toISOString(),
-    };
-    trades.push(trade);
-    await kvPut(env, key, trades);
-    return jsonResponse({ success: true, trade });
-  } catch (e) {
-    return jsonResponse({ error: e.message }, 500);
-  }
-}
-
-async function updateTrade(userId, body, env) {
-  try {
-    const key = `trades:${userId}`;
-    const data = await kvGet(env, key);
-    if (!data) return jsonResponse({ error: "No trades found" }, 404);
-    const idx = data.findIndex((t) => t.id === body.id);
-    if (idx === -1) return jsonResponse({ error: "Trade not found" }, 404);
-    data[idx] = { ...data[idx], ...body, updatedAt: new Date().toISOString() };
-    await kvPut(env, key, data);
-    return jsonResponse({ success: true, trade: data[idx] });
-  } catch (e) {
-    return jsonResponse({ error: e.message }, 500);
-  }
-}
-
-// =============================================================================
-// AUTH
-// =============================================================================
-async function verifyAuth(request, env) {
-  const auth = request.headers.get("Authorization");
-  if (!auth?.startsWith("Bearer ")) return null;
-  try {
-    const res = await fetch(
-      `https://oauth2.googleapis.com/tokeninfo?id_token=${auth.substring(7)}`,
-    );
-    const data = await res.json();
-    if (data.aud !== env.GOOGLE_CLIENT_ID) return null;
-    if (data.exp && Date.now() / 1000 > data.exp) return null;
-    return data.sub;
-  } catch {
-    return null;
-  }
-}
-
-// =============================================================================
-// TV SCANNER WEBHOOK: /tv-scanner
-// =============================================================================
-async function handleTvScanner(request, env) {
-  if (request.method !== "POST") return jsonResponse({ error: "POST required" }, 405);
-  if (!env.DISCORD_WEBHOOK_URL) return jsonResponse({ error: "DISCORD_WEBHOOK_URL not configured" }, 500);
-
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return jsonResponse({ error: "Invalid JSON" }, 400);
-  }
-
-  const message = body.message || body.text || body.alert;
-  if (!message) return jsonResponse({ error: "message field required" }, 400);
-
-  const res = await fetch(env.DISCORD_WEBHOOK_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: "TradeOS Scanner",
-      content: `📡 **Scanner Alert**\n${message}`,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text().catch(() => "");
-    return jsonResponse({ error: `Discord error ${res.status}: ${err.slice(0, 200)}` }, 502);
-  }
-
-  return jsonResponse({ ok: true });
-}
-
-// =============================================================================
-// RESPONSE HELPER
-// =============================================================================
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+    headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
   });
 }
+__name(jsonResponse, "jsonResponse");
+
+export { worker_default as default };

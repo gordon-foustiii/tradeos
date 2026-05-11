@@ -39,6 +39,26 @@ var worker_default = {
       if (url.pathname.startsWith("/quote/")) return handleQuoteRoute(url, env);
       if (url.pathname.startsWith("/bars/")) return handleBarsRoute(url, env);
       if (url.pathname === "/health") return jsonResponse({ ok: true, time: (/* @__PURE__ */ new Date()).toISOString() });
+
+      // Authenticated journal endpoints (?action= query param style)
+      if (url.pathname === "/") {
+        const userId = await verifyAuth(request, env);
+        if (!userId) return jsonResponse({ error: "Unauthorized" }, 401);
+        if (request.method === "GET") {
+          const action = url.searchParams.get("action");
+          if (action === "stats") return getStats(userId, env);
+          if (action === "trades") return getTrades(userId, env);
+          if (action === "getHabits") return getHabits(userId, env);
+        }
+        if (request.method === "POST") {
+          const body = await request.json();
+          if (body.action === "submit") return submitTrade(userId, body, env);
+          if (body.action === "updateTrade") return updateTrade(userId, body, env);
+          if (body.action === "saveHabits") return saveHabits(userId, body, env);
+        }
+        return jsonResponse({ error: "Unknown action" }, 400);
+      }
+
       return jsonResponse({ error: "Not found" }, 404);
     } catch (err) {
       console.error("Top-level error:", err.stack || err.message);
@@ -714,6 +734,101 @@ async function getScanLatest(env) {
   }
 }
 __name(getScanLatest, "getScanLatest");
+
+async function verifyAuth(request, env) {
+  const auth = request.headers.get("Authorization");
+  if (!auth || !auth.startsWith("Bearer ")) return null;
+  try {
+    const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${auth.substring(7)}`);
+    const data = await res.json();
+    if (data.aud !== env.GOOGLE_CLIENT_ID) return null;
+    if (data.exp && Date.now() / 1000 > data.exp) return null;
+    return data.sub;
+  } catch {
+    return null;
+  }
+}
+
+async function getStats(userId, env) {
+  try {
+    const data = await env.TRADEOS_USERS.get(`trades:${userId}`);
+    if (!data) return jsonResponse({ total: 0, winRate: 0, totalPnl: 0 });
+    const trades = JSON.parse(data);
+    const wins = trades.filter((t) => t.pnl > 0).length;
+    const totalPnl = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    const winRate = trades.length ? Math.round((wins / trades.length) * 100) : 0;
+    return jsonResponse({ total: trades.length, winRate, totalPnl });
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
+}
+
+async function getTrades(userId, env) {
+  try {
+    const data = await env.TRADEOS_USERS.get(`trades:${userId}`);
+    return jsonResponse({ trades: data ? JSON.parse(data) : [] });
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
+}
+
+async function submitTrade(userId, body, env) {
+  try {
+    const key = `trades:${userId}`;
+    const existing = await env.TRADEOS_USERS.get(key);
+    const trades = existing ? JSON.parse(existing) : [];
+    const trade = {
+      id: Date.now().toString(),
+      date: body.date || new Date().toISOString().split("T")[0],
+      ticker: body.ticker,
+      entry: parseFloat(body.entry) || 0,
+      exit: parseFloat(body.exit) || 0,
+      qty: parseInt(body.qty) || 0,
+      pnl: parseFloat(body.pnl) || 0,
+      createdAt: new Date().toISOString()
+    };
+    trades.push(trade);
+    await env.TRADEOS_USERS.put(key, JSON.stringify(trades));
+    return jsonResponse({ success: true, trade });
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
+}
+
+async function updateTrade(userId, body, env) {
+  try {
+    const key = `trades:${userId}`;
+    const data = await env.TRADEOS_USERS.get(key);
+    if (!data) return jsonResponse({ error: "No trades found" }, 404);
+    const trades = JSON.parse(data);
+    const idx = trades.findIndex((t) => t.id === body.id);
+    if (idx === -1) return jsonResponse({ error: "Trade not found" }, 404);
+    trades[idx] = { ...trades[idx], ...body, updatedAt: new Date().toISOString() };
+    await env.TRADEOS_USERS.put(key, JSON.stringify(trades));
+    return jsonResponse({ success: true, trade: trades[idx] });
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
+}
+
+async function getHabits(userId, env) {
+  try {
+    const data = await env.TRADEOS_USERS.get(`habits:${userId}`);
+    return jsonResponse(data ? JSON.parse(data) : null);
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
+}
+
+async function saveHabits(userId, body, env) {
+  try {
+    const { action: _action, ...habits } = body;
+    await env.TRADEOS_USERS.put(`habits:${userId}`, JSON.stringify(habits));
+    return jsonResponse({ success: true });
+  } catch (e) {
+    return jsonResponse({ error: e.message }, 500);
+  }
+}
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {

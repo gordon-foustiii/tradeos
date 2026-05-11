@@ -319,14 +319,91 @@ function formatNumber(n) {
 }
 __name(formatNumber, "formatNumber");
 
+// Yahoo Finance session (crumb + cookie) — cached in KV for 1 hour
+async function getYahooSession(env) {
+  const cached = await kvGet(env, "yahoo:session");
+  if (cached?.crumb) return cached;
+  const res = await fetch("https://finance.yahoo.com/", {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.9",
+    }
+  });
+  const html = await res.text();
+  const crumbMatch = html.match(/"CRB":"([^"]+)"/) || html.match(/crumb:"([^"]+)"/);
+  if (!crumbMatch) throw new Error("Yahoo Finance crumb not found in response");
+  const crumb = crumbMatch[1];
+  const setCookie = res.headers.get("set-cookie") || "";
+  const bMatch = setCookie.match(/B=([^;]+)/);
+  const session = { crumb, cookie: bMatch ? `B=${bMatch[1]}` : "" };
+  await kvPut(env, "yahoo:session", session, 3600);
+  return session;
+}
+__name(getYahooSession, "getYahooSession");
+
+async function scanYahoo(filters, env) {
+  const session = await getYahooSession(env);
+  const body = JSON.stringify({
+    offset: 0,
+    size: 100,
+    sortField: "percentchange",
+    sortType: "DESC",
+    quoteType: "EQUITY",
+    query: {
+      operator: "AND",
+      operands: [
+        { operator: "GT", operands: ["percentchange", Math.max(filters.changePctMin - 2, 2)] },
+        { operator: "GTE", operands: ["intradayprice", Math.max(filters.priceMin * 0.8, 0.5)] },
+        { operator: "LTE", operands: ["intradayprice", filters.priceMax * 1.2] },
+        { operator: "GT", operands: ["dayvolume", Math.round(filters.volumeMin * 0.4)] },
+        { operator: "EQ", operands: ["region", "us"] }
+      ]
+    },
+    userId: "",
+    userIdType: "guid"
+  });
+  const screenerUrl = `https://query1.finance.yahoo.com/v1/finance/screener?crumb=${encodeURIComponent(session.crumb)}&lang=en-US&region=US&formatted=false`;
+  const res = await fetch(screenerUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Cookie": session.cookie,
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    },
+    body
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    if (res.status === 401 || text.includes("Invalid Crumb")) {
+      await kvPut(env, "yahoo:session", null, 1);
+    }
+    throw new Error(`Yahoo screener ${res.status}: ${text.slice(0, 150)}`);
+  }
+  const data = await res.json();
+  const quotes = data?.finance?.result?.[0]?.quotes || [];
+  return quotes.map(q => {
+    const vol = q.regularMarketVolume || 0;
+    const avgVol = q.averageDailyVolume3Month || q.averageDailyVolume10Day || 0;
+    return {
+      ticker: q.symbol,
+      name: q.shortName || q.symbol,
+      price: round(q.regularMarketPrice, 2),
+      change: round(q.regularMarketChangePercent, 2),
+      changePercent: round(q.regularMarketChangePercent, 2),
+      changeDollar: round(q.regularMarketChange, 2),
+      volume: vol,
+      avgVolume: avgVol,
+      relVol: avgVol > 0 ? round(vol / avgVol, 2) : null,
+      float: null,
+      mktCap: q.marketCap || null,
+    };
+  });
+}
+__name(scanYahoo, "scanYahoo");
+
 // EXISTING FUNCTIONS (unchanged)
 async function handleScan(url, env) {
-  if (!env.BENZINGA_API_KEY) {
-    return jsonResponse({
-      error: "Server misconfigured: BENZINGA_API_KEY secret is not set",
-      results: []
-    }, 500);
-  }
   const filters = parseFilters(url.searchParams);
   const usingDefaults = JSON.stringify(filters) === JSON.stringify(DEFAULT_FILTERS);
   if (usingDefaults) {
@@ -338,60 +415,60 @@ async function handleScan(url, env) {
       }
     }
   }
-  const session = (url.searchParams.get("session") || "REGULAR").toUpperCase();
-  let movers;
-  try {
-    movers = await fetchMovers(env.BENZINGA_API_KEY, session, MAX_MOVERS);
-  } catch (e) {
-    console.error("fetchMovers error:", e.message);
-    return fallbackToCachedScan(env, `movers fetch failed: ${e.message}`);
+
+  let results = [];
+  let source = "";
+  let universeSize = 0;
+
+  // Primary: Benzinga (when API key is configured in Cloudflare secrets)
+  if (env.BENZINGA_API_KEY) {
+    try {
+      const session = (url.searchParams.get("session") || "REGULAR").toUpperCase();
+      const movers = await fetchMovers(env.BENZINGA_API_KEY, session, MAX_MOVERS);
+      const gainers = movers.gainers || [];
+      universeSize = gainers.length;
+      console.log(`Benzinga returned ${gainers.length} gainers`);
+      const preSurvivors = gainers.map(normalizeMover).filter((m) => prePassesFilters(m, filters));
+      let quotes = {};
+      try {
+        quotes = await fetchQuotes(env.BENZINGA_API_KEY, preSurvivors.map((s) => s.ticker));
+      } catch (e) {
+        console.error("fetchQuotes error:", e.message);
+      }
+      const enriched = preSurvivors.map((s) => {
+        const q = quotes[s.ticker] || {};
+        return { ...s, float: q.sharesFloat ?? null, mktCap: q.marketCap ?? null, name: q.companyStandardName || q.name || s.name, exchange: q.bzExchange || null };
+      });
+      results = enriched.filter((r) => postPassesFilters(r, filters)).sort((a, b) => b.changePercent - a.changePercent);
+      source = "benzinga";
+    } catch (e) {
+      console.error("Benzinga scan failed, falling back to Yahoo:", e.message);
+    }
   }
-  const gainers = movers.gainers || [];
-  console.log(`Benzinga returned ${gainers.length} gainers`);
-  const preSurvivors = gainers.map(normalizeMover).filter((m) => prePassesFilters(m, filters));
-  console.log(`After pre-filter: ${preSurvivors.length}`);
-  if (preSurvivors.length === 0) {
-    const empty = {
-      results: [],
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      count: 0,
-      moversReturned: gainers.length,
-      filters,
-      session,
-      source: "benzinga"
-    };
-    if (usingDefaults) await kvPut(env, "scan:latest", empty, STALE_CACHE_TTL_SEC);
-    return jsonResponse(empty);
+
+  // Fallback: Yahoo Finance (no API key required)
+  if (!source) {
+    try {
+      const raw = await scanYahoo(filters, env);
+      universeSize = raw.length;
+      results = raw
+        .filter((r) => prePassesFilters(r, filters))
+        .filter((r) => postPassesFilters(r, filters))
+        .sort((a, b) => b.changePercent - a.changePercent);
+      source = "yahoo";
+    } catch (e) {
+      console.error("Yahoo scan failed:", e.message);
+      return fallbackToCachedScan(env, `All sources failed: ${e.message}`);
+    }
   }
-  let quotes = {};
-  try {
-    quotes = await fetchQuotes(
-      env.BENZINGA_API_KEY,
-      preSurvivors.map((s) => s.ticker)
-    );
-  } catch (e) {
-    console.error("fetchQuotes error:", e.message);
-  }
-  const enriched = preSurvivors.map((s) => {
-    const q = quotes[s.ticker] || {};
-    return {
-      ...s,
-      float: q.sharesFloat ?? null,
-      mktCap: q.marketCap ?? null,
-      name: q.companyStandardName || q.name || s.name,
-      exchange: q.bzExchange || null
-    };
-  });
-  const finalResults = enriched.filter((r) => postPassesFilters(r, filters)).sort((a, b) => b.changePercent - a.changePercent);
+
   const payload = {
-    results: finalResults,
+    results,
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    count: finalResults.length,
-    moversReturned: gainers.length,
-    preFilterSurvivors: preSurvivors.length,
+    count: results.length,
+    universeSize,
     filters,
-    session,
-    source: "benzinga"
+    source,
   };
   if (usingDefaults) await kvPut(env, "scan:latest", payload, STALE_CACHE_TTL_SEC);
   return jsonResponse(payload);
@@ -657,7 +734,7 @@ function prePassesFilters(m, f) {
   if (m.price < f.priceMin || m.price > f.priceMax) return false;
   if (m.changePercent < f.changePctMin) return false;
   if (m.volume < f.volumeMin) return false;
-  if (m.relVol == null || m.relVol < f.relVolMin) return false;
+  if (m.relVol != null && m.relVol < f.relVolMin) return false;
   return true;
 }
 __name(prePassesFilters, "prePassesFilters");

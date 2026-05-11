@@ -1646,6 +1646,11 @@
         const hitCount = history ? history.totalHits : 0;
         const priceRange = history ? getPriceRange(history.hits) : { min: r.price, max: r.price };
         const changeClass = r.change >= 0 ? 'positive' : 'negative';
+        const relVolDisplay = r.relVol != null ? `${r.relVol.toFixed(2)}x` : '—';
+        const relVolClass = r.relVol != null && r.relVol >= 1.5 ? 'positive' : 'neutral';
+        const floatDisplay = r.float != null ? `${(r.float / 1e6).toFixed(2)}M` : '—';
+        const floatClass = r.float != null && r.float <= 20e6 ? 'positive' : 'neutral';
+        const mktCapDisplay = r.mktCap != null ? `$${(r.mktCap / 1e9).toFixed(2)}B` : '—';
         return `<div class="result-card" onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap})" title="Hit ${hitCount}x - Range: $${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}">
           <div class="card-header">
             <div class="card-ticker">${r.ticker}<span class="hit-badge">${hitCount}</span></div>
@@ -1659,15 +1664,15 @@
             </div>
             <div class="metric-item">
               <div class="metric-label">Rel Vol</div>
-              <div class="metric-value ${r.relVol >= 1.5 ? 'positive' : 'neutral'}">${r.relVol.toFixed(2)}x</div>
+              <div class="metric-value ${relVolClass}">${relVolDisplay}</div>
             </div>
             <div class="metric-item">
               <div class="metric-label">Float</div>
-              <div class="metric-value ${r.float <= 20e6 ? 'positive' : 'neutral'}">${(r.float / 1e6).toFixed(2)}M</div>
+              <div class="metric-value ${floatClass}">${floatDisplay}</div>
             </div>
             <div class="metric-item">
               <div class="metric-label">Mkt Cap</div>
-              <div class="metric-value">$${(r.mktCap / 1e9).toFixed(2)}B</div>
+              <div class="metric-value">${mktCapDisplay}</div>
             </div>
           </div>
         </div>`;
@@ -1727,9 +1732,9 @@
       document.getElementById('modalChangeSinceScan').textContent = `${changeSinceScan >= 0 ? '+' : ''}${changeSinceScan.toFixed(2)}%`;
       document.getElementById('modalChangeSinceScan').className = `modal-stat-value ${changeSinceScanClass}`;
       document.getElementById('modalVolume').textContent = `${(v / 1e6).toFixed(2)}M`;
-      document.getElementById('modalRelVol').textContent = `${rv.toFixed(2)}x`;
-      document.getElementById('modalFloat').textContent = `${(f / 1e6).toFixed(2)}M`;
-      document.getElementById('modalMktCap').textContent = `$${(mc / 1e9).toFixed(2)}B`;
+      document.getElementById('modalRelVol').textContent = rv != null ? `${rv.toFixed(2)}x` : '—';
+      document.getElementById('modalFloat').textContent = f != null ? `${(f / 1e6).toFixed(2)}M` : '—';
+      document.getElementById('modalMktCap').textContent = mc != null ? `$${(mc / 1e9).toFixed(2)}B` : '—';
       
       // Scanner History: first hit details
       const scannerHistoryHTML = history ? `

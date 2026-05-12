@@ -1065,7 +1065,7 @@
 
     <div class="scanner-controls">
       <button id="scanBtn" class="btn-primary" onclick="toggleScanner()">Scan</button>
-      <div class="scan-status">
+      <div class="scan-status" style="display: flex; align-items: center; gap: 8px;">
         <div id="statusDot" class="status-dot"></div>
 		<span id="statusText">Ready</span>
       </div>
@@ -1561,16 +1561,16 @@
         renderTickerHistory();
         saveScannerState();
 
-        // Update status with source & count
+        // Auto-stop scanner after results loaded
+        stopScan();
+
+        // Update status with source & count (AFTER stopScan so it doesn't revert to "Ready")
         const txt = document.getElementById('statusText');
         const sourceLabel = { benzinga: 'Benzinga', fmp: 'FMP', polygon: 'Polygon', yahoo_limited: 'Yahoo' }[data.source] || data.source || '?';
         txt.textContent = `${state.results.length} hits (${sourceLabel}) • ${state.lastUpdate.toLocaleTimeString()}`;
 
         if (data.cached) console.log(`Cached (${data.ageSec}s old)`);
         console.log(`${sourceLabel} | ${data.universeSize || '?'} → ${results.length}`);
-
-        // Auto-stop scanner after results loaded
-        stopScan();
 
       } catch (error) {
         console.error('Full scan error:', error);

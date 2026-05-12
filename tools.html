@@ -390,8 +390,8 @@
           const label = document.getElementById('timer-label');
           const bar = document.getElementById('timer-bar');
 
-          // Format time
-          clock.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+          // Format time (HH:MM:SS)
+          clock.textContent = String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
           clock.style.color = getClockColor(phase);
 
           // Determine label based on phase

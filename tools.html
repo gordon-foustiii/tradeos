@@ -38,7 +38,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 16px 20px;
-      background: rgba(255, 255, 255, 0.05);
+      background: #0f0f0f;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       position: sticky;
       top: 0;
@@ -226,6 +226,12 @@
         const app = document.getElementById('app');
         app.innerHTML = `
           <div style="width: 100%; max-width: 600px; margin: 0 auto;">
+            <!-- TIMER TITLE -->
+            <div style="margin-bottom: 24px; text-align: center;">
+              <div style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px;">Market Timer</div>
+              <div style="font-size: 12px; color: #aaa;">Countdown to next event</div>
+            </div>
+
             <!-- UNIFIED TIMER SECTION -->
             <div style="margin-bottom: 32px; text-align: center;">
               <div style="margin-bottom: 20px;">
@@ -240,10 +246,9 @@
 
             <!-- PRESET TRADING WINDOWS SECTION -->
             <div style="margin-bottom: 32px;">
-              <h2 style="font-size: 18px; font-weight: 500; color: #ffd93d; margin-bottom: 16px;">Trading Windows</h2>
               
               <!-- Ideal Trading Window -->
-              <div style="background: rgba(44,182,125,0.1); border: 1px solid rgba(44,182,125,0.3); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+              <div id="ideal-section" style="background: rgba(44,182,125,0.1); border: 1px solid rgba(44,182,125,0.3); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
                 <div style="font-weight: 500; color: #2cb67d; font-size: 14px; margin-bottom: 12px;">Ideal Trading Window</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                   <div>
@@ -258,7 +263,7 @@
               </div>
 
               <!-- NO TRADE Window -->
-              <div style="background: rgba(239,69,101,0.1); border: 1px solid rgba(239,69,101,0.3); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+              <div id="notrade-section" style="background: rgba(239,69,101,0.1); border: 1px solid rgba(239,69,101,0.3); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
                 <div style="font-weight: 500; color: #ef4565; font-size: 14px; margin-bottom: 12px;">NO TRADE Window</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                   <div>
@@ -272,13 +277,6 @@
                 </div>
               </div>
 
-              <button id="saveWindowsBtn" style="width: 100%; padding: 10px; background: rgba(255,215,61,0.1); color: #ffd93d; border: 1px solid rgba(255,215,61,0.3); border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,215,61,0.2)'" onmouseout="this.style.background='rgba(255,215,61,0.1)'">Save Windows</button>
-            </div>
-
-            <!-- INFO -->
-            <div style="background: rgba(255,215,61,0.08); border: 1px solid rgba(255,215,61,0.2); border-radius: 8px; padding: 12px; font-size: 13px; color: #ccc; line-height: 1.6;">
-              <strong style="color: #ffd93d;">Single unified timer</strong><br/>
-              Shows current market phase and countdown to next event. Badges highlight active/upcoming windows.
             </div>
           </div>
         `;
@@ -428,20 +426,65 @@
           const idealActive = totalMins >= idealStart && totalMins < idealEnd;
           const notradeActive = totalMins >= notradeStart && totalMins < notradeEnd;
 
+          // Get initial visibility state from localStorage
+          const visibility = JSON.parse(localStorage.getItem('windowVisibility')) || {
+            ideal: true,
+            notrade: true
+          };
+
           const badges = `
-            <div style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; 
+            <button id="badge-ideal" style="font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; 
               background: ${idealActive ? 'rgba(44,182,125,0.15)' : 'rgba(255,255,255,0.05)'}; 
-              color: ${idealActive ? '#2cb67d' : 'rgba(255,255,255,0.35)'};">
-              Ideal Window${idealActive ? ' ●' : ''}
-            </div>
-            <div style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; 
+              color: ${idealActive ? '#2cb67d' : 'rgba(255,255,255,0.35)'}; 
+              border: 1px solid ${visibility.ideal ? 'rgba(44,182,125,0.3)' : 'rgba(255,255,255,0.1)'}; 
+              cursor: pointer; transition: all 0.2s;"
+              title="Click to toggle Ideal Window fields">
+              Ideal Window${idealActive ? ' ●' : ''} ${visibility.ideal ? '✓' : ''}
+            </button>
+            <button id="badge-notrade" style="font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; 
               background: ${notradeActive ? 'rgba(239,69,101,0.1)' : 'rgba(255,255,255,0.05)'}; 
-              color: ${notradeActive ? '#ef4565' : 'rgba(255,255,255,0.35)'};">
-              NO TRADE${notradeActive ? ' ●' : ''}
-            </div>
+              color: ${notradeActive ? '#ef4565' : 'rgba(255,255,255,0.35)'}; 
+              border: 1px solid ${visibility.notrade ? 'rgba(239,69,101,0.3)' : 'rgba(255,255,255,0.1)'}; 
+              cursor: pointer; transition: all 0.2s;"
+              title="Click to toggle NO TRADE Window fields">
+              NO TRADE${notradeActive ? ' ●' : ''} ${visibility.notrade ? '✓' : ''}
+            </button>
           `;
 
           container.innerHTML = badges;
+
+          // Add event listeners to badges
+          document.getElementById('badge-ideal').addEventListener('click', function() {
+            visibility.ideal = !visibility.ideal;
+            localStorage.setItem('windowVisibility', JSON.stringify(visibility));
+            toggleWindowSection('ideal', visibility.ideal);
+            renderWindowBadges(totalMins);
+          });
+
+          document.getElementById('badge-notrade').addEventListener('click', function() {
+            visibility.notrade = !visibility.notrade;
+            localStorage.setItem('windowVisibility', JSON.stringify(visibility));
+            toggleWindowSection('notrade', visibility.notrade);
+            renderWindowBadges(totalMins);
+          });
+
+          // Apply initial visibility
+          toggleWindowSection('ideal', visibility.ideal);
+          toggleWindowSection('notrade', visibility.notrade);
+        }
+
+        function toggleWindowSection(type, visible) {
+          let sectionId;
+          if (type === 'ideal') {
+            sectionId = 'ideal-section';
+          } else if (type === 'notrade') {
+            sectionId = 'notrade-section';
+          }
+          
+          const section = document.getElementById(sectionId);
+          if (section) {
+            section.style.display = visible ? 'block' : 'none';
+          }
         }
 
         // Initialize window inputs from localStorage
@@ -452,40 +495,37 @@
           document.getElementById('notradeEnd').value = windows.notrade.end;
         }
 
-        // Save windows button handler
-        document.getElementById('saveWindowsBtn').addEventListener('click', function() {
-          const idealStart = document.getElementById('idealStart').value;
-          const idealEnd = document.getElementById('idealEnd').value;
-          const notradeStart = document.getElementById('notradeStart').value;
-          const notradeEnd = document.getElementById('notradeEnd').value;
+        // Autosave on field blur
+        function attachAutosaveListeners() {
+          const fields = ['idealStart', 'idealEnd', 'notradeStart', 'notradeEnd'];
+          fields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+              field.addEventListener('blur', function() {
+                const idealStart = document.getElementById('idealStart').value;
+                const idealEnd = document.getElementById('idealEnd').value;
+                const notradeStart = document.getElementById('notradeStart').value;
+                const notradeEnd = document.getElementById('notradeEnd').value;
 
-          if (!idealStart || !idealEnd || !notradeStart || !notradeEnd) {
-            alert('Please fill in all fields');
-            return;
-          }
-
-          if (idealStart >= idealEnd) {
-            alert('Ideal window: End time must be after start time');
-            return;
-          }
-
-          if (notradeStart >= notradeEnd) {
-            alert('NO TRADE window: End time must be after start time');
-            return;
-          }
-
-          windows = {
-            ideal: { start: idealStart, end: idealEnd },
-            notrade: { start: notradeStart, end: notradeEnd }
-          };
-
-          localStorage.setItem('tradingWindows', JSON.stringify(windows));
-          alert('Windows saved!');
-          renderWindowBadges(getCountdownToNextEvent().totalMins);
-        });
+                // Validate
+                if (idealStart && idealEnd && notradeStart && notradeEnd) {
+                  if (idealStart < idealEnd && notradeStart < notradeEnd) {
+                    windows = {
+                      ideal: { start: idealStart, end: idealEnd },
+                      notrade: { start: notradeStart, end: notradeEnd }
+                    };
+                    localStorage.setItem('tradingWindows', JSON.stringify(windows));
+                    renderWindowBadges(getCountdownToNextEvent().totalMins);
+                  }
+                }
+              });
+            }
+          });
+        }
 
         // Initial render
         initWindowInputs();
+        attachAutosaveListeners();
         renderTimer();
         renderWindowBadges(getCountdownToNextEvent().totalMins);
 

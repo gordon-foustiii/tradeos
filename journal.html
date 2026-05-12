@@ -662,6 +662,141 @@
     .trade-metric-value.zero {
       color: #666;
     }
+
+    /* ===== CANDY CARD (REDESIGNED CLOSED TRADES) ===== */
+    .candy-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .candy-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 215, 61, 0.3);
+    }
+
+    .candy-card.active {
+      border-color: rgba(255, 215, 61, 0.6);
+      background: rgba(255, 215, 61, 0.08);
+    }
+
+    /* Header: Ticker + Grade | P&L */
+    .candy-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .candy-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .candy-ticker {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .candy-grade {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(255, 215, 61, 0.1);
+      color: #ffd93d;
+      min-width: 30px;
+      text-align: center;
+    }
+
+    .candy-pnl {
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .candy-pnl.positive {
+      color: #4ade80;
+    }
+
+    .candy-pnl.negative {
+      color: #ff6b6b;
+    }
+
+    /* Chart strip */
+    .candy-chart {
+      height: 50px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: flex-end;
+      padding: 6px;
+      gap: 1px;
+    }
+
+    .candy-bar {
+      flex: 1;
+      background: linear-gradient(to top, #ff6b6b, #ff8787);
+      border-radius: 2px;
+      min-height: 2px;
+    }
+
+    .candy-bar.positive {
+      background: linear-gradient(to top, #4ade80, #6ee7b7);
+    }
+
+    /* Footer: 5-cell grid (Shares | Move | Captured | Saved $ | Left $) */
+    .candy-stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .candy-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: center;
+    }
+
+    .candy-stat-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .candy-stat-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .candy-stat-value.warning {
+      color: #ffd93d;
+    }
+
+    .candy-stat-value.zero {
+      color: #666;
+    }
+
+    .candy-stat-value.positive {
+      color: #4ade80;
+    }
+
+    .candy-stat-value.negative {
+      color: #ff6b6b;
+    }
   </style>
 </head>
 <body>
@@ -776,6 +911,37 @@
       </div>`;
     }
 
+    // Candy card version: minimal bar chart (no labels)
+    function drawCandleChart(entry, high, low, exit, isWin) {
+      const prices = [entry, high, low, exit];
+      const minP = Math.min(...prices);
+      const maxP = Math.max(...prices);
+      const range = maxP - minP || 1;
+      
+      const bL = Math.min(entry, exit), bR = Math.max(entry, exit);
+      const bLPos = ((bL - minP) / range * 100).toFixed(1);
+      const bRPos = ((bR - minP) / range * 100).toFixed(1);
+      const bW = Math.max((bR - bL) / range * 100, 1).toFixed(1);
+      const lowPos = ((low - minP) / range * 100).toFixed(1);
+      const highPos = ((high - minP) / range * 100).toFixed(1);
+      
+      const col = isWin ? '#4ade80' : '#ff6b6b';
+      const dark = isWin ? '#22c55e' : '#ef4444';
+      
+      return `<div class="candy-chart">
+        <svg width="100%" height="100%" viewBox="0 0 100 50" preserveAspectRatio="none" style="display:block">
+          <!-- Wicks -->
+          <line x1="${lowPos}" y1="0" x2="${lowPos}" y2="50" stroke="${col}" stroke-width="1" opacity="0.6"/>
+          <line x1="${highPos}" y1="0" x2="${highPos}" y2="50" stroke="${col}" stroke-width="1" opacity="0.6"/>
+          <!-- Body -->
+          <rect x="${bLPos}" y="10" width="${bW}" height="30" fill="${col}" stroke="${dark}" stroke-width="0.5" rx="1"/>
+          <!-- Exit line -->
+          <line x1="${bRPos}" y1="5" x2="${bRPos}" y2="45" stroke="white" stroke-width="1.5" opacity="0.8"/>
+        </svg>
+      </div>`;
+    }
+
+
     function loadTrades() {
       const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
       const grid = document.getElementById('tradesGrid');
@@ -832,7 +998,54 @@
         const captured = maxPossible > 0 ? (actualMove / maxPossible * 100) : 0;
 
         const status = t.status === 'CLOSED' ? 'CLOSED' : 'OPEN';
+        const grade = t.grade || '—'; // Placeholder for grade field
 
+        // CLOSED TRADES: Minimal Candy Card
+        if (status === 'CLOSED') {
+          return `
+            <div class="candy-card" onclick="openTradeModal(${t.id})">
+              <!-- Header: Ticker + Grade | P&L -->
+              <div class="candy-header">
+                <div class="candy-header-left">
+                  <div class="candy-ticker">${t.ticker || 'N/A'}</div>
+                  <div class="candy-grade">${grade}</div>
+                </div>
+                <div class="candy-pnl ${isWinning ? 'positive' : 'negative'}">
+                  ${isWinning ? '+' : ''}$${pnl.toFixed(2)} (${isWinning ? '+' : ''}${pnlPct.toFixed(1)}%)
+                </div>
+              </div>
+
+              <!-- Chart Bar -->
+              ${drawCandleChart(entry, high, low, exit, isWinning)}
+
+              <!-- Footer Grid: Shares | Move | Captured | Saved $ | Left $ -->
+              <div class="candy-stats">
+                <div class="candy-stat">
+                  <div class="candy-stat-label">Shares</div>
+                  <div class="candy-stat-value">${shares.toFixed(0)}</div>
+                </div>
+                <div class="candy-stat">
+                  <div class="candy-stat-label">Move</div>
+                  <div class="candy-stat-value">${movePercent.toFixed(1)}%</div>
+                </div>
+                <div class="candy-stat">
+                  <div class="candy-stat-label">Captured</div>
+                  <div class="candy-stat-value">${captured.toFixed(1)}%</div>
+                </div>
+                <div class="candy-stat">
+                  <div class="candy-stat-label">Saved $</div>
+                  <div class="candy-stat-value ${savedFromLoss > 0 ? 'positive' : 'zero'}">${savedFromLoss > 0 ? '$' + savedFromLoss.toFixed(2) : '—'}</div>
+                </div>
+                <div class="candy-stat">
+                  <div class="candy-stat-label">Left $</div>
+                  <div class="candy-stat-value ${leftOnTable > 0 ? 'warning' : 'zero'}">${leftOnTable > 0 ? '$' + leftOnTable.toFixed(2) : '—'}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        // OPEN TRADES: Full detail card (unchanged)
         return `
           <div class="trade-card ${isWinning ? 'winning' : 'losing'}" onclick="openTradeModal(${t.id})" style="cursor: pointer;">
             <div class="trade-header">
@@ -880,16 +1093,10 @@
             </div>
 
             <!-- Actions -->
-            ${status === 'OPEN' ? `
-              <div class="trade-actions">
-                <button class="trade-btn" onclick="editTrade(event, ${t.id})">Update</button>
-                <button class="trade-btn close" onclick="closeTrade(event, ${t.id})">Close Trade</button>
-              </div>
-            ` : `
-              <div class="trade-actions">
-                <button class="trade-btn" onclick="event.stopPropagation(); openTradeModal(${t.id})" style="grid-column: 1 / -1;">View Details</button>
-              </div>
-            `}
+            <div class="trade-actions">
+              <button class="trade-btn" onclick="editTrade(event, ${t.id})">Update</button>
+              <button class="trade-btn close" onclick="closeTrade(event, ${t.id})">Close Trade</button>
+            </div>
           </div>
         `;
       }).join('');

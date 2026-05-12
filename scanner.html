@@ -1564,15 +1564,19 @@
         // Update status with source & count
         const txt = document.getElementById('statusText');
         const sourceLabel = { benzinga: 'Benzinga', fmp: 'FMP', polygon: 'Polygon', yahoo_limited: 'Yahoo' }[data.source] || data.source || '?';
-        txt.textContent = `${state.results.length} initial hits (${sourceLabel}) • ${state.lastUpdate.toLocaleTimeString()}`;
+        txt.textContent = `${state.results.length} hits (${sourceLabel}) • ${state.lastUpdate.toLocaleTimeString()}`;
 
         if (data.cached) console.log(`Cached (${data.ageSec}s old)`);
         console.log(`${sourceLabel} | ${data.universeSize || '?'} → ${results.length}`);
+
+        // Auto-stop scanner after results loaded
+        stopScan();
 
       } catch (error) {
         console.error('Full scan error:', error);
         const txt = document.getElementById('statusText');
         txt.textContent = `Error: ${error.message}`;
+        stopScan();
       }
     }
 

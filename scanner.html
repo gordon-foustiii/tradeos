@@ -1514,78 +1514,7 @@
     }
 
     function startScan() {
-      // Start live polling session
-      state.liveScanSessionId = Date.now().toString();
-      startLiveScan();
-    }
-
-    async function startLiveScan() {
-      try {
-        // Initial full scan
-        await performScan();
-        
-        // Then poll for new tickers every 5s
-        state.liveScanInterval = setInterval(async () => {
-          if (!state.isScanning) return;
-          await pollNewTickers();
-        }, 5000); // Poll every 5s
-      } catch (e) {
-        console.error('Live scan start error:', e);
-      }
-    }
-
-    /**
-     * LIVE POLLING: Calls /scan/live, gets *only* new tickers since last poll
-     * Injects them into tickerHistory in real-time
-     */
-    async function pollNewTickers() {
-      try {
-        if (!state.isScanning || !state.liveScanSessionId) return;
-
-        const f = state.currentFilters;
-        const filtersObj = {
-          priceMin: f.price.min,
-          priceMax: f.price.max,
-          changePctMin: f.change.min,
-          volumeMin: f.volume.min,
-          relVolMin: f.relVol.min,
-          floatMax: f.float.max,
-          mktCapMax: (f.mktCap && f.mktCap.max) || 2000000000
-        };
-
-        const params = new URLSearchParams({
-          sessionId: state.liveScanSessionId,
-          filters: encodeURIComponent(JSON.stringify(filtersObj))
-        });
-
-        const response = await fetch(`https://tradeos-proxy.gordon-foustiii.workers.dev/scan/live?${params}`);
-        if (!response.ok) {
-          console.warn(`Live scan HTTP ${response.status}`);
-          return;
-        }
-
-        const data = await response.json();
-        const newTickers = data.newTickers || [];
-
-        if (newTickers.length > 0) {
-          console.log(`🔔 ${newTickers.length} NEW tickers`, newTickers.map(t => t.ticker));
-          
-          // Inject new tickers into history
-          newTickers.forEach(ticker => {
-            recordTickerHit(ticker.ticker, ticker.price);
-          });
-
-          // Update UI to show live status
-          const txt = document.getElementById('statusText');
-          const now = new Date();
-          txt.textContent = `LIVE: +${newTickers.length} new | Poll #${data.pollCount} • ${now.toLocaleTimeString()}`;
-
-          // Refresh UI
-          renderTickerHistory();
-        }
-      } catch (error) {
-        console.error('Live poll error:', error);
-      }
+      performScan();
     }
 
     /**
@@ -1655,9 +1584,6 @@
       btn.classList.remove('stop');
       txt.textContent = 'Ready';
       updateStatusDot();
-      if (state.scanInterval) clearInterval(state.scanInterval);
-      if (state.liveScanInterval) clearInterval(state.liveScanInterval);
-      state.liveScanSessionId = null;
     }
 
     function applyFilters(t, f) {

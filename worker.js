@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// worker.js
+// worker.js - UPDATED with /scan/live polling
 var __defProp2 = Object.defineProperty;
 var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
 var CORS_HEADERS = {
@@ -10,20 +10,33 @@ var CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization"
 };
 var POLYGON_API_KEY = "PlRZwYUIEzNyxe3uqN7H88yrJlUGPxNL";
+
+// ALIGNED DEFAULT FILTERS (matches TradingView screener)
 var DEFAULT_FILTERS = {
   priceMin: 1,
-  priceMax: 20,
+  priceMax: 50,       // WAS 20
   changePctMin: 10,
-  volumeMin: 5e5,
-  relVolMin: 2,
-  floatMax: 2e7,
+  volumeMin: 500000,  // 500K (was 250K)
+  relVolMin: 10,      // 10x (was 1.5x)
+  floatMax: 20000000,
   mktCapMax: 2e9
 };
+
 var SCAN_CACHE_TTL_SEC = 60;
 var MAX_MOVERS = 200;
 var QUOTE_BATCH_SIZE = 100;
 var STALE_CACHE_TTL_SEC = 600;
 var CACHE_TTL = 60;
+
+// LIVE SCAN STATE (in-memory for this Worker)
+var LIVE_SCAN_STATE = {
+  sessionId: null,
+  filters: {},
+  lastResults: [],
+  startTime: null,
+  pollCount: 0
+};
+
 var worker_default = {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -31,6 +44,15 @@ var worker_default = {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
     try {
+      // NEW: Diagnostic endpoints
+      if (url.pathname === "/test/benzinga") return testBenzinga(env);
+      if (url.pathname === "/test/fmp") return testFMP(env);
+      if (url.pathname === "/test/yahoo") return testYahoo(env);
+      
+      // NEW: Live polling endpoint
+      if (url.pathname === "/scan/live") return handleScanLive(url, env);
+      
+      // Original endpoints
       if (url.pathname === "/scan") return handleScan(url, env);
       if (url.pathname === "/scan/latest") return getScanLatest(env);
       if (url.pathname === "/scan-and-alert") return handleScanAndAlert(url, env);
@@ -65,6 +87,90 @@ var worker_default = {
     }
   }
 };
+
+/**
+ * NEW ENDPOINT: /scan/live?sessionId=...&filters={...}
+ * Polls Benzinga at 5-10s intervals, returns only *new* tickers since last poll
+ */
+async function handleScanLive(url, env) {
+  const sessionId = url.searchParams.get("sessionId") || Date.now().toString();
+  const filtersParam = url.searchParams.get("filters");
+  const filters = filtersParam ? JSON.parse(decodeURIComponent(filtersParam)) : DEFAULT_FILTERS;
+  
+  // Initialize session if new
+  if (LIVE_SCAN_STATE.sessionId !== sessionId) {
+    LIVE_SCAN_STATE.sessionId = sessionId;
+    LIVE_SCAN_STATE.filters = filters;
+    LIVE_SCAN_STATE.lastResults = [];
+    LIVE_SCAN_STATE.startTime = Date.now();
+    LIVE_SCAN_STATE.pollCount = 0;
+  }
+  
+  try {
+    if (!env.BENZINGA_API_KEY) {
+      return jsonResponse({ error: "BENZINGA_API_KEY not configured", newTickers: [] }, 500);
+    }
+    
+    // Poll Benzinga
+    const session = (url.searchParams.get("session") || "REGULAR").toUpperCase();
+    const movers = await fetchMovers(env.BENZINGA_API_KEY, session, MAX_MOVERS);
+    const gainers = movers.gainers || [];
+    
+    const preSurvivors = gainers
+      .map(normalizeMover)
+      .filter((m) => prePassesFilters(m, filters));
+    
+    // Fetch quotes for enrichment
+    let quotes = {};
+    try {
+      quotes = await fetchQuotes(env.BENZINGA_API_KEY, preSurvivors.map((s) => s.ticker));
+    } catch (e) {
+      console.warn("Live scan quotes error:", e.message);
+    }
+    
+    const enriched = preSurvivors.map((s) => {
+      const q = quotes[s.ticker] || {};
+      return {
+        ...s,
+        float: q.sharesFloat ?? null,
+        mktCap: q.marketCap ?? null,
+        name: q.companyStandardName || q.name || s.name,
+        exchange: q.bzExchange || null
+      };
+    });
+    
+    const currentResults = enriched
+      .filter((r) => postPassesFilters(r, filters))
+      .sort((a, b) => b.changePercent - a.changePercent);
+    
+    // Find *new* tickers since last poll
+    const lastTickers = new Set(LIVE_SCAN_STATE.lastResults.map(r => r.ticker));
+    const newTickers = currentResults.filter(r => !lastTickers.has(r.ticker));
+    
+    // Update session state
+    LIVE_SCAN_STATE.lastResults = currentResults;
+    LIVE_SCAN_STATE.pollCount += 1;
+    
+    return jsonResponse({
+      sessionId,
+      newTickers,         // Only new hits
+      allMatches: currentResults,  // All passing filters this poll
+      pollCount: LIVE_SCAN_STATE.pollCount,
+      elapsedSec: Math.round((Date.now() - LIVE_SCAN_STATE.startTime) / 1000),
+      timestamp: new Date().toISOString(),
+      source: "benzinga"
+    });
+  } catch (err) {
+    console.error("Live scan error:", err.message);
+    return jsonResponse({
+      error: err.message,
+      newTickers: [],
+      sessionId
+    }, 500);
+  }
+}
+__name(handleScanLive, "handleScanLive");
+
 async function handleAuthCallback(request, env) {
   if (request.method !== "POST") {
     return jsonResponse({ error: "POST only" }, 405);
@@ -106,6 +212,7 @@ async function handleAuthCallback(request, env) {
   }
 }
 __name(handleAuthCallback, "handleAuthCallback");
+
 async function handleScanAndAlert(url, env) {
   if (!env.BENZINGA_API_KEY) {
     return jsonResponse({
@@ -182,6 +289,7 @@ async function handleScanAndAlert(url, env) {
 }
 __name(handleScanAndAlert, "handleScanAndAlert");
 __name2(handleScanAndAlert, "handleScanAndAlert");
+
 async function handleTVScanner(request, env) {
   if (request.method !== "POST") {
     return jsonResponse({ error: "POST only" }, 405);
@@ -230,6 +338,7 @@ async function handleTVScanner(request, env) {
 }
 __name(handleTVScanner, "handleTVScanner");
 __name2(handleTVScanner, "handleTVScanner");
+
 async function handleDiscordRelay(request, env) {
   if (request.method !== "POST") {
     return jsonResponse({ error: "POST only" }, 405);
@@ -269,6 +378,7 @@ async function handleDiscordRelay(request, env) {
 }
 __name(handleDiscordRelay, "handleDiscordRelay");
 __name2(handleDiscordRelay, "handleDiscordRelay");
+
 function formatNumber(n) {
   if (!n) return "N/A";
   if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
@@ -278,6 +388,7 @@ function formatNumber(n) {
 }
 __name(formatNumber, "formatNumber");
 __name2(formatNumber, "formatNumber");
+
 async function scanFMP(filters, env) {
   const key = env.FMP_API_KEY;
   let gainers;
@@ -326,6 +437,7 @@ async function scanFMP(filters, env) {
 }
 __name(scanFMP, "scanFMP");
 __name2(scanFMP, "scanFMP");
+
 async function scanYahooPredefined(env) {
   const res = await fetch(
     "https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?formatted=false&scrIds=day_gainers&count=200&start=0",
@@ -354,6 +466,7 @@ async function scanYahooPredefined(env) {
 }
 __name(scanYahooPredefined, "scanYahooPredefined");
 __name2(scanYahooPredefined, "scanYahooPredefined");
+
 async function handleScan(url, env) {
   const filters = parseFilters(url.searchParams);
   const usingDefaults = JSON.stringify(filters) === JSON.stringify(DEFAULT_FILTERS);
@@ -427,6 +540,7 @@ async function handleScan(url, env) {
 }
 __name(handleScan, "handleScan");
 __name2(handleScan, "handleScan");
+
 async function handleQuoteRoute(url, env) {
   const ticker = url.pathname.split("/")[2]?.toUpperCase();
   if (!ticker) return jsonResponse({ error: "Ticker required" }, 400);
@@ -435,6 +549,7 @@ async function handleQuoteRoute(url, env) {
 }
 __name(handleQuoteRoute, "handleQuoteRoute");
 __name2(handleQuoteRoute, "handleQuoteRoute");
+
 async function handleQuote(ticker, env) {
   const cacheKey = `quote-${ticker}`;
   const cached = await kvGet(env, cacheKey);
@@ -493,6 +608,7 @@ async function handleQuote(ticker, env) {
 }
 __name(handleQuote, "handleQuote");
 __name2(handleQuote, "handleQuote");
+
 async function handleBarsRoute(url, env) {
   const ticker = url.pathname.split("/")[2]?.toUpperCase();
   if (!ticker) return jsonResponse({ error: "Ticker required" }, 400);
@@ -501,6 +617,7 @@ async function handleBarsRoute(url, env) {
 }
 __name(handleBarsRoute, "handleBarsRoute");
 __name2(handleBarsRoute, "handleBarsRoute");
+
 async function handleBars(ticker, env) {
   const cacheKey = `bars-${ticker}`;
   const cached = await kvGet(env, cacheKey);
@@ -552,6 +669,7 @@ async function handleBars(ticker, env) {
 }
 __name(handleBars, "handleBars");
 __name2(handleBars, "handleBars");
+
 async function handleNews(url, env) {
   const ticker = url.searchParams.get("ticker");
   if (!ticker) return jsonResponse({ error: "ticker required" }, 400);
@@ -600,6 +718,7 @@ async function handleNews(url, env) {
 }
 __name(handleNews, "handleNews");
 __name2(handleNews, "handleNews");
+
 async function fetchMovers(token, session, maxResults) {
   const params = new URLSearchParams({ token, maxResults: String(maxResults) });
   if (session) params.set("session", session);
@@ -617,6 +736,7 @@ async function fetchMovers(token, session, maxResults) {
 }
 __name(fetchMovers, "fetchMovers");
 __name2(fetchMovers, "fetchMovers");
+
 async function fetchQuotes(token, tickers) {
   const out = {};
   for (let i = 0; i < tickers.length; i += QUOTE_BATCH_SIZE) {
@@ -640,6 +760,7 @@ async function fetchQuotes(token, tickers) {
 }
 __name(fetchQuotes, "fetchQuotes");
 __name2(fetchQuotes, "fetchQuotes");
+
 function parseFilters(searchParams) {
   const numOr = /* @__PURE__ */ __name2((key, fallback) => {
     const v = searchParams.get(key);
@@ -659,6 +780,7 @@ function parseFilters(searchParams) {
 }
 __name(parseFilters, "parseFilters");
 __name2(parseFilters, "parseFilters");
+
 function normalizeMover(g) {
   const volume = typeof g.volume === "string" ? Number(g.volume) : g.volume;
   const avgVolume = typeof g.averageVolume === "string" ? Number(g.averageVolume) : g.averageVolume;
@@ -681,6 +803,7 @@ function normalizeMover(g) {
 }
 __name(normalizeMover, "normalizeMover");
 __name2(normalizeMover, "normalizeMover");
+
 function prePassesFilters(m, f) {
   if (m.price == null || m.changePercent == null || m.volume == null) return false;
   if (m.price < f.priceMin || m.price > f.priceMax) return false;
@@ -691,6 +814,7 @@ function prePassesFilters(m, f) {
 }
 __name(prePassesFilters, "prePassesFilters");
 __name2(prePassesFilters, "prePassesFilters");
+
 function postPassesFilters(r, f) {
   if (r.float != null && r.float > f.floatMax) return false;
   if (r.mktCap != null && r.mktCap > f.mktCapMax) return false;
@@ -698,6 +822,7 @@ function postPassesFilters(r, f) {
 }
 __name(postPassesFilters, "postPassesFilters");
 __name2(postPassesFilters, "postPassesFilters");
+
 function round(n, digits) {
   if (n == null || !Number.isFinite(n)) return null;
   const f = Math.pow(10, digits);
@@ -705,6 +830,7 @@ function round(n, digits) {
 }
 __name(round, "round");
 __name2(round, "round");
+
 function getMarketStatus() {
   const now = /* @__PURE__ */ new Date();
   const hour = now.getHours();
@@ -721,6 +847,7 @@ function getMarketStatus() {
 }
 __name(getMarketStatus, "getMarketStatus");
 __name2(getMarketStatus, "getMarketStatus");
+
 async function kvGet(env, key) {
   try {
     const data = await env.TRADEOS_USERS.get(key);
@@ -732,6 +859,7 @@ async function kvGet(env, key) {
 }
 __name(kvGet, "kvGet");
 __name2(kvGet, "kvGet");
+
 async function kvPut(env, key, value, ttlSec) {
   try {
     await env.TRADEOS_USERS.put(key, JSON.stringify(value), { expirationTtl: ttlSec });
@@ -741,6 +869,7 @@ async function kvPut(env, key, value, ttlSec) {
 }
 __name(kvPut, "kvPut");
 __name2(kvPut, "kvPut");
+
 async function fallbackToCachedScan(env, reason) {
   try {
     const cached = await kvGet(env, "scan:latest");
@@ -754,6 +883,7 @@ async function fallbackToCachedScan(env, reason) {
 }
 __name(fallbackToCachedScan, "fallbackToCachedScan");
 __name2(fallbackToCachedScan, "fallbackToCachedScan");
+
 async function getScanLatest(env) {
   try {
     const data = await kvGet(env, "scan:latest");
@@ -764,6 +894,7 @@ async function getScanLatest(env) {
 }
 __name(getScanLatest, "getScanLatest");
 __name2(getScanLatest, "getScanLatest");
+
 async function verifyAuth(request, env) {
   const auth = request.headers.get("Authorization");
   if (!auth || !auth.startsWith("Bearer ")) return null;
@@ -778,6 +909,7 @@ async function verifyAuth(request, env) {
   }
 }
 __name(verifyAuth, "verifyAuth");
+
 async function getStats(userId, env) {
   try {
     const data = await env.TRADEOS_USERS.get(`trades:${userId}`);
@@ -792,6 +924,7 @@ async function getStats(userId, env) {
   }
 }
 __name(getStats, "getStats");
+
 async function getTrades(userId, env) {
   try {
     const data = await env.TRADEOS_USERS.get(`trades:${userId}`);
@@ -801,6 +934,7 @@ async function getTrades(userId, env) {
   }
 }
 __name(getTrades, "getTrades");
+
 async function submitTrade(userId, body, env) {
   try {
     const key = `trades:${userId}`;
@@ -824,6 +958,7 @@ async function submitTrade(userId, body, env) {
   }
 }
 __name(submitTrade, "submitTrade");
+
 async function updateTrade(userId, body, env) {
   try {
     const key = `trades:${userId}`;
@@ -840,6 +975,7 @@ async function updateTrade(userId, body, env) {
   }
 }
 __name(updateTrade, "updateTrade");
+
 async function getHabits(userId, env) {
   try {
     const data = await env.TRADEOS_USERS.get(`habits:${userId}`);
@@ -849,6 +985,7 @@ async function getHabits(userId, env) {
   }
 }
 __name(getHabits, "getHabits");
+
 async function saveHabits(userId, body, env) {
   try {
     const { action: _action, ...habits } = body;
@@ -859,6 +996,7 @@ async function saveHabits(userId, body, env) {
   }
 }
 __name(saveHabits, "saveHabits");
+
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -867,7 +1005,7 @@ function jsonResponse(data, status = 200) {
 }
 __name(jsonResponse, "jsonResponse");
 __name2(jsonResponse, "jsonResponse");
+
 export {
   worker_default as default
 };
-//# sourceMappingURL=worker.js.map

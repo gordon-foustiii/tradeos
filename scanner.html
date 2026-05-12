@@ -1063,13 +1063,10 @@
       <p class="page-subtitle">Fine tuned hot stock finder</p>
     </div>
 
-    <div class="scanner-controls">
+    <div class="scanner-controls" style="display: flex; align-items: center; gap: 12px; grid-template-columns: none;">
       <button id="scanBtn" class="btn-primary" onclick="toggleScanner()">Scan</button>
-      <div class="scan-status" style="display: flex; align-items: center; gap: 8px;">
-        <div id="statusDot" class="status-dot"></div>
-		<span id="statusText">Ready</span>
-      </div>
-      <div></div>
+      <div id="statusDot" class="status-dot"></div>
+      <span id="statusText">Ready</span>
       <button id="editToggle" class="btn-secondary" onclick="toggleEditMode()">Edit Filters</button>
     </div>
 

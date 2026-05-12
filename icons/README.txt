@@ -5,4 +5,4 @@ Place two icon files here:
 You can use any image editor or a free online tool like:
 https://realfavicongenerator.net
 
-Use a dark background (#1a1a2e) with the TradeOS "T" or logo in purple (#7f5af0).
+Use a dark background (#1a1a1a) with the TradeOS "T" or logo in orange/yellow (#ff6b6b, #ffd93d).

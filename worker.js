@@ -17,7 +17,7 @@ var DEFAULT_FILTERS = {
   floatMax: 2e7,
   mktCapMax: 2e9
 };
-var SCAN_CACHE_TTL_SEC = 60;
+var SCAN_CACHE_TTL_SEC = 30;
 var MAX_MOVERS = 200;
 var QUOTE_BATCH_SIZE = 100;
 var STALE_CACHE_TTL_SEC = 600;
@@ -401,6 +401,40 @@ async function scanYahooPredefined(env) {
 }
 __name(scanYahooPredefined, "scanYahooPredefined");
 
+// Polygon.io snapshot gainers — uses the hardcoded key, covers small/mid/large caps
+async function scanPolygon(filters) {
+  const res = await fetch(
+    `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/gainers?apiKey=${POLYGON_API_KEY}`,
+    { headers: { Accept: "application/json" } }
+  );
+  if (!res.ok) throw new Error(`Polygon gainers HTTP ${res.status}`);
+  const data = await res.json();
+  const tickers = data.tickers || [];
+  if (!tickers.length) throw new Error("Polygon returned no gainers");
+
+  return tickers.map(t => {
+    const price = t.lastTrade?.p || t.day?.c || 0;
+    const changePercent = round(t.todaysChangePerc, 2);
+    const changeDollar = round(t.todaysChange, 2);
+    const vol = t.day?.v || 0;
+    const prevVol = t.prevDay?.v || 0;
+    return {
+      ticker: t.ticker,
+      name: t.ticker,
+      price: round(price, 2),
+      change: changePercent,
+      changePercent,
+      changeDollar,
+      volume: vol,
+      avgVolume: prevVol,
+      relVol: prevVol > 0 ? round(vol / prevVol, 2) : null,
+      float: null,
+      mktCap: null,
+    };
+  });
+}
+__name(scanPolygon, "scanPolygon");
+
 // EXISTING FUNCTIONS (unchanged)
 async function handleScan(url, env) {
   const filters = parseFilters(url.searchParams);
@@ -457,6 +491,21 @@ async function handleScan(url, env) {
       source = "fmp";
     } catch (e) {
       console.error("FMP scan failed:", e.message);
+    }
+  }
+
+  // Tertiary: Polygon.io snapshot gainers (hardcoded key, covers small/mid/large cap, no float)
+  if (!source) {
+    try {
+      const raw = await scanPolygon(filters);
+      universeSize = raw.length;
+      results = raw
+        .filter((r) => prePassesFilters(r, filters))
+        .filter((r) => postPassesFilters(r, filters))
+        .sort((a, b) => b.changePercent - a.changePercent);
+      source = "polygon";
+    } catch (e) {
+      console.error("Polygon scan failed:", e.message);
     }
   }
 

@@ -1515,10 +1515,9 @@
 
     function startScan() {
       performScan();
-      // Auto-scan every 10 seconds while active
       state.scanInterval = setInterval(() => {
         if (state.isScanning) performScan();
-      }, 10000);
+      }, 60000);
     }
 
     async function performScan() {
@@ -1563,7 +1562,7 @@
 
         // Update status with source & count
         const txt = document.getElementById('statusText');
-        const sourceLabel = data.source === 'benzinga' ? 'Benzinga' : data.source === 'fmp' ? 'FMP' : 'Yahoo';
+        const sourceLabel = { benzinga: 'Benzinga', fmp: 'FMP', polygon: 'Polygon', yahoo_limited: 'Yahoo' }[data.source] || data.source || '?';
         txt.textContent = `${state.results.length} hits (${sourceLabel}) • ${state.lastUpdate.toLocaleTimeString()}`;
 
         if (data.cached) console.log(`Cached (${data.ageSec}s old)`);

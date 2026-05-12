@@ -418,6 +418,40 @@
     .trade-btn.close:hover {
       transform: translateY(-2px);
     }
+
+    /* ===== OPPORTUNITY & RISK FIELDS ===== */
+    .trade-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .trade-metric {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .trade-metric-label {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .trade-metric-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffd93d;
+    }
+
+    .trade-metric-value.negative {
+      color: #ff9999;
+    }
   </style>
 </head>
 <body>
@@ -438,15 +472,10 @@
       <div class="page-subtitle">Track active trades and historical performance</div>
     </div>
 
-    <div class="tab-nav">
-      <button class="tab-btn active" onclick="switchTab('active')">Active Trades</button>
-      <button class="tab-btn" onclick="switchTab('closed')">Closed Trades</button>
-    </div>
-
-    <div id="tradesContainer" class="content">
-      <div class="content-icon">+</div>
-      <div class="content-text">No Trades Yet</div>
-      <div class="content-subtext">Execute trades from Plays to see them appear here</div>
+    <div id="tradesContainer" class="content trades">
+      <div class="trades-grid" id="tradesGrid">
+        <!-- Trades will render here -->
+      </div>
     </div>
 
     <div class="footer-nav">
@@ -470,7 +499,6 @@
   </div>
 
   <script>
-    let currentTab = 'active';
     // Your existing scanner worker URL
     const WORKER_URL = 'https://your-worker-subdomain.workers.dev';
 
@@ -487,13 +515,6 @@
         console.error('Price fetch failed for ' + ticker, e.message);
       }
       return null;
-    }
-
-    function switchTab(tab) {
-      currentTab = tab;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-      loadTrades();
     }
 
     function formatCurrency(value) {
@@ -515,98 +536,114 @@
 
     function loadTrades() {
       const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
-      const container = document.getElementById('tradesContainer');
+      const grid = document.getElementById('tradesGrid');
       
-      const filtered = trades.filter(t => {
-        if (currentTab === 'active') return t.status === 'ACTIVE';
-        if (currentTab === 'closed') return t.status === 'CLOSED';
-        return false;
-      });
-
-      if (filtered.length === 0) {
-        container.className = 'content';
-        container.innerHTML = `
-          <div class="content-icon">${currentTab === 'active' ? '...' : '...'}</div>
-          <div class="content-text">No ${currentTab === 'active' ? 'Active' : 'Closed'} Trades</div>
-          <div class="content-subtext">${currentTab === 'active' ? 'Execute trades from Plays to see them appear here' : 'Closed trades will appear here'}</div>
+      if (trades.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #aaa;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🕯️</div>
+            <div style="font-size: 18px; margin-bottom: 8px;">No Trades Yet</div>
+            <div style="font-size: 14px;">Execute trades from Plays to see them appear here</div>
+          </div>
         `;
         return;
       }
 
-      container.className = 'content trades';
-      container.innerHTML = `
-        <div class="trades-grid">
-          ${filtered.map(t => {
-            const pnl = calculatePnL(t);
-            const pnlPct = ((pnl / (t.entryPrice * t.shares)) * 100).toFixed(1);
-            const isWinning = pnl > 0;
-            const newsItems = generateMockNews();
+      // Separate open and closed trades
+      const openTrades = trades.filter(t => t.status === 'ACTIVE' || t.status === 'OPEN');
+      const closedTrades = trades.filter(t => t.status === 'CLOSED');
 
-            return `
-              <div class="trade-card ${isWinning ? 'winning' : 'losing'}">
-                <div class="trade-header">
-                  <div class="trade-ticker">${t.ticker}</div>
-                  <div class="trade-status ${t.status === 'CLOSED' ? 'closed' : ''}">
-                    ${t.status === 'ACTIVE' ? 'ACTIVE' : 'CLOSED'}
-                  </div>
-                </div>
+      // Sort closed trades by date (newest first)
+      closedTrades.sort((a, b) => {
+        const dateA = new Date(a.closedAt || a.timestamp || 0).getTime();
+        const dateB = new Date(b.closedAt || b.timestamp || 0).getTime();
+        return dateB - dateA;
+      });
 
-                <div class="trade-row">
-                  <span class="trade-label">Entry</span>
-                  <span class="trade-value">${formatCurrency(t.entryPrice)}</span>
-                </div>
+      // Combine: open trades first, then closed
+      const sorted = [...openTrades, ...closedTrades];
 
-                <div class="trade-row">
-                  <span class="trade-label">Current</span>
-                  <span class="trade-value">${formatCurrency(t.currentPrice)}</span>
-                </div>
+      grid.innerHTML = sorted.map(t => {
+        const entry = parseFloat(t.entryPrice || t.entry || 0);
+        const exit = parseFloat(t.currentPrice || t.exit || entry);
+        const shares = parseFloat(t.shares || 0);
+        const high = parseFloat(t.high || exit);
+        const low = parseFloat(t.low || entry);
 
-                <div class="trade-row">
-                  <span class="trade-label">High / Low</span>
-                  <span class="trade-value">${formatCurrency(t.high)} / ${formatCurrency(t.low)}</span>
-                </div>
+        // P&L calculation
+        const pnl = (exit - entry) * shares;
+        const pnlPct = entry > 0 ? ((pnl / (entry * shares)) * 100) : 0;
+        const isWinning = pnl >= 0;
 
-                <div class="trade-row">
-                  <span class="trade-label">Target / Stop</span>
-                  <span class="trade-value">${formatCurrency(t.targetExit)} / ${formatCurrency(t.stopLoss)}</span>
-                </div>
+        // Left on Table = (High - max(Entry, Exit)) * Shares
+        const leftOnTable = Math.max(0, (high - Math.max(entry, exit)) * shares);
 
-                <div class="trade-row">
-                  <span class="trade-label">Shares</span>
-                  <span class="trade-value">${t.shares}</span>
-                </div>
+        // Saved from Loss = (min(Entry, Exit) - Low) * Shares
+        const savedFromLoss = Math.max(0, (Math.min(entry, exit) - low) * shares);
 
-                <div class="trade-divider"></div>
+        const status = t.status === 'CLOSED' ? 'CLOSED' : 'OPEN';
 
-                <div class="trade-pnl">
-                  <div class="trade-pnl-label">P&L</div>
-                  <div class="trade-pnl-value ${isWinning ? 'positive' : 'negative'}">
-                    ${isWinning ? '+' : ''}${pnl.toFixed(2)} (${isWinning ? '+' : ''}${pnlPct}%)
-                  </div>
-                </div>
-
-                ${t.notes ? `<div class="trade-notes"><strong>Notes:</strong> ${t.notes}</div>` : ''}
-
-                <div class="trade-news">
-                  <strong>Latest News:</strong><br>
-                  ${newsItems.map(n => `<div class="trade-news-item">• ${n}</div>`).join('')}
-                </div>
-
-                ${t.status === 'ACTIVE' ? `
-                  <div class="trade-actions">
-                    <button class="trade-btn" onclick="editTrade(${t.id})">Update</button>
-                    <button class="trade-btn close" onclick="closeTrade(${t.id})">Close Trade</button>
-                  </div>
-                ` : `
-                  <div class="trade-actions">
-                    <button class="trade-btn" onclick="viewDetails(${t.id})" style="grid-column: 1 / -1;">View Details</button>
-                  </div>
-                `}
+        return `
+          <div class="trade-card ${isWinning ? 'winning' : 'losing'}">
+            <div class="trade-header">
+              <div class="trade-ticker">${t.ticker || 'N/A'}</div>
+              <div class="trade-status ${status === 'CLOSED' ? 'closed' : ''}">
+                ${status}
               </div>
-            `;
-          }).join('')}
-        </div>
-      `;
+            </div>
+
+            <div class="trade-row">
+              <span class="trade-label">Entry</span>
+              <span class="trade-value">$${entry.toFixed(2)}</span>
+            </div>
+
+            <div class="trade-row">
+              <span class="trade-label">Exit</span>
+              <span class="trade-value ${isWinning ? 'positive' : 'negative'}">$${exit.toFixed(2)}</span>
+            </div>
+
+            <div class="trade-row">
+              <span class="trade-label">Shares</span>
+              <span class="trade-value">${shares.toFixed(0)}</span>
+            </div>
+
+            <div class="trade-divider"></div>
+
+            <div class="trade-pnl">
+              <div class="trade-pnl-label">P&L</div>
+              <div class="trade-pnl-value ${isWinning ? 'positive' : 'negative'}">
+                ${isWinning ? '+' : ''}$${pnl.toFixed(2)} (${isWinning ? '+' : ''}${pnlPct.toFixed(1)}%)
+              </div>
+            </div>
+
+            <div class="trade-metrics">
+              <div class="trade-metric">
+                <div class="trade-metric-label">Left on Table</div>
+                <div class="trade-metric-value ${leftOnTable > 0 ? 'negative' : ''}">
+                  ${leftOnTable > 0 ? '$' + leftOnTable.toFixed(2) : '—'}
+                </div>
+              </div>
+              <div class="trade-metric">
+                <div class="trade-metric-label">Saved from Loss</div>
+                <div class="trade-metric-value ${savedFromLoss > 0 ? '' : 'negative'}">
+                  ${savedFromLoss > 0 ? '$' + savedFromLoss.toFixed(2) : '—'}
+                </div>
+              </div>
+            </div>
+
+            ${status === 'OPEN' ? `
+              <div class="trade-actions">
+                <button class="trade-btn" onclick="editTrade(${t.id})">Update</button>
+                <button class="trade-btn close" onclick="closeTrade(${t.id})">Close Trade</button>
+              </div>
+            ` : `
+              <div class="trade-actions">
+                <button class="trade-btn" onclick="viewDetails(${t.id})" style="grid-column: 1 / -1;">View Details</button>
+              </div>
+            `}
+          </div>
+        `;
+      }).join('');
     }
 
     function editTrade(id) {
@@ -657,9 +694,8 @@
       loadTrades();
       // Update live prices every 5 seconds
       setInterval(async () => {
-        if (currentTab === 'active') {
-          const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
-          const activeTrades = trades.filter(t => t.status === 'ACTIVE');
+        const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+        const activeTrades = trades.filter(t => t.status === 'ACTIVE' || t.status === 'OPEN');
           let updated = false;
           
           for (const t of activeTrades) {
@@ -676,7 +712,6 @@
             localStorage.setItem('tradeos_journal', JSON.stringify(trades));
             loadTrades();
           }
-        }
       }, 5000);
     });
   </script>

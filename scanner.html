@@ -1923,11 +1923,26 @@
 
     function exportScanHistory() {
       const history = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
-      const csv = ['Timestamp,Tickers,Count'].concat(
-        history.map(h => `"${new Date(h.timestamp).toISOString()}","${h.results.join(', ')}",${h.results.length}`)
-      ).join('\n');
-      
-      const blob = new Blob([csv], { type: 'text/csv' });
+      const tickerHistory = JSON.parse(localStorage.getItem('tradeos_ticker_history') || '{}');
+
+      const rows = ['Timestamp,Ticker,Price'];
+      history.forEach(h => {
+        const scanTime = new Date(h.timestamp).getTime();
+        h.results.forEach(ticker => {
+          const hits = (tickerHistory[ticker] && tickerHistory[ticker].hits) || [];
+          let price = '';
+          if (hits.length > 0) {
+            const closest = hits.reduce((best, hit) => {
+              const diff = Math.abs(new Date(hit.timestamp).getTime() - scanTime);
+              return diff < best.diff ? { diff, price: hit.price } : best;
+            }, { diff: Infinity, price: null });
+            if (closest.price !== null) price = closest.price.toFixed(2);
+          }
+          rows.push(`"${new Date(h.timestamp).toISOString()}","${ticker}","${price}"`);
+        });
+      });
+
+      const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

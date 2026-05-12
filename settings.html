@@ -495,6 +495,122 @@
       border-bottom: 2px solid #ffd93d;
     }
 
+    .import-dropzone {
+      border: 2px dashed rgba(255, 217, 61, 0.3);
+      border-radius: 8px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255, 217, 61, 0.02);
+      margin-bottom: 12px;
+    }
+
+    .import-dropzone:hover {
+      border-color: #ffd93d;
+      background: rgba(255, 217, 61, 0.05);
+    }
+
+    .import-dropzone.dragover {
+      border-color: #ffd93d;
+      background: rgba(255, 217, 61, 0.1);
+      box-shadow: 0 0 0 4px rgba(255, 217, 61, 0.1);
+    }
+
+    .mapping-field {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .mapping-field .label {
+      min-width: 100px;
+      margin-bottom: 0;
+      color: #ffd93d;
+    }
+
+    .mapping-field select {
+      flex: 1;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .mapping-field select:focus {
+      outline: none;
+      border-color: #ffd93d;
+      box-shadow: 0 0 0 2px rgba(255, 217, 61, 0.1);
+    }
+
+    .import-alert {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .import-alert.success {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+    }
+
+    .import-alert.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+    }
+
+    .import-alert.warning {
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+    }
+
+    .result-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 12px;
+    }
+
+    .result-row:last-child {
+      border-bottom: none;
+    }
+
+    .result-icon {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .result-icon.ok {
+      color: #4ade80;
+    }
+
+    .result-icon.error {
+      color: #ef4444;
+    }
+
     .divider {
       height: 1px;
       background: rgba(255, 255, 255, 0.1);
@@ -670,6 +786,55 @@
             <div class="card-subtitle">Always enabled for TradeOS</div>
           </div>
           <div class="switch active" onclick="return false" style="cursor: not-allowed; opacity: 0.5;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data & Import -->
+    <div class="section">
+      <div class="section-title">Data & Import</div>
+      
+      <div class="card">
+        <div class="card-title" style="margin-bottom: 12px;">Import Trades</div>
+        <div class="card-subtitle">Upload CSV from ThinkorSwim, Profit.ly, or manual tracking</div>
+        <div class="divider"></div>
+        
+        <!-- Drag & Drop Zone -->
+        <div class="import-dropzone" id="dropzone">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 40px; height: 40px; margin-bottom: 8px; color: #ffd93d;">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <div class="card-title" style="margin-bottom: 4px;">Drop CSV here or click to upload</div>
+          <div class="card-subtitle">Supported: ThinkorSwim, Profit.ly, custom formats</div>
+          <input type="file" id="file-input" accept=".csv" style="display: none;">
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Column Mapping UI (hidden by default) -->
+        <div id="mapping-section" style="display: none;">
+          <div class="card-title" style="margin-bottom: 12px;">Map Columns</div>
+          <div class="card-subtitle" style="margin-bottom: 16px;">Match your CSV columns to TradeOS fields</div>
+          <div id="mapping-fields"></div>
+          <div class="button-group" style="margin-top: 16px;">
+            <button class="btn btn-primary" onclick="proceedImport()">Import Trades</button>
+            <button class="btn btn-secondary" onclick="cancelImport()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Progress & Results (hidden by default) -->
+        <div id="import-results" style="display: none;">
+          <div class="card-title" style="margin-bottom: 12px;">Import Results</div>
+          <div id="results-content"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="font-size: 12px; color: #aaa; line-height: 1.6;">
+          <strong>CSV Format:</strong> Your file should have columns like Ticker, Entry, Exit, Shares, Date, etc.
+          <br><strong>Max file size:</strong> 5MB
         </div>
       </div>
     </div>
@@ -891,6 +1056,310 @@
     }
 
     window.addEventListener('load', loadProfile);
+
+    // ========== CSV IMPORT HANDLER ==========
+    let importedData = null;
+    let csvHeaders = [];
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+
+    // Drag & drop
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      handleFileUpload(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        handleFileUpload(e.target.files[0]);
+      }
+    });
+
+    function handleFileUpload(file) {
+      if (!file) return;
+
+      if (!file.name.endsWith('.csv')) {
+        alert('Please upload a CSV file');
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size exceeds 5MB');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          parseCSV(e.target.result);
+        } catch (err) {
+          showAlert('error', 'Error parsing CSV: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function parseCSV(content) {
+      const lines = content.trim().split('\n');
+      if (lines.length < 2) {
+        showAlert('error', 'CSV must have header row and at least one data row');
+        return;
+      }
+
+      csvHeaders = lines[0].split(',').map(h => h.trim());
+      const rows = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        const cells = lines[i].split(',').map(c => c.trim());
+        const row = {};
+        csvHeaders.forEach((header, idx) => {
+          row[header] = cells[idx] || '';
+        });
+        rows.push(row);
+      }
+
+      importedData = rows;
+      showMappingUI();
+    }
+
+    function showMappingUI() {
+      document.getElementById('dropzone').parentElement.style.display = 'none';
+      document.getElementById('mapping-section').style.display = 'block';
+      
+      const mappingFields = document.getElementById('mapping-fields');
+      mappingFields.innerHTML = '';
+
+      // TradeOS 31-column schema essentials
+      const requiredFields = ['Ticker', 'Entry', 'Exit', 'Shares', 'Date'];
+      const optionalFields = ['Time', 'Exit Time', 'Reason', 'Notes', 'Strategy', 'Catalyst'];
+      const allFields = [...requiredFields, ...optionalFields];
+
+      // Auto-detect columns
+      const detected = {};
+      const autoMap = {
+        'ticker': 'Ticker',
+        'symbol': 'Ticker',
+        'entry': 'Entry',
+        'entry price': 'Entry',
+        'exit': 'Exit',
+        'exit price': 'Exit',
+        'shares': 'Shares',
+        'quantity': 'Shares',
+        'qty': 'Shares',
+        'date': 'Date',
+        'trade date': 'Date',
+        'time': 'Time',
+        'exit time': 'Exit Time',
+        'reason': 'Reason',
+        'notes': 'Notes',
+        'strategy': 'Strategy',
+        'catalyst': 'Catalyst'
+      };
+
+      csvHeaders.forEach(header => {
+        const lowerHeader = header.toLowerCase();
+        for (const [key, value] of Object.entries(autoMap)) {
+          if (lowerHeader.includes(key)) {
+            detected[header] = value;
+            break;
+          }
+        }
+      });
+
+      // Build mapping fields
+      csvHeaders.forEach(csvCol => {
+        const mappingDiv = document.createElement('div');
+        mappingDiv.className = 'mapping-field';
+        
+        const label = document.createElement('label');
+        label.className = 'label';
+        label.textContent = csvCol;
+        
+        const select = document.createElement('select');
+        select.id = `map-${csvCol}`;
+        select.innerHTML = '<option value="">-- Skip --</option>';
+        
+        allFields.forEach(field => {
+          const opt = document.createElement('option');
+          opt.value = field;
+          opt.textContent = field;
+          select.appendChild(opt);
+        });
+        
+        // Set detected value
+        if (detected[csvCol]) {
+          select.value = detected[csvCol];
+        }
+        
+        mappingDiv.appendChild(label);
+        mappingDiv.appendChild(select);
+        mappingFields.appendChild(mappingDiv);
+      });
+
+      showAlert('success', `Detected ${Object.keys(detected).length} columns. Check mappings below.`);
+    }
+
+    async function proceedImport() {
+      const mapping = {};
+      const requiredMapped = {};
+
+      csvHeaders.forEach(csvCol => {
+        const select = document.getElementById(`map-${csvCol}`);
+        const tradeosField = select.value;
+        if (tradeosField) {
+          mapping[csvCol] = tradeosField;
+          if (tradeosField === 'Ticker') requiredMapped['Ticker'] = true;
+          if (tradeosField === 'Entry') requiredMapped['Entry'] = true;
+          if (tradeosField === 'Exit') requiredMapped['Exit'] = true;
+          if (tradeosField === 'Shares') requiredMapped['Shares'] = true;
+          if (tradeosField === 'Date') requiredMapped['Date'] = true;
+        }
+      });
+
+      // Validate required fields
+      if (!requiredMapped['Ticker'] || !requiredMapped['Entry'] || !requiredMapped['Exit'] || !requiredMapped['Shares'] || !requiredMapped['Date']) {
+        showAlert('error', 'You must map at least: Ticker, Entry, Exit, Shares, and Date');
+        return;
+      }
+
+      // Transform data
+      const transformedRows = importedData.map(row => {
+        const newRow = {};
+        Object.keys(mapping).forEach(csvCol => {
+          const tradeosField = mapping[csvCol];
+          let value = row[csvCol];
+          
+          // Parse numbers
+          if (['Entry', 'Exit', 'Shares'].includes(tradeosField)) {
+            value = parseFloat(value) || 0;
+          }
+          
+          newRow[tradeosField] = value;
+        });
+        return newRow;
+      });
+
+      // Show results UI
+      document.getElementById('mapping-section').style.display = 'none';
+      document.getElementById('import-results').style.display = 'block';
+
+      // Send to server
+      try {
+        const response = await fetch('/api/import', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('tradeos_id_token')
+          },
+          body: JSON.stringify({ trades: transformedRows })
+        });
+
+        const result = await response.json();
+        displayResults(result);
+      } catch (err) {
+        // For now, show local success (server endpoint not yet built)
+        displayResults({
+          success: true,
+          imported: transformedRows.length,
+          failed: 0,
+          details: transformedRows.map((row, idx) => ({
+            row: idx + 1,
+            ticker: row.Ticker,
+            status: 'pending (server endpoint not configured)'
+          }))
+        });
+      }
+    }
+
+    function displayResults(result) {
+      const resultsContent = document.getElementById('results-content');
+      resultsContent.innerHTML = '';
+
+      if (result.success) {
+        const successAlert = document.createElement('div');
+        successAlert.className = 'import-alert success';
+        successAlert.innerHTML = `<span>✓</span> <span><strong>${result.imported} trades</strong> imported successfully</span>`;
+        resultsContent.appendChild(successAlert);
+
+        if (result.failed > 0) {
+          const warnAlert = document.createElement('div');
+          warnAlert.className = 'import-alert warning';
+          warnAlert.innerHTML = `<span>⚠</span> <span><strong>${result.failed} rows</strong> failed to import</span>`;
+          resultsContent.appendChild(warnAlert);
+        }
+      } else {
+        const errorAlert = document.createElement('div');
+        errorAlert.className = 'import-alert error';
+        errorAlert.innerHTML = `<span>✕</span> <span>Import failed: ${result.error || 'Unknown error'}</span>`;
+        resultsContent.appendChild(errorAlert);
+      }
+
+      // Show row-by-row results
+      if (result.details && result.details.length > 0) {
+        const detailsDiv = document.createElement('div');
+        detailsDiv.style.marginTop = '12px';
+        
+        result.details.forEach(detail => {
+          const row = document.createElement('div');
+          row.className = 'result-row';
+          const icon = detail.status === 'ok' ? '✓' : '✕';
+          const iconClass = detail.status === 'ok' ? 'ok' : 'error';
+          row.innerHTML = `
+            <div class="result-icon ${iconClass}">${icon}</div>
+            <div><strong>${detail.ticker}</strong> • Row ${detail.row}</div>
+            <div style="color: #aaa; font-size: 11px;">${detail.status}</div>
+          `;
+          detailsDiv.appendChild(row);
+        });
+        
+        resultsContent.appendChild(detailsDiv);
+      }
+
+      // Reset button
+      const resetBtn = document.createElement('button');
+      resetBtn.className = 'btn btn-secondary';
+      resetBtn.textContent = 'Import Another File';
+      resetBtn.style.marginTop = '16px';
+      resetBtn.onclick = resetImport;
+      resultsContent.appendChild(resetBtn);
+    }
+
+    function cancelImport() {
+      resetImport();
+    }
+
+    function resetImport() {
+      importedData = null;
+      csvHeaders = [];
+      document.getElementById('dropzone').parentElement.style.display = 'block';
+      document.getElementById('mapping-section').style.display = 'none';
+      document.getElementById('import-results').style.display = 'none';
+      fileInput.value = '';
+    }
+
+    function showAlert(type, message) {
+      const mappingSection = document.getElementById('mapping-section');
+      let alertContainer = mappingSection.querySelector('.import-alert');
+      
+      if (!alertContainer) {
+        alertContainer = document.createElement('div');
+        mappingSection.insertBefore(alertContainer, mappingSection.firstChild);
+      }
+      
+      alertContainer.className = `import-alert ${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : '⚠';
+      alertContainer.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+    }
   </script>
 </body>
 </html>

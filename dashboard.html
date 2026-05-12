@@ -453,6 +453,53 @@
       </table>
     </div>
 
+    <div class="section-title">Trading Notes & Edge Theories</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 32px;">
+      
+      <div class="card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 12px; color: #ffd93d;">15-Min Delayed Data Cascade</div>
+        <div style="font-size: 13px; line-height: 1.6; color: #ddd;">
+          TradingView 15-min delayed data creates sequential buyer waves. First leg forms on real-time buyers, second and third legs follow as delayed data catches up. Early entry on first leg is critical before cascade accelerates.
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 12px; color: #ffd93d;">AI Amplification Theory</div>
+        <div style="font-size: 13px; line-height: 1.6; color: #ddd;">
+          Human discovery precedes algorithmic pile-in. Retail finds setups first, algos detect and amplify the move. The gap between discovery and algo recognition is our edge — first movers capture the highest ROI before liquidity dries.
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 12px; color: #ffd93d;">Movement Creates Movement</div>
+        <div style="font-size: 13px; line-height: 1.6; color: #ddd;">
+          Each price leg feeds the next. Strong momentum off support creates fresh demand, which sustains the move. Breakout volume confirms the sequence; fading volume warns of reversal. Read legs as chained events, not isolated candles.
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 12px; color: #ffd93d;">Dividend Rotation</div>
+        <div style="font-size: 13px; line-height: 1.6; color: #ddd;">
+          Capital rotates into dividend payers before ex-dates. Watch yield spikes and ex-date calendars — predictable rotation creates low-float, high-catalyst setups. Post-ex, capital often rotates to growth, creating secondary moves.
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 12px; color: #ffd93d;">Float Analysis Edge</div>
+        <div style="font-size: 13px; line-height: 1.6; color: #ddd;">
+          Tight floats amplify moves. Float ≤20M + rel vol >1.5x + catalyst = explosive setups. The fewer shares available, the less volume needed to move price. Pair tight float with institutional catalyst (earnings, FDA, short squeeze catalyst).
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 12px; color: #ffd93d;">VWAP as Dynamic S/R</div>
+        <div style="font-size: 13px; line-height: 1.6; color: #ddd;">
+          VWAP isn't static — it reprices with each bar. Price holding above VWAP = accumulation phase. Break below = distribution warning. Entry above VWAP on breakout = confirmation of buyer conviction. Exit signals when price closes below VWAP on volume.
+        </div>
+      </div>
+
+    </div>
+
         <div class="footer-nav">
       <a href="/tradeos/scanner.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -533,7 +580,7 @@
             return;
           }
 
-          const recent = trades.slice(-10).reverse();
+          const recent = trades.slice(-5).reverse();
           tbody.innerHTML = recent.map(function(t) {
             const pnl = parseFloat(t.pnl) || 0;
             return `

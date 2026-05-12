@@ -1008,8 +1008,12 @@
               <!-- Chart Bar -->
               ${drawCandleChart(entry, high, low, exit, isWinning)}
 
-              <!-- Footer Grid: Shares | Move | Captured | Saved $ | Left $ -->
+              <!-- Footer Grid: Saved $ | Shares | Move | Captured | Left $ -->
               <div class="candy-stats">
+                <div class="candy-stat">
+                  <div class="candy-stat-label">Saved $</div>
+                  <div class="candy-stat-value ${savedFromLoss > 0 ? 'positive' : 'zero'}">${savedFromLoss > 0 ? '$' + savedFromLoss.toFixed(2) : '—'}</div>
+                </div>
                 <div class="candy-stat">
                   <div class="candy-stat-label">Shares</div>
                   <div class="candy-stat-value">${shares.toFixed(0)}</div>
@@ -1021,10 +1025,6 @@
                 <div class="candy-stat">
                   <div class="candy-stat-label">Captured</div>
                   <div class="candy-stat-value">${captured.toFixed(1)}%</div>
-                </div>
-                <div class="candy-stat">
-                  <div class="candy-stat-label">Saved $</div>
-                  <div class="candy-stat-value ${savedFromLoss > 0 ? 'positive' : 'zero'}">${savedFromLoss > 0 ? '$' + savedFromLoss.toFixed(2) : '—'}</div>
                 </div>
                 <div class="candy-stat">
                   <div class="candy-stat-label">Left $</div>

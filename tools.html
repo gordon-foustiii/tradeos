@@ -229,7 +229,7 @@
             <!-- TIMER TITLE -->
             <div style="margin-bottom: 24px; text-align: center;">
               <div style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px;">Market Timer</div>
-              <div style="font-size: 12px; color: #aaa;">Countdown to next event</div>
+              <div style="font-size: 12px; color: #aaa;" id="market-status">Loading...</div>
             </div>
 
             <!-- UNIFIED TIMER SECTION -->
@@ -387,24 +387,29 @@
           const clock = document.getElementById('timer-clock');
           const label = document.getElementById('timer-label');
           const bar = document.getElementById('timer-bar');
+          const status = document.getElementById('market-status');
 
           // Format time (HH:MM:SS)
           clock.textContent = String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
           clock.style.color = getClockColor(phase);
 
+          // Update market status
+          status.textContent = currentEvent.phase;
+          status.style.color = getClockColor(phase);
+
           // Determine label based on phase
           if (phase.includes('Closed')) {
-            label.textContent = 'Market closed — next: ' + nextEvent.name.toLowerCase();
+            label.textContent = 'UNTIL ' + nextEvent.name.toUpperCase();
           } else if (phase.includes('Afterhours')) {
-            label.textContent = 'After hours — next: ' + nextEvent.name.toLowerCase();
+            label.textContent = 'UNTIL ' + nextEvent.name.toUpperCase();
           } else if (phase.includes('NO TRADE')) {
-            label.textContent = '⚠️ NO TRADE ZONE — ' + nextEvent.name.toLowerCase() + ' in ' + mins + 'm';
+            label.textContent = '⚠️ NO TRADE ZONE — UNTIL ' + nextEvent.name.toUpperCase();
           } else if (phase.includes('Market Open')) {
-            label.textContent = 'Market open — next: ' + nextEvent.name.toLowerCase() + ' in ' + mins + 'm';
+            label.textContent = 'UNTIL ' + nextEvent.name.toUpperCase();
           } else if (phase.includes('Prime')) {
-            label.textContent = 'Prime window — ' + mins + ' min remaining';
+            label.textContent = 'UNTIL ' + nextEvent.name.toUpperCase();
           } else {
-            label.textContent = phase.toLowerCase() + ' — next: ' + nextEvent.name.toLowerCase() + ' in ' + mins + 'm';
+            label.textContent = 'UNTIL ' + nextEvent.name.toUpperCase();
           }
 
           // Progress bar (0-100% of time until next event)

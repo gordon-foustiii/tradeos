@@ -1514,13 +1514,83 @@
     }
 
     function startScan() {
-      performScan();
-      // Auto-scan every 10 seconds while active
-      state.scanInterval = setInterval(() => {
-        if (state.isScanning) performScan();
-      }, 10000);
+      // Start live polling session
+      state.liveScanSessionId = Date.now().toString();
+      startLiveScan();
     }
 
+    async function startLiveScan() {
+      try {
+        // Initial full scan
+        await performScan();
+        
+        // Then poll for new tickers every 5s
+        state.liveScanInterval = setInterval(async () => {
+          if (!state.isScanning) return;
+          await pollNewTickers();
+        }, 5000); // Poll every 5s
+      } catch (e) {
+        console.error('Live scan start error:', e);
+      }
+    }
+
+    /**
+     * LIVE POLLING: Calls /scan/live, gets *only* new tickers since last poll
+     * Injects them into tickerHistory in real-time
+     */
+    async function pollNewTickers() {
+      try {
+        if (!state.isScanning || !state.liveScanSessionId) return;
+
+        const f = state.currentFilters;
+        const filtersObj = {
+          priceMin: f.price.min,
+          priceMax: f.price.max,
+          changePctMin: f.change.min,
+          volumeMin: f.volume.min,
+          relVolMin: f.relVol.min,
+          floatMax: f.float.max,
+          mktCapMax: (f.mktCap && f.mktCap.max) || 2000000000
+        };
+
+        const params = new URLSearchParams({
+          sessionId: state.liveScanSessionId,
+          filters: encodeURIComponent(JSON.stringify(filtersObj))
+        });
+
+        const response = await fetch(`https://tradeos-proxy.gordon-foustiii.workers.dev/scan/live?${params}`);
+        if (!response.ok) {
+          console.warn(`Live scan HTTP ${response.status}`);
+          return;
+        }
+
+        const data = await response.json();
+        const newTickers = data.newTickers || [];
+
+        if (newTickers.length > 0) {
+          console.log(`🔔 ${newTickers.length} NEW tickers`, newTickers.map(t => t.ticker));
+          
+          // Inject new tickers into history
+          newTickers.forEach(ticker => {
+            recordTickerHit(ticker.ticker, ticker.price);
+          });
+
+          // Update UI to show live status
+          const txt = document.getElementById('statusText');
+          const now = new Date();
+          txt.textContent = `LIVE: +${newTickers.length} new | Poll #${data.pollCount} • ${now.toLocaleTimeString()}`;
+
+          // Refresh UI
+          renderTickerHistory();
+        }
+      } catch (error) {
+        console.error('Live poll error:', error);
+      }
+    }
+
+    /**
+     * FULL SCAN: One-time scan on button press (now called by startLiveScan)
+     */
     async function performScan() {
       try {
         if (!state.isScanning) return;
@@ -1559,18 +1629,19 @@
         
         state.lastUpdate = new Date();
         renderResults();
+        renderTickerHistory();
         saveScannerState();
 
         // Update status with source & count
         const txt = document.getElementById('statusText');
-        const sourceLabel = data.source === 'benzinga' ? 'Benzinga' : data.source === 'fmp' ? 'FMP' : 'Yahoo';
-        txt.textContent = `${state.results.length} hits (${sourceLabel}) • ${state.lastUpdate.toLocaleTimeString()}`;
+        const sourceLabel = { benzinga: 'Benzinga', fmp: 'FMP', polygon: 'Polygon', yahoo_limited: 'Yahoo' }[data.source] || data.source || '?';
+        txt.textContent = `${state.results.length} initial hits (${sourceLabel}) • ${state.lastUpdate.toLocaleTimeString()}`;
 
         if (data.cached) console.log(`Cached (${data.ageSec}s old)`);
         console.log(`${sourceLabel} | ${data.universeSize || '?'} → ${results.length}`);
 
       } catch (error) {
-        console.error('Scan error:', error);
+        console.error('Full scan error:', error);
         const txt = document.getElementById('statusText');
         txt.textContent = `Error: ${error.message}`;
       }
@@ -1585,6 +1656,8 @@
       txt.textContent = 'Ready';
       updateStatusDot();
       if (state.scanInterval) clearInterval(state.scanInterval);
+      if (state.liveScanInterval) clearInterval(state.liveScanInterval);
+      state.liveScanSessionId = null;
     }
 
     function applyFilters(t, f) {

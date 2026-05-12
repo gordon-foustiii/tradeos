@@ -1,7 +1,9 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// worker.js - Public API (no auth required)
+// worker.js
+var __defProp2 = Object.defineProperty;
+var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
 var CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -17,7 +19,7 @@ var DEFAULT_FILTERS = {
   floatMax: 2e7,
   mktCapMax: 2e9
 };
-var SCAN_CACHE_TTL_SEC = 30;
+var SCAN_CACHE_TTL_SEC = 60;
 var MAX_MOVERS = 200;
 var QUOTE_BATCH_SIZE = 100;
 var STALE_CACHE_TTL_SEC = 600;
@@ -34,13 +36,11 @@ var worker_default = {
       if (url.pathname === "/scan-and-alert") return handleScanAndAlert(url, env);
       if (url.pathname === "/tv-scanner") return handleTVScanner(request, env);
       if (url.pathname === "/discord") return handleDiscordRelay(request, env);
-      if (url.pathname === '/auth/callback') return handleAuthCallback(request, env);
+      if (url.pathname === "/auth/callback") return handleAuthCallback(request, env);
       if (url.pathname === "/news") return handleNews(url, env);
       if (url.pathname.startsWith("/quote/")) return handleQuoteRoute(url, env);
       if (url.pathname.startsWith("/bars/")) return handleBarsRoute(url, env);
       if (url.pathname === "/health") return jsonResponse({ ok: true, time: (/* @__PURE__ */ new Date()).toISOString() });
-
-      // Authenticated journal endpoints (?action= query param style)
       if (url.pathname === "/") {
         const userId = await verifyAuth(request, env);
         if (!userId) return jsonResponse({ error: "Unauthorized" }, 401);
@@ -58,7 +58,6 @@ var worker_default = {
         }
         return jsonResponse({ error: "Unknown action" }, 400);
       }
-
       return jsonResponse({ error: "Not found" }, 404);
     } catch (err) {
       console.error("Top-level error:", err.stack || err.message);
@@ -66,56 +65,47 @@ var worker_default = {
     }
   }
 };
-
 async function handleAuthCallback(request, env) {
-  if (request.method !== 'POST') {
-    return jsonResponse({ error: 'POST only' }, 405);
+  if (request.method !== "POST") {
+    return jsonResponse({ error: "POST only" }, 405);
   }
-
   try {
     const body = await request.json();
     const { code, redirect_uri } = body;
-
     if (!code) {
-      return jsonResponse({ error: 'Authorization code required' }, 400);
+      return jsonResponse({ error: "Authorization code required" }, 400);
     }
-
     if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
-      return jsonResponse({ error: 'Server misconfigured: Google secrets missing' }, 500);
+      return jsonResponse({ error: "Server misconfigured: Google secrets missing" }, 500);
     }
-
-    const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         client_id: env.GOOGLE_CLIENT_ID,
         client_secret: env.GOOGLE_CLIENT_SECRET,
-        code: code,
-        grant_type: 'authorization_code',
-        redirect_uri: redirect_uri || 'https://gordon-foustiii.github.io/tradeos/auth.html'
+        code,
+        grant_type: "authorization_code",
+        redirect_uri: redirect_uri || "https://gordon-foustiii.github.io/tradeos/auth.html"
       }).toString()
     });
-
     const data = await tokenRes.json();
-
     if (!tokenRes.ok || !data.id_token) {
-      console.error('Google token error:', data);
-      return jsonResponse({ error: data.error_description || data.error || 'Token exchange failed' }, 400);
+      console.error("Google token error:", data);
+      return jsonResponse({ error: data.error_description || data.error || "Token exchange failed" }, 400);
     }
-
     return jsonResponse({
       id_token: data.id_token,
       access_token: data.access_token || null,
       expires_in: data.expires_in || 3600,
-      token_type: data.token_type || 'Bearer'
+      token_type: data.token_type || "Bearer"
     });
   } catch (err) {
-    console.error('Auth callback error:', err.message);
+    console.error("Auth callback error:", err.message);
     return jsonResponse({ error: err.message }, 500);
   }
 }
-
-// NEW: Scan + Alert handler
+__name(handleAuthCallback, "handleAuthCallback");
 async function handleScanAndAlert(url, env) {
   if (!env.BENZINGA_API_KEY) {
     return jsonResponse({
@@ -123,9 +113,7 @@ async function handleScanAndAlert(url, env) {
       results: []
     }, 500);
   }
-
   try {
-    // Run scan with default filters
     const filters = DEFAULT_FILTERS;
     let movers;
     try {
@@ -134,21 +122,17 @@ async function handleScanAndAlert(url, env) {
       console.error("fetchMovers error:", e.message);
       return jsonResponse({ error: `Scan failed: ${e.message}` }, 500);
     }
-
     const gainers = movers.gainers || [];
     const preSurvivors = gainers.map(normalizeMover).filter((m) => prePassesFilters(m, filters));
-
     if (preSurvivors.length === 0) {
       return jsonResponse({ success: true, count: 0, message: "No results found" });
     }
-
     let quotes = {};
     try {
       quotes = await fetchQuotes(env.BENZINGA_API_KEY, preSurvivors.map((s) => s.ticker));
     } catch (e) {
       console.error("fetchQuotes error:", e.message);
     }
-
     const enriched = preSurvivors.map((s) => {
       const q = quotes[s.ticker] || {};
       return {
@@ -158,42 +142,34 @@ async function handleScanAndAlert(url, env) {
         name: q.companyStandardName || q.name || s.name
       };
     });
-
     const finalResults = enriched.filter((r) => postPassesFilters(r, filters)).sort((a, b) => b.changePercent - a.changePercent);
     const topTickers = finalResults.slice(0, 15);
-
-    // Build Discord payload
     const discordPayload = {
-      content: "🔍 **LIVE SCANNER RESULTS**",
+      content: "\u{1F50D} **LIVE SCANNER RESULTS**",
       embeds: [{
-        title: `Pre-Market Scan - ${new Date().toLocaleTimeString("en-US")}`,
+        title: `Pre-Market Scan - ${(/* @__PURE__ */ new Date()).toLocaleTimeString("en-US")}`,
         color: 3066993,
-        fields: topTickers.map(t => ({
-          name: `${t.ticker} • $${t.price}`,
+        fields: topTickers.map((t) => ({
+          name: `${t.ticker} \u2022 $${t.price}`,
           value: `Change: ${t.changePercent}% | Vol: ${formatNumber(t.volume)} | Float: ${formatNumber(t.float)} | Cap: $${formatNumber(t.mktCap)}`,
           inline: false
         })),
         footer: { text: `Total matches: ${finalResults.length} | Source: Benzinga` }
       }]
     };
-
-    // Send to Discord
     const discordWebhook = env.DISCORD_WEBHOOK;
     if (!discordWebhook) {
       return jsonResponse({ error: "DISCORD_WEBHOOK not configured" }, 500);
     }
-
     const discordRes = await fetch(discordWebhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(discordPayload)
     });
-
     if (!discordRes.ok) {
       console.error("Discord send failed:", discordRes.status);
       return jsonResponse({ error: `Discord error: ${discordRes.status}` }, 500);
     }
-
     return jsonResponse({
       success: true,
       tickersPosted: topTickers.length,
@@ -205,21 +181,17 @@ async function handleScanAndAlert(url, env) {
   }
 }
 __name(handleScanAndAlert, "handleScanAndAlert");
-
-// NEW: TradingView Scanner webhook
+__name2(handleScanAndAlert, "handleScanAndAlert");
 async function handleTVScanner(request, env) {
   if (request.method !== "POST") {
     return jsonResponse({ error: "POST only" }, 405);
   }
-
   try {
     const body = await request.json();
     const message = body.message || "";
-    
-    const lines = message.split("\n").filter(line => line.trim());
-    
-    const tickers = lines.map(line => {
-      const parts = line.split("|").map(p => p.trim());
+    const lines = message.split("\n").filter((line) => line.trim());
+    const tickers = lines.map((line) => {
+      const parts = line.split("|").map((p) => p.trim());
       return {
         ticker: parts[0] || "?",
         price: parts[1] || "?",
@@ -228,13 +200,12 @@ async function handleTVScanner(request, env) {
         volume: parts[4] || "?"
       };
     });
-
     const discordPayload = {
-      content: "🔍 **SCANNER HITS**",
+      content: "\u{1F50D} **SCANNER HITS**",
       embeds: [{
-        title: `TradingView Alert - ${new Date().toLocaleTimeString("en-US")}`,
+        title: `TradingView Alert - ${(/* @__PURE__ */ new Date()).toLocaleTimeString("en-US")}`,
         color: 3066993,
-        fields: tickers.map(t => ({
+        fields: tickers.map((t) => ({
           name: t.ticker,
           value: `${t.price} | ${t.change} | ${t.float} | ${t.volume}`,
           inline: false
@@ -242,18 +213,15 @@ async function handleTVScanner(request, env) {
         footer: { text: "TradingView Premium Webhook" }
       }]
     };
-
     const discordWebhook = env.DISCORD_WEBHOOK;
     if (!discordWebhook) {
       return jsonResponse({ error: "DISCORD_WEBHOOK not configured" }, 500);
     }
-
     await fetch(discordWebhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(discordPayload)
     });
-
     return jsonResponse({ success: true, tickersProcessed: tickers.length });
   } catch (err) {
     console.error("TV Scanner error:", err);
@@ -261,13 +229,11 @@ async function handleTVScanner(request, env) {
   }
 }
 __name(handleTVScanner, "handleTVScanner");
-
-// Discord relay endpoint
+__name2(handleTVScanner, "handleTVScanner");
 async function handleDiscordRelay(request, env) {
   if (request.method !== "POST") {
     return jsonResponse({ error: "POST only" }, 405);
   }
-
   try {
     let body;
     try {
@@ -276,32 +242,25 @@ async function handleDiscordRelay(request, env) {
       console.error("JSON parse error:", parseErr.message);
       return jsonResponse({ error: `Invalid JSON: ${parseErr.message}` }, 400);
     }
-
     const { webhookUrl, payload } = body;
-
     if (!webhookUrl) {
       return jsonResponse({ error: "Missing webhookUrl" }, 400);
     }
     if (!payload) {
       return jsonResponse({ error: "Missing payload" }, 400);
     }
-
     console.log("Relaying to Discord:", webhookUrl.slice(0, 50) + "...");
-
     const discordRes = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-
     console.log("Discord response:", discordRes.status);
-
     if (!discordRes.ok) {
       const discordError = await discordRes.text();
       console.error("Discord error:", discordError);
       return jsonResponse({ error: `Discord error: ${discordRes.status} ${discordError}` }, discordRes.status);
     }
-
     return jsonResponse({ success: true });
   } catch (err) {
     console.error("Discord relay error:", err.message, err.stack);
@@ -309,7 +268,7 @@ async function handleDiscordRelay(request, env) {
   }
 }
 __name(handleDiscordRelay, "handleDiscordRelay");
-
+__name2(handleDiscordRelay, "handleDiscordRelay");
 function formatNumber(n) {
   if (!n) return "N/A";
   if (n >= 1e9) return (n / 1e9).toFixed(1) + "B";
@@ -318,12 +277,9 @@ function formatNumber(n) {
   return n.toFixed(0);
 }
 __name(formatNumber, "formatNumber");
-
-// Financial Modeling Prep (FMP) scan — free tier (250 req/day), no credit card needed
-// Get a free key at https://financialmodelingprep.com/developer/docs/
+__name2(formatNumber, "formatNumber");
 async function scanFMP(filters, env) {
   const key = env.FMP_API_KEY;
-  // Step 1: get all today's gainers (try stable endpoint first, fall back to v3)
   let gainers;
   for (const url of [
     `https://financialmodelingprep.com/stable/gainers?apikey=${key}`,
@@ -332,27 +288,25 @@ async function scanFMP(filters, env) {
     const res = await fetch(url, { headers: { "Accept": "application/json" } });
     if (!res.ok) continue;
     const data = await res.json();
-    if (Array.isArray(data)) { gainers = data; break; }
+    if (Array.isArray(data)) {
+      gainers = data;
+      break;
+    }
     if (data?.["Error Message"]) throw new Error(`FMP key error: ${data["Error Message"].slice(0, 80)}`);
   }
   if (!gainers) throw new Error("FMP gainers: no valid response from either endpoint");
-
-  // Quick pre-filter by price + change% (no volume data yet)
-  const candidates = gainers.filter(g =>
-    g.price >= filters.priceMin && g.price <= filters.priceMax && g.changesPercentage >= filters.changePctMin
+  const candidates = gainers.filter(
+    (g) => g.price >= filters.priceMin && g.price <= filters.priceMax && g.changesPercentage >= filters.changePctMin
   );
   if (candidates.length === 0) return [];
-
-  // Step 2: batch-quote to get volume, avgVolume, marketCap
-  const symbols = candidates.map(g => g.symbol).join(",");
+  const symbols = candidates.map((g) => g.symbol).join(",");
   const quoteRes = await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbols}?apikey=${key}`, {
     headers: { "Accept": "application/json" }
   });
   if (!quoteRes.ok) throw new Error(`FMP quote ${quoteRes.status}`);
   const quotes = await quoteRes.json();
   if (!Array.isArray(quotes)) return [];
-
-  return quotes.map(q => {
+  return quotes.map((q) => {
     const vol = q.volume || 0;
     const avgVol = q.avgVolume || 0;
     return {
@@ -366,13 +320,12 @@ async function scanFMP(filters, env) {
       avgVolume: avgVol,
       relVol: avgVol > 0 ? round(vol / avgVol, 2) : null,
       float: null,
-      mktCap: q.marketCap || null,
+      mktCap: q.marketCap || null
     };
   });
 }
 __name(scanFMP, "scanFMP");
-
-// Yahoo Finance predefined screener — no API key needed, but limited to mid/large caps (>$2B)
+__name2(scanFMP, "scanFMP");
 async function scanYahooPredefined(env) {
   const res = await fetch(
     "https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?formatted=false&scrIds=day_gainers&count=200&start=0",
@@ -381,7 +334,7 @@ async function scanYahooPredefined(env) {
   if (!res.ok) throw new Error(`Yahoo predefined screener ${res.status}`);
   const data = await res.json();
   const quotes = data?.finance?.result?.[0]?.quotes || [];
-  return quotes.map(q => {
+  return quotes.map((q) => {
     const vol = q.regularMarketVolume || 0;
     const avgVol = q.averageDailyVolume3Month || q.averageDailyVolume10Day || 0;
     return {
@@ -395,47 +348,12 @@ async function scanYahooPredefined(env) {
       avgVolume: avgVol,
       relVol: avgVol > 0 ? round(vol / avgVol, 2) : null,
       float: null,
-      mktCap: q.marketCap || null,
+      mktCap: q.marketCap || null
     };
   });
 }
 __name(scanYahooPredefined, "scanYahooPredefined");
-
-// Polygon.io snapshot gainers — uses the hardcoded key, covers small/mid/large caps
-async function scanPolygon(filters) {
-  const res = await fetch(
-    `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/gainers?apiKey=${POLYGON_API_KEY}`,
-    { headers: { Accept: "application/json" } }
-  );
-  if (!res.ok) throw new Error(`Polygon gainers HTTP ${res.status}`);
-  const data = await res.json();
-  const tickers = data.tickers || [];
-  if (!tickers.length) throw new Error("Polygon returned no gainers");
-
-  return tickers.map(t => {
-    const price = t.lastTrade?.p || t.day?.c || 0;
-    const changePercent = round(t.todaysChangePerc, 2);
-    const changeDollar = round(t.todaysChange, 2);
-    const vol = t.day?.v || 0;
-    const prevVol = t.prevDay?.v || 0;
-    return {
-      ticker: t.ticker,
-      name: t.ticker,
-      price: round(price, 2),
-      change: changePercent,
-      changePercent,
-      changeDollar,
-      volume: vol,
-      avgVolume: prevVol,
-      relVol: prevVol > 0 ? round(vol / prevVol, 2) : null,
-      float: null,
-      mktCap: null,
-    };
-  });
-}
-__name(scanPolygon, "scanPolygon");
-
-// EXISTING FUNCTIONS (unchanged)
+__name2(scanYahooPredefined, "scanYahooPredefined");
 async function handleScan(url, env) {
   const filters = parseFilters(url.searchParams);
   const usingDefaults = JSON.stringify(filters) === JSON.stringify(DEFAULT_FILTERS);
@@ -448,12 +366,9 @@ async function handleScan(url, env) {
       }
     }
   }
-
   let results = [];
   let source = "";
   let universeSize = 0;
-
-  // Primary: Benzinga (when API key is configured in Cloudflare secrets)
   if (env.BENZINGA_API_KEY) {
     try {
       const session = (url.searchParams.get("session") || "REGULAR").toUpperCase();
@@ -478,66 +393,40 @@ async function handleScan(url, env) {
       console.error("Benzinga scan failed, falling back to Yahoo:", e.message);
     }
   }
-
-  // Secondary: Financial Modeling Prep (if FMP_API_KEY configured — free at financialmodelingprep.com)
   if (!source && env.FMP_API_KEY) {
     try {
       const raw = await scanFMP(filters, env);
       universeSize = raw.length;
-      results = raw
-        .filter((r) => prePassesFilters(r, filters))
-        .filter((r) => postPassesFilters(r, filters))
-        .sort((a, b) => b.changePercent - a.changePercent);
+      results = raw.filter((r) => prePassesFilters(r, filters)).filter((r) => postPassesFilters(r, filters)).sort((a, b) => b.changePercent - a.changePercent);
       source = "fmp";
     } catch (e) {
       console.error("FMP scan failed:", e.message);
     }
   }
-
-  // Tertiary: Polygon.io snapshot gainers (hardcoded key, covers small/mid/large cap, no float)
-  if (!source) {
-    try {
-      const raw = await scanPolygon(filters);
-      universeSize = raw.length;
-      results = raw
-        .filter((r) => prePassesFilters(r, filters))
-        .filter((r) => postPassesFilters(r, filters))
-        .sort((a, b) => b.changePercent - a.changePercent);
-      source = "polygon";
-    } catch (e) {
-      console.error("Polygon scan failed:", e.message);
-    }
-  }
-
-  // Last resort: Yahoo Finance predefined screener (no key, mid/large caps only, float unavailable)
   if (!source) {
     try {
       const raw = await scanYahooPredefined(env);
       universeSize = raw.length;
-      // Skip mktCap filter — Yahoo predefined already filters to >$2B which may conflict with user's filters
-      results = raw
-        .filter((r) => prePassesFilters(r, filters))
-        .sort((a, b) => b.changePercent - a.changePercent);
+      results = raw.filter((r) => prePassesFilters(r, filters)).sort((a, b) => b.changePercent - a.changePercent);
       source = "yahoo_limited";
     } catch (e) {
       console.error("Yahoo predefined scan failed:", e.message);
       return fallbackToCachedScan(env, `All sources failed: ${e.message}`);
     }
   }
-
   const payload = {
     results,
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
     count: results.length,
     universeSize,
     filters,
-    source,
+    source
   };
   if (usingDefaults) await kvPut(env, "scan:latest", payload, STALE_CACHE_TTL_SEC);
   return jsonResponse(payload);
 }
 __name(handleScan, "handleScan");
-
+__name2(handleScan, "handleScan");
 async function handleQuoteRoute(url, env) {
   const ticker = url.pathname.split("/")[2]?.toUpperCase();
   if (!ticker) return jsonResponse({ error: "Ticker required" }, 400);
@@ -545,7 +434,7 @@ async function handleQuoteRoute(url, env) {
   return jsonResponse(data);
 }
 __name(handleQuoteRoute, "handleQuoteRoute");
-
+__name2(handleQuoteRoute, "handleQuoteRoute");
 async function handleQuote(ticker, env) {
   const cacheKey = `quote-${ticker}`;
   const cached = await kvGet(env, cacheKey);
@@ -603,7 +492,7 @@ async function handleQuote(ticker, env) {
   }
 }
 __name(handleQuote, "handleQuote");
-
+__name2(handleQuote, "handleQuote");
 async function handleBarsRoute(url, env) {
   const ticker = url.pathname.split("/")[2]?.toUpperCase();
   if (!ticker) return jsonResponse({ error: "Ticker required" }, 400);
@@ -611,7 +500,7 @@ async function handleBarsRoute(url, env) {
   return jsonResponse(data);
 }
 __name(handleBarsRoute, "handleBarsRoute");
-
+__name2(handleBarsRoute, "handleBarsRoute");
 async function handleBars(ticker, env) {
   const cacheKey = `bars-${ticker}`;
   const cached = await kvGet(env, cacheKey);
@@ -662,7 +551,7 @@ async function handleBars(ticker, env) {
   }
 }
 __name(handleBars, "handleBars");
-
+__name2(handleBars, "handleBars");
 async function handleNews(url, env) {
   const ticker = url.searchParams.get("ticker");
   if (!ticker) return jsonResponse({ error: "ticker required" }, 400);
@@ -710,7 +599,7 @@ async function handleNews(url, env) {
   }
 }
 __name(handleNews, "handleNews");
-
+__name2(handleNews, "handleNews");
 async function fetchMovers(token, session, maxResults) {
   const params = new URLSearchParams({ token, maxResults: String(maxResults) });
   if (session) params.set("session", session);
@@ -727,7 +616,7 @@ async function fetchMovers(token, session, maxResults) {
   return data.result || {};
 }
 __name(fetchMovers, "fetchMovers");
-
+__name2(fetchMovers, "fetchMovers");
 async function fetchQuotes(token, tickers) {
   const out = {};
   for (let i = 0; i < tickers.length; i += QUOTE_BATCH_SIZE) {
@@ -750,9 +639,9 @@ async function fetchQuotes(token, tickers) {
   return out;
 }
 __name(fetchQuotes, "fetchQuotes");
-
+__name2(fetchQuotes, "fetchQuotes");
 function parseFilters(searchParams) {
-  const numOr = /* @__PURE__ */ __name((key, fallback) => {
+  const numOr = /* @__PURE__ */ __name2((key, fallback) => {
     const v = searchParams.get(key);
     if (v == null || v === "") return fallback;
     const n = Number(v);
@@ -769,7 +658,7 @@ function parseFilters(searchParams) {
   };
 }
 __name(parseFilters, "parseFilters");
-
+__name2(parseFilters, "parseFilters");
 function normalizeMover(g) {
   const volume = typeof g.volume === "string" ? Number(g.volume) : g.volume;
   const avgVolume = typeof g.averageVolume === "string" ? Number(g.averageVolume) : g.averageVolume;
@@ -791,7 +680,7 @@ function normalizeMover(g) {
   };
 }
 __name(normalizeMover, "normalizeMover");
-
+__name2(normalizeMover, "normalizeMover");
 function prePassesFilters(m, f) {
   if (m.price == null || m.changePercent == null || m.volume == null) return false;
   if (m.price < f.priceMin || m.price > f.priceMax) return false;
@@ -801,21 +690,21 @@ function prePassesFilters(m, f) {
   return true;
 }
 __name(prePassesFilters, "prePassesFilters");
-
+__name2(prePassesFilters, "prePassesFilters");
 function postPassesFilters(r, f) {
   if (r.float != null && r.float > f.floatMax) return false;
   if (r.mktCap != null && r.mktCap > f.mktCapMax) return false;
   return true;
 }
 __name(postPassesFilters, "postPassesFilters");
-
+__name2(postPassesFilters, "postPassesFilters");
 function round(n, digits) {
   if (n == null || !Number.isFinite(n)) return null;
   const f = Math.pow(10, digits);
   return Math.round(n * f) / f;
 }
 __name(round, "round");
-
+__name2(round, "round");
 function getMarketStatus() {
   const now = /* @__PURE__ */ new Date();
   const hour = now.getHours();
@@ -831,7 +720,7 @@ function getMarketStatus() {
   return "CLOSED";
 }
 __name(getMarketStatus, "getMarketStatus");
-
+__name2(getMarketStatus, "getMarketStatus");
 async function kvGet(env, key) {
   try {
     const data = await env.TRADEOS_USERS.get(key);
@@ -842,7 +731,7 @@ async function kvGet(env, key) {
   }
 }
 __name(kvGet, "kvGet");
-
+__name2(kvGet, "kvGet");
 async function kvPut(env, key, value, ttlSec) {
   try {
     await env.TRADEOS_USERS.put(key, JSON.stringify(value), { expirationTtl: ttlSec });
@@ -851,7 +740,7 @@ async function kvPut(env, key, value, ttlSec) {
   }
 }
 __name(kvPut, "kvPut");
-
+__name2(kvPut, "kvPut");
 async function fallbackToCachedScan(env, reason) {
   try {
     const cached = await kvGet(env, "scan:latest");
@@ -864,7 +753,7 @@ async function fallbackToCachedScan(env, reason) {
   return jsonResponse({ results: [], error: reason }, 502);
 }
 __name(fallbackToCachedScan, "fallbackToCachedScan");
-
+__name2(fallbackToCachedScan, "fallbackToCachedScan");
 async function getScanLatest(env) {
   try {
     const data = await kvGet(env, "scan:latest");
@@ -874,7 +763,7 @@ async function getScanLatest(env) {
   }
 }
 __name(getScanLatest, "getScanLatest");
-
+__name2(getScanLatest, "getScanLatest");
 async function verifyAuth(request, env) {
   const auth = request.headers.get("Authorization");
   if (!auth || !auth.startsWith("Bearer ")) return null;
@@ -882,13 +771,13 @@ async function verifyAuth(request, env) {
     const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${auth.substring(7)}`);
     const data = await res.json();
     if (data.aud !== env.GOOGLE_CLIENT_ID) return null;
-    if (data.exp && Date.now() / 1000 > data.exp) return null;
+    if (data.exp && Date.now() / 1e3 > data.exp) return null;
     return data.sub;
   } catch {
     return null;
   }
 }
-
+__name(verifyAuth, "verifyAuth");
 async function getStats(userId, env) {
   try {
     const data = await env.TRADEOS_USERS.get(`trades:${userId}`);
@@ -896,13 +785,13 @@ async function getStats(userId, env) {
     const trades = JSON.parse(data);
     const wins = trades.filter((t) => t.pnl > 0).length;
     const totalPnl = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
-    const winRate = trades.length ? Math.round((wins / trades.length) * 100) : 0;
+    const winRate = trades.length ? Math.round(wins / trades.length * 100) : 0;
     return jsonResponse({ total: trades.length, winRate, totalPnl });
   } catch (e) {
     return jsonResponse({ error: e.message }, 500);
   }
 }
-
+__name(getStats, "getStats");
 async function getTrades(userId, env) {
   try {
     const data = await env.TRADEOS_USERS.get(`trades:${userId}`);
@@ -911,7 +800,7 @@ async function getTrades(userId, env) {
     return jsonResponse({ error: e.message }, 500);
   }
 }
-
+__name(getTrades, "getTrades");
 async function submitTrade(userId, body, env) {
   try {
     const key = `trades:${userId}`;
@@ -919,13 +808,13 @@ async function submitTrade(userId, body, env) {
     const trades = existing ? JSON.parse(existing) : [];
     const trade = {
       id: Date.now().toString(),
-      date: body.date || new Date().toISOString().split("T")[0],
+      date: body.date || (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
       ticker: body.ticker,
       entry: parseFloat(body.entry) || 0,
       exit: parseFloat(body.exit) || 0,
       qty: parseInt(body.qty) || 0,
       pnl: parseFloat(body.pnl) || 0,
-      createdAt: new Date().toISOString()
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
     };
     trades.push(trade);
     await env.TRADEOS_USERS.put(key, JSON.stringify(trades));
@@ -934,7 +823,7 @@ async function submitTrade(userId, body, env) {
     return jsonResponse({ error: e.message }, 500);
   }
 }
-
+__name(submitTrade, "submitTrade");
 async function updateTrade(userId, body, env) {
   try {
     const key = `trades:${userId}`;
@@ -943,14 +832,14 @@ async function updateTrade(userId, body, env) {
     const trades = JSON.parse(data);
     const idx = trades.findIndex((t) => t.id === body.id);
     if (idx === -1) return jsonResponse({ error: "Trade not found" }, 404);
-    trades[idx] = { ...trades[idx], ...body, updatedAt: new Date().toISOString() };
+    trades[idx] = { ...trades[idx], ...body, updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
     await env.TRADEOS_USERS.put(key, JSON.stringify(trades));
     return jsonResponse({ success: true, trade: trades[idx] });
   } catch (e) {
     return jsonResponse({ error: e.message }, 500);
   }
 }
-
+__name(updateTrade, "updateTrade");
 async function getHabits(userId, env) {
   try {
     const data = await env.TRADEOS_USERS.get(`habits:${userId}`);
@@ -959,7 +848,7 @@ async function getHabits(userId, env) {
     return jsonResponse({ error: e.message }, 500);
   }
 }
-
+__name(getHabits, "getHabits");
 async function saveHabits(userId, body, env) {
   try {
     const { action: _action, ...habits } = body;
@@ -969,7 +858,7 @@ async function saveHabits(userId, body, env) {
     return jsonResponse({ error: e.message }, 500);
   }
 }
-
+__name(saveHabits, "saveHabits");
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -977,5 +866,8 @@ function jsonResponse(data, status = 200) {
   });
 }
 __name(jsonResponse, "jsonResponse");
-
-export { worker_default as default };
+__name2(jsonResponse, "jsonResponse");
+export {
+  worker_default as default
+};
+//# sourceMappingURL=worker.js.map

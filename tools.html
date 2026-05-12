@@ -498,6 +498,165 @@
       renderTimerApp();
     </script>
 
+    <!-- POSITION CALCULATOR SECTION -->
+    <div style="margin-top: 48px; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px;">Position Calculator</div>
+        <div style="font-size: 12px; color: #aaa;">Risk/reward sizing &amp; scalability</div>
+      </div>
+
+      <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 24px; display: grid; gap: 20px;">
+        
+        <!-- Row 1: Account & Risk -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div>
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #aaa; display: block; margin-bottom: 6px;">Account Size</label>
+            <input type="number" id="accountSize" placeholder="25000" min="0" step="1" style="width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px;">
+          </div>
+          <div>
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #aaa; display: block; margin-bottom: 6px;">Max Daily Risk ($)</label>
+            <input type="number" id="maxDailyRisk" placeholder="50" min="0" step="1" style="width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px;">
+          </div>
+        </div>
+
+        <!-- Row 2: Entry, Stop, Target -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #aaa; display: block; margin-bottom: 6px;">Entry ($)</label>
+            <input type="number" id="entry" placeholder="4.50" min="0" step="0.01" style="width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px;">
+          </div>
+          <div>
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #aaa; display: block; margin-bottom: 6px;">Stop ($)</label>
+            <input type="number" id="stop" placeholder="4.20" min="0" step="0.01" style="width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px;">
+          </div>
+          <div>
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #aaa; display: block; margin-bottom: 6px;">Target ($)</label>
+            <input type="number" id="target" placeholder="5.50" min="0" step="0.01" style="width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px;">
+          </div>
+        </div>
+
+        <!-- Calculate Button -->
+        <button id="calcBtn" style="padding: 12px 24px; background: linear-gradient(135deg, #ff6b6b, #ffd93d); color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; transition: all 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Calculate</button>
+
+        <!-- Results Section -->
+        <div id="results" style="display: none; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 16px; display: grid; gap: 12px;">
+          
+          <!-- Core Position Sizing -->
+          <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
+              <div>
+                <div style="color: #aaa; margin-bottom: 3px;">Position Size</div>
+                <div style="font-size: 16px; font-weight: 700; color: #2cb67d;" id="resultShares">— shares</div>
+              </div>
+              <div>
+                <div style="color: #aaa; margin-bottom: 3px;">Position Value</div>
+                <div style="font-size: 16px; font-weight: 700; color: #2cb67d;" id="resultPosValue">$—</div>
+              </div>
+              <div>
+                <div style="color: #aaa; margin-bottom: 3px;">Max Loss</div>
+                <div style="font-size: 16px; font-weight: 700; color: #ef4565;" id="resultMaxLoss">$—</div>
+              </div>
+              <div>
+                <div style="color: #aaa; margin-bottom: 3px;">Potential Gain</div>
+                <div style="font-size: 16px; font-weight: 700; color: #2cb67d;" id="resultGain">$—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Risk/Reward Ratio -->
+          <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px;">
+            <div style="font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; margin-bottom: 8px;">Risk / Reward</div>
+            <div style="font-size: 14px; font-weight: 700; color: #ffd93d;" id="resultRR">—</div>
+          </div>
+
+          <!-- Scalability Multipliers -->
+          <div>
+            <div style="font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; margin-bottom: 8px;">Scalability (gain at 2x / 5x / 10x)</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+              <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 10px; text-align: center;">
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">2x Entry</div>
+                <div style="font-size: 14px; font-weight: 700; color: #2cb67d;" id="scale2x">$—</div>
+              </div>
+              <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 10px; text-align: center;">
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">5x Entry</div>
+                <div style="font-size: 14px; font-weight: 700; color: #2cb67d;" id="scale5x">$—</div>
+              </div>
+              <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; padding: 10px; text-align: center;">
+                <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">10x Entry</div>
+                <div style="font-size: 14px; font-weight: 700; color: #2cb67d;" id="scale10x">$—</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      // Position Calculator Logic
+      const calcBtn = document.getElementById('calcBtn');
+      const resultsDiv = document.getElementById('results');
+
+      calcBtn.addEventListener('click', function() {
+        const accountSize = parseFloat(document.getElementById('accountSize').value) || 0;
+        const maxDailyRisk = parseFloat(document.getElementById('maxDailyRisk').value) || 0;
+        const entry = parseFloat(document.getElementById('entry').value) || 0;
+        const stop = parseFloat(document.getElementById('stop').value) || 0;
+        const target = parseFloat(document.getElementById('target').value) || 0;
+
+        // Validation
+        if (!accountSize || !entry || !stop || !target) {
+          alert('Fill in Account Size, Entry, Stop, and Target');
+          return;
+        }
+
+        if (entry <= stop) {
+          alert('Entry must be higher than Stop');
+          return;
+        }
+
+        if (target <= entry) {
+          alert('Target must be higher than Entry');
+          return;
+        }
+
+        // Core calculations
+        const riskPerShare = entry - stop;
+        const rewardPerShare = target - entry;
+        const shares = maxDailyRisk > 0 ? Math.floor(maxDailyRisk / riskPerShare) : 0;
+        const positionValue = shares * entry;
+        const maxLoss = shares * riskPerShare;
+        const potentialGain = shares * rewardPerShare;
+        const rr = (rewardPerShare / riskPerShare).toFixed(2);
+
+        // Scalability: show gain if price moves to 2x, 5x, 10x the entry
+        const scale2x = shares * (entry * 2 - entry);
+        const scale5x = shares * (entry * 5 - entry);
+        const scale10x = shares * (entry * 10 - entry);
+
+        // Update results
+        document.getElementById('resultShares').textContent = shares.toLocaleString() + ' shares';
+        document.getElementById('resultPosValue').textContent = '$' + positionValue.toFixed(2);
+        document.getElementById('resultMaxLoss').textContent = '$' + maxLoss.toFixed(2);
+        document.getElementById('resultGain').textContent = '$' + potentialGain.toFixed(2);
+        document.getElementById('resultRR').textContent = '1 : ' + rr;
+        document.getElementById('scale2x').textContent = '$' + scale2x.toFixed(2);
+        document.getElementById('scale5x').textContent = '$' + scale5x.toFixed(2);
+        document.getElementById('scale10x').textContent = '$' + scale10x.toFixed(2);
+
+        // Show results
+        resultsDiv.style.display = 'grid';
+      });
+
+      // Enter key to calculate
+      document.querySelectorAll('#accountSize, #maxDailyRisk, #entry, #stop, #target').forEach(input => {
+        input.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') calcBtn.click();
+        });
+      });
+    </script>
+
         <div class="footer-nav">
       <a href="/tradeos/scanner.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>

@@ -319,67 +319,66 @@ function formatNumber(n) {
 }
 __name(formatNumber, "formatNumber");
 
-// Yahoo Finance session (crumb + cookie) — cached in KV for 1 hour
-async function getYahooSession(env) {
-  const cached = await kvGet(env, "yahoo:session");
-  if (cached?.crumb) return cached;
-  const res = await fetch("https://finance.yahoo.com/", {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Language": "en-US,en;q=0.9",
-    }
-  });
-  const html = await res.text();
-  const crumbMatch = html.match(/"CRB":"([^"]+)"/) || html.match(/crumb:"([^"]+)"/);
-  if (!crumbMatch) throw new Error("Yahoo Finance crumb not found in response");
-  const crumb = crumbMatch[1];
-  const setCookie = res.headers.get("set-cookie") || "";
-  const bMatch = setCookie.match(/B=([^;]+)/);
-  const session = { crumb, cookie: bMatch ? `B=${bMatch[1]}` : "" };
-  await kvPut(env, "yahoo:session", session, 3600);
-  return session;
-}
-__name(getYahooSession, "getYahooSession");
-
-async function scanYahoo(filters, env) {
-  const session = await getYahooSession(env);
-  const body = JSON.stringify({
-    offset: 0,
-    size: 100,
-    sortField: "percentchange",
-    sortType: "DESC",
-    quoteType: "EQUITY",
-    query: {
-      operator: "AND",
-      operands: [
-        { operator: "GT", operands: ["percentchange", Math.max(filters.changePctMin - 2, 2)] },
-        { operator: "GTE", operands: ["intradayprice", Math.max(filters.priceMin * 0.8, 0.5)] },
-        { operator: "LTE", operands: ["intradayprice", filters.priceMax * 1.2] },
-        { operator: "GT", operands: ["dayvolume", Math.round(filters.volumeMin * 0.4)] },
-        { operator: "EQ", operands: ["region", "us"] }
-      ]
-    },
-    userId: "",
-    userIdType: "guid"
-  });
-  const screenerUrl = `https://query1.finance.yahoo.com/v1/finance/screener?crumb=${encodeURIComponent(session.crumb)}&lang=en-US&region=US&formatted=false`;
-  const res = await fetch(screenerUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Cookie": session.cookie,
-      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    },
-    body
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    if (res.status === 401 || text.includes("Invalid Crumb")) {
-      await kvPut(env, "yahoo:session", null, 1);
-    }
-    throw new Error(`Yahoo screener ${res.status}: ${text.slice(0, 150)}`);
+// Financial Modeling Prep (FMP) scan — free tier (250 req/day), no credit card needed
+// Get a free key at https://financialmodelingprep.com/developer/docs/
+async function scanFMP(filters, env) {
+  const key = env.FMP_API_KEY;
+  // Step 1: get all today's gainers (try stable endpoint first, fall back to v3)
+  let gainers;
+  for (const url of [
+    `https://financialmodelingprep.com/stable/gainers?apikey=${key}`,
+    `https://financialmodelingprep.com/api/v3/stock_market/gainers?apikey=${key}`
+  ]) {
+    const res = await fetch(url, { headers: { "Accept": "application/json" } });
+    if (!res.ok) continue;
+    const data = await res.json();
+    if (Array.isArray(data)) { gainers = data; break; }
+    if (data?.["Error Message"]) throw new Error(`FMP key error: ${data["Error Message"].slice(0, 80)}`);
   }
+  if (!gainers) throw new Error("FMP gainers: no valid response from either endpoint");
+
+  // Quick pre-filter by price + change% (no volume data yet)
+  const candidates = gainers.filter(g =>
+    g.price >= filters.priceMin && g.price <= filters.priceMax && g.changesPercentage >= filters.changePctMin
+  );
+  if (candidates.length === 0) return [];
+
+  // Step 2: batch-quote to get volume, avgVolume, marketCap
+  const symbols = candidates.map(g => g.symbol).join(",");
+  const quoteRes = await fetch(`https://financialmodelingprep.com/api/v3/quote/${symbols}?apikey=${key}`, {
+    headers: { "Accept": "application/json" }
+  });
+  if (!quoteRes.ok) throw new Error(`FMP quote ${quoteRes.status}`);
+  const quotes = await quoteRes.json();
+  if (!Array.isArray(quotes)) return [];
+
+  return quotes.map(q => {
+    const vol = q.volume || 0;
+    const avgVol = q.avgVolume || 0;
+    return {
+      ticker: q.symbol,
+      name: q.name || q.symbol,
+      price: round(q.price, 2),
+      change: round(q.changesPercentage, 2),
+      changePercent: round(q.changesPercentage, 2),
+      changeDollar: round(q.change, 2),
+      volume: vol,
+      avgVolume: avgVol,
+      relVol: avgVol > 0 ? round(vol / avgVol, 2) : null,
+      float: null,
+      mktCap: q.marketCap || null,
+    };
+  });
+}
+__name(scanFMP, "scanFMP");
+
+// Yahoo Finance predefined screener — no API key needed, but limited to mid/large caps (>$2B)
+async function scanYahooPredefined(env) {
+  const res = await fetch(
+    "https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?formatted=false&scrIds=day_gainers&count=200&start=0",
+    { headers: { "User-Agent": "Mozilla/5.0", "Accept": "application/json" } }
+  );
+  if (!res.ok) throw new Error(`Yahoo predefined screener ${res.status}`);
   const data = await res.json();
   const quotes = data?.finance?.result?.[0]?.quotes || [];
   return quotes.map(q => {
@@ -400,7 +399,7 @@ async function scanYahoo(filters, env) {
     };
   });
 }
-__name(scanYahoo, "scanYahoo");
+__name(scanYahooPredefined, "scanYahooPredefined");
 
 // EXISTING FUNCTIONS (unchanged)
 async function handleScan(url, env) {
@@ -446,18 +445,33 @@ async function handleScan(url, env) {
     }
   }
 
-  // Fallback: Yahoo Finance (no API key required)
-  if (!source) {
+  // Secondary: Financial Modeling Prep (if FMP_API_KEY configured — free at financialmodelingprep.com)
+  if (!source && env.FMP_API_KEY) {
     try {
-      const raw = await scanYahoo(filters, env);
+      const raw = await scanFMP(filters, env);
       universeSize = raw.length;
       results = raw
         .filter((r) => prePassesFilters(r, filters))
         .filter((r) => postPassesFilters(r, filters))
         .sort((a, b) => b.changePercent - a.changePercent);
-      source = "yahoo";
+      source = "fmp";
     } catch (e) {
-      console.error("Yahoo scan failed:", e.message);
+      console.error("FMP scan failed:", e.message);
+    }
+  }
+
+  // Last resort: Yahoo Finance predefined screener (no key, mid/large caps only, float unavailable)
+  if (!source) {
+    try {
+      const raw = await scanYahooPredefined(env);
+      universeSize = raw.length;
+      // Skip mktCap filter — Yahoo predefined already filters to >$2B which may conflict with user's filters
+      results = raw
+        .filter((r) => prePassesFilters(r, filters))
+        .sort((a, b) => b.changePercent - a.changePercent);
+      source = "yahoo_limited";
+    } catch (e) {
+      console.error("Yahoo predefined scan failed:", e.message);
       return fallbackToCachedScan(env, `All sources failed: ${e.message}`);
     }
   }

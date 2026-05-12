@@ -434,7 +434,7 @@
 
   <div class="container">
     <div class="header">
-      <div class="page-title">📔 Trade Journal</div>
+      <div class="page-title">Trade Journal</div>
       <div class="page-subtitle">Track active trades and historical performance</div>
     </div>
 
@@ -444,7 +444,7 @@
     </div>
 
     <div id="tradesContainer" class="content">
-      <div class="content-icon">📝</div>
+      <div class="content-icon">+</div>
       <div class="content-text">No Trades Yet</div>
       <div class="content-subtext">Execute trades from Plays to see them appear here</div>
     </div>
@@ -526,7 +526,7 @@
       if (filtered.length === 0) {
         container.className = 'content';
         container.innerHTML = `
-          <div class="content-icon">${currentTab === 'active' ? '📝' : '📋'}</div>
+          <div class="content-icon">${currentTab === 'active' ? '...' : '...'}</div>
           <div class="content-text">No ${currentTab === 'active' ? 'Active' : 'Closed'} Trades</div>
           <div class="content-subtext">${currentTab === 'active' ? 'Execute trades from Plays to see them appear here' : 'Closed trades will appear here'}</div>
         `;
@@ -547,7 +547,7 @@
                 <div class="trade-header">
                   <div class="trade-ticker">${t.ticker}</div>
                   <div class="trade-status ${t.status === 'CLOSED' ? 'closed' : ''}">
-                    ${t.status === 'ACTIVE' ? '🔴 ACTIVE' : '⚪ CLOSED'}
+                    ${t.status === 'ACTIVE' ? 'ACTIVE' : 'CLOSED'}
                   </div>
                 </div>
 
@@ -588,7 +588,7 @@
                 ${t.notes ? `<div class="trade-notes"><strong>Notes:</strong> ${t.notes}</div>` : ''}
 
                 <div class="trade-news">
-                  <strong>📰 Latest:</strong><br>
+                  <strong>Latest News:</strong><br>
                   ${newsItems.map(n => `<div class="trade-news-item">• ${n}</div>`).join('')}
                 </div>
 

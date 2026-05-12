@@ -249,22 +249,35 @@
 
     async function handleGoogleCallback(code) {
       try {
-        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback?code=' + encodeURIComponent(code));
+        // OPTION 1: No PKCE - exchange code directly with your Worker
+        updateStatus('<div class="spinner"></div>', 'Authenticating', 'Exchanging authorization code...');
+        
+        var res = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/auth/callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: code,
+            redirect_uri: 'https://gordon-foustiii.github.io/tradeos/auth.html'
+          })
+        });
+
         var data = await res.json();
 
         if (data.id_token) {
           localStorage.setItem('id_token', data.id_token);
           localStorage.setItem('tradeos_id_token', data.id_token);
-          localStorage.setItem('tradeos_access_token', data.access_token);
-          localStorage.setItem('tradeos_token_expiry', Date.now() + (data.expires_in * 1000));
+          localStorage.setItem('tradeos_access_token', data.access_token || '');
+          localStorage.setItem('tradeos_token_expiry', Date.now() + (data.expires_in * 1000 || 3600000));
           
           updateStatus('<div class="checkmark"></div>', 'Signed In!', 'Redirecting to dashboard...');
           setTimeout(function() { window.location.href = '/tradeos/'; }, 1200);
         } else {
           updateStatus('❌', 'Sign In Failed', data.error || 'Unknown error', true);
+          console.error('Token response:', data);
         }
       } catch(e) {
         updateStatus('❌', 'Sign In Failed', e.message, true);
+        console.error('Auth error:', e);
       }
     }
 

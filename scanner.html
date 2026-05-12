@@ -94,6 +94,11 @@
       border-color: rgba(255, 255, 255, 0.2);
     }
 
+    .btn-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
     .container {
       max-width: 1400px;
       margin: 0 auto;
@@ -1136,8 +1141,11 @@
     <!-- Live Results Tab -->
     <div id="live-results" class="tab-content active">
       <div class="results-info">
-        <span><strong id="resultCount">0</strong> results</span>
+        <span><strong id="resultCount">0</strong> results <span id="sourceTag" style="font-size:11px;color:#666;margin-left:6px;"></span></span>
         <span id="lastUpdate" style="color: #666;"></span>
+      </div>
+      <div id="sourceWarning" style="display:none;background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#ffa500;">
+        ⚠️ Using Yahoo Finance free tier — results limited to mid/large-cap stocks. For small-cap scanning, add a free <a href="https://financialmodelingprep.com/developer/docs/" target="_blank" style="color:#ffd93d;">FMP API key</a> to your Cloudflare Worker secrets as <code>FMP_API_KEY</code>.
       </div>
       <div id="resultsBody" class="results-grid">
         <div class="results-empty">
@@ -1288,7 +1296,8 @@
       currentFilters: { ...FILTERS.standard },
       tickerHistory: {},
       scanInterval: null,
-      driveSync: { lastSync: 0, isSyncing: false }
+      driveSync: { lastSync: 0, isSyncing: false },
+      dataSource: ''
     };
 
     // ========== GOOGLE DRIVE SYNC ==========
@@ -1532,6 +1541,7 @@
 
         const data = await response.json();
         const results = data.results || [];
+        state.dataSource = data.source || '';
 
         // Worker has already filtered — sort by change % desc and render.
         state.results = results.sort((a, b) => b.changePercent - a.changePercent);
@@ -1679,6 +1689,21 @@
       }).join('');
       count.textContent = state.results.length;
       if (state.lastUpdate) lastUpdate.textContent = `Updated ${state.lastUpdate.toLocaleTimeString()}`;
+      const sourceTag = document.getElementById('sourceTag');
+      const sourceWarning = document.getElementById('sourceWarning');
+      if (state.dataSource === 'yahoo_limited') {
+        sourceTag.textContent = '(Yahoo — large cap only)';
+        sourceWarning.style.display = 'block';
+      } else if (state.dataSource === 'fmp') {
+        sourceTag.textContent = '(FMP)';
+        sourceWarning.style.display = 'none';
+      } else if (state.dataSource === 'benzinga') {
+        sourceTag.textContent = '(Benzinga)';
+        sourceWarning.style.display = 'none';
+      } else {
+        sourceTag.textContent = '';
+        sourceWarning.style.display = 'none';
+      }
     }
 
     function getMockNews(ticker) {

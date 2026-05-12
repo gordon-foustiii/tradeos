@@ -54,6 +54,11 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: pointer;
     }
 
     .topbar-brand span {
@@ -87,6 +92,11 @@
       background: rgba(255, 255, 255, 0.1);
       color: #ffd93d;
       border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-icon svg {
+      width: 20px;
+      height: 20px;
     }
 
     .container {
@@ -125,6 +135,14 @@
       justify-content: center;
     }
 
+    .content.trades {
+      padding: 0;
+      display: block;
+      background: transparent;
+      border: none;
+      min-height: auto;
+    }
+
     .content-icon {
       font-size: 64px;
       margin-bottom: 16px;
@@ -144,7 +162,7 @@
 
     .footer-nav {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       position: fixed;
       bottom: 0;
       left: 0;
@@ -187,36 +205,251 @@
       color: #ffd93d;
       border-bottom: 2px solid #ffd93d;
     }
+
+    /* ===== TABS ===== */
+    .tab-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tab-btn {
+      padding: 12px 16px;
+      background: none;
+      border: none;
+      color: #aaa;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .tab-btn:hover {
+      color: #ffd93d;
+    }
+
+    .tab-btn.active {
+      color: #ffd93d;
+      border-bottom-color: #ffd93d;
+    }
+
+    /* ===== TRADES GRID ===== */
+    .trades-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .trade-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.2s;
+    }
+
+    .trade-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .trade-card.winning {
+      border-left: 4px solid #4ade80;
+    }
+
+    .trade-card.losing {
+      border-left: 4px solid #ff6b6b;
+    }
+
+    .trade-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+
+    .trade-ticker {
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .trade-status {
+      font-size: 10px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(74, 222, 128, 0.2);
+      color: #4ade80;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .trade-status.closed {
+      background: rgba(160, 160, 160, 0.2);
+      color: #aaa;
+    }
+
+    .trade-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .trade-label {
+      color: #888;
+    }
+
+    .trade-value {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .trade-value.positive {
+      color: #4ade80;
+    }
+
+    .trade-value.negative {
+      color: #ff6b6b;
+    }
+
+    .trade-divider {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin: 12px 0;
+    }
+
+    .trade-pnl {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+      margin: 12px 0;
+    }
+
+    .trade-pnl-label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .trade-pnl-value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .trade-pnl-value.positive {
+      color: #4ade80;
+    }
+
+    .trade-pnl-value.negative {
+      color: #ff6b6b;
+    }
+
+    .trade-notes {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 12px;
+      color: #aaa;
+      margin: 12px 0;
+      max-height: 60px;
+      overflow-y: auto;
+    }
+
+    .trade-news {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 107, 107, 0.2);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 11px;
+      color: #ff9999;
+      margin: 12px 0;
+      max-height: 80px;
+      overflow-y: auto;
+    }
+
+    .trade-news-item {
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .trade-news-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .trade-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .trade-btn {
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .trade-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .trade-btn.close {
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      border: none;
+      color: #0f0f0f;
+    }
+
+    .trade-btn.close:hover {
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-brand">
-      ⚔️ Trade<span>OS</span>
+    <div class="topbar-brand" onclick="goHome()" style="cursor: pointer;">
+      TRADEOS
     </div>
     <div class="topbar-menu">
-      <button class="btn-icon" onclick="goHome()" title="Home">🏠</button>
-      <button class="btn-icon" onclick="signOut()" title="Sign out">⚙️</button>
+      <button class="btn-icon" onclick="goProfile()" title="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
     </div>
   </div>
 
   <div class="container">
     <div class="header">
-      <div class="page-title">📔 Trade Journal</div>
-      <div class="page-subtitle">Log and analyze every trade</div>
+      <div class="page-title">Trade Journal</div>
+      <div class="page-subtitle">Track active trades and historical performance</div>
     </div>
 
-    <div class="content">
-      <div class="content-icon">📝</div>
-      <div class="content-text">Journal Coming Soon</div>
-      <div class="content-subtext">Trade entry form, logging, and analysis in development</div>
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('active')">Active Trades</button>
+      <button class="tab-btn" onclick="switchTab('closed')">Closed Trades</button>
     </div>
 
-        <div class="footer-nav">
-      <a href="/tradeos/index.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Home
-      </a>
+    <div id="tradesContainer" class="content">
+      <div class="content-icon">+</div>
+      <div class="content-text">No Trades Yet</div>
+      <div class="content-subtext">Execute trades from Plays to see them appear here</div>
+    </div>
+
+    <div class="footer-nav">
       <a href="/tradeos/scanner.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         Scanner
@@ -233,26 +466,219 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
         Tools
       </a>
-      <a href="/tradeos/settings.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Profile
-      </a>
     </div>
   </div>
 
   <script>
+    let currentTab = 'active';
+    // Your existing scanner worker URL
+    const WORKER_URL = 'https://your-worker-subdomain.workers.dev';
+
+    async function fetchLivePrice(ticker) {
+      try {
+        const res = await fetch(`${WORKER_URL}/quote/${ticker}`);
+        if (!res.ok) return null;
+        
+        const data = await res.json();
+        if (data.price) {
+          return data.price;
+        }
+      } catch (e) {
+        console.error('Price fetch failed for ' + ticker, e.message);
+      }
+      return null;
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      loadTrades();
+    }
+
+    function formatCurrency(value) {
+      return '$' + value.toFixed(2);
+    }
+
+    function calculatePnL(trade) {
+      return (trade.currentPrice - trade.entryPrice) * trade.shares;
+    }
+
+    function generateMockNews() {
+      const newsList = [
+        'Possible catalyst: Earnings due Friday',
+        'Volume: 2.3M shares (1.8x avg)',
+        'Relative strength: 72 (strong)',
+      ];
+      return newsList.slice(0, Math.floor(Math.random() * 2) + 1);
+    }
+
+    function loadTrades() {
+      const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+      const container = document.getElementById('tradesContainer');
+      
+      const filtered = trades.filter(t => {
+        if (currentTab === 'active') return t.status === 'ACTIVE';
+        if (currentTab === 'closed') return t.status === 'CLOSED';
+        return false;
+      });
+
+      if (filtered.length === 0) {
+        container.className = 'content';
+        container.innerHTML = `
+          <div class="content-icon">${currentTab === 'active' ? '...' : '...'}</div>
+          <div class="content-text">No ${currentTab === 'active' ? 'Active' : 'Closed'} Trades</div>
+          <div class="content-subtext">${currentTab === 'active' ? 'Execute trades from Plays to see them appear here' : 'Closed trades will appear here'}</div>
+        `;
+        return;
+      }
+
+      container.className = 'content trades';
+      container.innerHTML = `
+        <div class="trades-grid">
+          ${filtered.map(t => {
+            const pnl = calculatePnL(t);
+            const pnlPct = ((pnl / (t.entryPrice * t.shares)) * 100).toFixed(1);
+            const isWinning = pnl > 0;
+            const newsItems = generateMockNews();
+
+            return `
+              <div class="trade-card ${isWinning ? 'winning' : 'losing'}">
+                <div class="trade-header">
+                  <div class="trade-ticker">${t.ticker}</div>
+                  <div class="trade-status ${t.status === 'CLOSED' ? 'closed' : ''}">
+                    ${t.status === 'ACTIVE' ? 'ACTIVE' : 'CLOSED'}
+                  </div>
+                </div>
+
+                <div class="trade-row">
+                  <span class="trade-label">Entry</span>
+                  <span class="trade-value">${formatCurrency(t.entryPrice)}</span>
+                </div>
+
+                <div class="trade-row">
+                  <span class="trade-label">Current</span>
+                  <span class="trade-value">${formatCurrency(t.currentPrice)}</span>
+                </div>
+
+                <div class="trade-row">
+                  <span class="trade-label">High / Low</span>
+                  <span class="trade-value">${formatCurrency(t.high)} / ${formatCurrency(t.low)}</span>
+                </div>
+
+                <div class="trade-row">
+                  <span class="trade-label">Target / Stop</span>
+                  <span class="trade-value">${formatCurrency(t.targetExit)} / ${formatCurrency(t.stopLoss)}</span>
+                </div>
+
+                <div class="trade-row">
+                  <span class="trade-label">Shares</span>
+                  <span class="trade-value">${t.shares}</span>
+                </div>
+
+                <div class="trade-divider"></div>
+
+                <div class="trade-pnl">
+                  <div class="trade-pnl-label">P&L</div>
+                  <div class="trade-pnl-value ${isWinning ? 'positive' : 'negative'}">
+                    ${isWinning ? '+' : ''}${pnl.toFixed(2)} (${isWinning ? '+' : ''}${pnlPct}%)
+                  </div>
+                </div>
+
+                ${t.notes ? `<div class="trade-notes"><strong>Notes:</strong> ${t.notes}</div>` : ''}
+
+                <div class="trade-news">
+                  <strong>Latest News:</strong><br>
+                  ${newsItems.map(n => `<div class="trade-news-item">• ${n}</div>`).join('')}
+                </div>
+
+                ${t.status === 'ACTIVE' ? `
+                  <div class="trade-actions">
+                    <button class="trade-btn" onclick="editTrade(${t.id})">Update</button>
+                    <button class="trade-btn close" onclick="closeTrade(${t.id})">Close Trade</button>
+                  </div>
+                ` : `
+                  <div class="trade-actions">
+                    <button class="trade-btn" onclick="viewDetails(${t.id})" style="grid-column: 1 / -1;">View Details</button>
+                  </div>
+                `}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function editTrade(id) {
+      const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+      const trade = trades.find(t => t.id === id);
+      if (!trade) return;
+
+      // Simulate live price update
+      const newPrice = trade.currentPrice + (Math.random() - 0.5) * 0.3;
+      trade.currentPrice = Math.max(0.01, newPrice);
+      trade.high = Math.max(trade.high, trade.currentPrice);
+      trade.low = Math.min(trade.low, trade.currentPrice);
+
+      localStorage.setItem('tradeos_journal', JSON.stringify(trades));
+      loadTrades();
+    }
+
+    function closeTrade(id) {
+      const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+      const trade = trades.find(t => t.id === id);
+      if (!trade) return;
+
+      if (confirm(`Close ${trade.ticker}? Exit price: ${formatCurrency(trade.currentPrice)}`)) {
+        trade.status = 'CLOSED';
+        trade.closedAt = new Date().toISOString();
+        localStorage.setItem('tradeos_journal', JSON.stringify(trades));
+        loadTrades();
+      }
+    }
+
+    function viewDetails(id) {
+      const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+      const trade = trades.find(t => t.id === id);
+      if (!trade) return;
+
+      alert(`${trade.ticker}\nEntry: ${formatCurrency(trade.entryPrice)}\nExit: ${formatCurrency(trade.currentPrice)}\nShares: ${trade.shares}\nP&L: ${formatCurrency(calculatePnL(trade))}`);
+    }
+
     function goHome() {
       window.location.href = '/tradeos/';
     }
 
-    function signOut() {
-      if (confirm('Sign out of TradeOS?')) {
-        localStorage.removeItem('tradeos_id_token');
-        localStorage.removeItem('tradeos_access_token');
-        localStorage.removeItem('tradeos_token_expiry');
-        window.location.href = '/tradeos/login.html';
-      }
+    function goProfile() {
+      window.location.href = '/tradeos/settings.html';
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadTrades();
+      // Update live prices every 5 seconds
+      setInterval(async () => {
+        if (currentTab === 'active') {
+          const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+          const activeTrades = trades.filter(t => t.status === 'ACTIVE');
+          let updated = false;
+          
+          for (const t of activeTrades) {
+            const livePrice = await fetchLivePrice(t.ticker);
+            if (livePrice && livePrice !== t.currentPrice) {
+              t.currentPrice = livePrice;
+              t.high = Math.max(t.high, livePrice);
+              t.low = Math.min(t.low, livePrice);
+              updated = true;
+            }
+          }
+
+          if (updated) {
+            localStorage.setItem('tradeos_journal', JSON.stringify(trades));
+            loadTrades();
+          }
+        }
+      }, 5000);
+    });
   </script>
 </body>
 </html>

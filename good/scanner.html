@@ -54,6 +54,11 @@
       display: flex;
       gap: 8px;
       align-items: center;
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      cursor: pointer;
     }
 
     .topbar-brand span {
@@ -175,12 +180,148 @@
       border-color: rgba(255, 255, 255, 0.4);
     }
 
-    .scan-status {
+    /* Tabs */
+    .tabs-nav {
       display: flex;
-      gap: 8px;
-      align-items: center;
-      font-size: 13px;
+      gap: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      padding: 12px 20px;
+      background: none;
+      border: none;
       color: #aaa;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+    }
+
+    .tab-btn.active {
+      color: #ffd93d;
+      border-bottom-color: #ffd93d;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .history-controls {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .history-search {
+      flex: 1;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .history-search::placeholder {
+      color: #666;
+    }
+
+    .scan-history-list,
+    .ticker-history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .scan-history-item,
+    .ticker-history-item {
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .scan-history-item:hover,
+    .ticker-history-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 217, 61, 0.4);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 217, 61, 0.1);
+    }
+
+    .scan-history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .scan-time {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .scan-tickers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .scan-ticker-tag {
+      padding: 4px 8px;
+      background: rgba(255, 107, 107, 0.2);
+      border-radius: 4px;
+      font-size: 12px;
+      color: #ff6b6b;
+    }
+
+    .ticker-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      color: #666;
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .empty-state p {
+      margin: 0;
     }
 
     .status-dot {
@@ -503,6 +644,10 @@
       animation: slideUp 0.3s ease;
     }
 
+    .modal-content::-webkit-scrollbar {
+      width: 0;
+    }
+
     @media (min-width: 768px) {
       .modal-content {
         border-radius: 16px;
@@ -671,6 +816,13 @@
       padding: 10px;
       border-left: 2px solid rgba(255, 107, 107, 0.4);
       margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .news-item:hover {
+      background: rgba(255, 107, 107, 0.1);
+      border-left-color: rgba(255, 107, 107, 0.8);
     }
 
     .news-item:last-child {
@@ -701,6 +853,56 @@
       color: #666;
       font-size: 12px;
       padding: 20px 10px;
+    }
+
+    /* Play Planner */
+    .play-planner {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 20px;
+    }
+
+    .planner-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .planner-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .planner-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .planner-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .planner-input {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 10px;
+      color: #fff;
+      font-size: 13px;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .planner-input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 107, 107, 0.4);
     }
 
     /* Action Buttons */
@@ -794,7 +996,7 @@
     /* Footer Navigation */
     .footer-nav {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       position: fixed;
       bottom: 0;
       left: 0;
@@ -840,12 +1042,13 @@
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-brand">
-      <span>TradeOS</span>
+    <div class="topbar-brand" onclick="goHome()" style="cursor: pointer;">
+      TRADEOS
     </div>
     <div class="topbar-menu">
-      <button class="btn-icon" title="Profile" onclick="signOut()">⚙️</button>
-      <button class="btn-icon" title="Home" onclick="goHome()">🏠</button>
+      <button class="btn-icon" onclick="goProfile()" title="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </button>
     </div>
   </div>
 
@@ -923,16 +1126,46 @@
       </div>
     </div>
 
-    <div class="results-info">
-      <span><strong id="resultCount">0</strong> results</span>
-      <span id="lastUpdate" style="color: #666;"></span>
+    <!-- Tabs Navigation -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" data-tab="live-results" onclick="switchTab('live-results')">Live Results</button>
+      <button class="tab-btn" data-tab="result-history" onclick="switchTab('result-history')">Result History</button>
+      <button class="tab-btn" data-tab="ticker-history" onclick="switchTab('ticker-history')">Ticker History</button>
     </div>
 
-    <div id="resultsBody" class="results-grid">
-      <div class="results-empty">
-        <p>No scans yet</p>
-        <p class="results-empty-sub">Click "Scan" to begin</p>
+    <!-- Live Results Tab -->
+    <div id="live-results" class="tab-content active">
+      <div class="results-info">
+        <span><strong id="resultCount">0</strong> results <span id="sourceTag" style="font-size:11px;color:#666;margin-left:6px;"></span></span>
+        <span id="lastUpdate" style="color: #666;"></span>
       </div>
+      <div id="sourceWarning" style="display:none;background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#ffa500;">
+        ⚠️ Using Yahoo Finance free tier — results limited to mid/large-cap stocks. For small-cap scanning, add a free <a href="https://financialmodelingprep.com/developer/docs/" target="_blank" style="color:#ffd93d;">FMP API key</a> to your Cloudflare Worker secrets as <code>FMP_API_KEY</code>.
+      </div>
+      <div id="resultsBody" class="results-grid">
+        <div class="results-empty">
+          <p>No scans yet</p>
+          <p class="results-empty-sub">Click "Scan" to begin</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result History Tab -->
+    <div id="result-history" class="tab-content">
+      <div class="history-controls">
+        <input type="text" id="resultHistorySearch" placeholder="Search ticker..." class="history-search" />
+        <button class="btn-secondary" onclick="exportScanHistory()">Export</button>
+      </div>
+      <div class="scan-history-list" id="scanHistoryList"></div>
+    </div>
+
+    <!-- Ticker History Tab -->
+    <div id="ticker-history" class="tab-content">
+      <div class="history-controls">
+        <input type="text" id="tickerHistorySearch" placeholder="Search ticker..." class="history-search" />
+        <button class="btn-secondary" onclick="sortTickerHistory('hits')">Sort by Hits</button>
+      </div>
+      <div class="ticker-history-list" id="tickerHistoryList"></div>
     </div>
   </div>
 
@@ -972,9 +1205,26 @@
         </div>
       </div>
 
-      <div class="modal-section" id="tickerHistoryContainer">
+      <div class="modal-section">
+        <span class="modal-section-title">Performance</span>
+        <div class="modal-grid">
+          <div class="modal-stat">
+            <div class="modal-stat-label">Change Since Scan</div>
+            <div class="modal-stat-value" id="modalChangeSinceScan">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
         <span class="modal-section-title">Scanner History</span>
-        <div class="modal-history">
+        <div class="modal-history" id="scannerHistoryContainer">
+          <p>Loading...</p>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-section-title">Ticker History</span>
+        <div class="modal-history" id="tickerHistoryContainer">
           <p>Loading...</p>
         </div>
       </div>
@@ -988,9 +1238,32 @@
         </div>
       </div>
 
-      <div class="modal-input-group">
-        <label class="modal-input-label">Add Catalyst (for Play)</label>
-        <input type="text" id="catalystInput" class="modal-input" placeholder="e.g., FDA approval, earnings, product launch..." />
+      <div class="modal-section">
+        <span class="modal-section-title">Play Planner</span>
+        <div class="play-planner">
+          <div class="planner-fields">
+            <div class="planner-field">
+              <div class="planner-label">Entry</div>
+              <input type="number" class="planner-input" id="plannerEntry" placeholder="e.g., 1.50" step="0.01" />
+            </div>
+            <div class="planner-field">
+              <div class="planner-label">Target</div>
+              <input type="number" class="planner-input" id="plannerTarget" placeholder="e.g., 2.50" step="0.01" />
+            </div>
+            <div class="planner-field">
+              <div class="planner-label">Stop Loss</div>
+              <input type="number" class="planner-input" id="plannerStop" placeholder="e.g., 1.20" step="0.01" />
+            </div>
+            <div class="planner-field">
+              <div class="planner-label">Shares</div>
+              <input type="number" class="planner-input" id="plannerShares" placeholder="e.g., 1000" />
+            </div>
+            <div class="planner-field full">
+              <div class="planner-label">Catalyst / Notes</div>
+              <input type="text" class="planner-input" id="catalystInput" placeholder="e.g., FDA approval, earnings, PR..." />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -1017,8 +1290,152 @@
       selectedTicker: null,
       currentFilters: { ...FILTERS.standard },
       tickerHistory: {},
-      scanInterval: null
+      scanInterval: null,
+      driveSync: { lastSync: 0, isSyncing: false },
+      dataSource: ''
     };
+
+    // ========== GOOGLE DRIVE SYNC ==========
+    const DRIVE_FILE_ID = 'tradeos_scanner_history.json';
+    
+    async function initDriveSync() {
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        if (!token) return;
+        await syncFromDrive();
+        setInterval(syncToDrive, 30000); // Auto-sync every 30s
+      } catch (e) {
+        console.log('Drive sync unavailable');
+      }
+    }
+
+    async function syncFromDrive() {
+      if (state.driveSync.isSyncing) return;
+      state.driveSync.isSyncing = true;
+      
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const files = (await listRes.json()).files || [];
+        if (!files.length) return;
+        
+        const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${files[0].id}?alt=media`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const driveData = await fileRes.json();
+        
+        // Merge scan history (dedup by timestamp)
+        const local = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
+        const drive = driveData.scanHistory || [];
+        const merged = [...local, ...drive]
+          .filter((v, i, a) => a.findIndex(x => x.timestamp === v.timestamp) === i)
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+          .slice(0, 500); // Keep last 500
+        localStorage.setItem('tradeos_scan_history', JSON.stringify(merged));
+        
+        // Merge ticker history
+        const localTickers = JSON.parse(localStorage.getItem('tradeos_ticker_history') || '{}');
+        Object.entries(driveData.tickerHistory || {}).forEach(([ticker, driveData]) => {
+          if (!localTickers[ticker]) {
+            localTickers[ticker] = driveData;
+          } else {
+            const merged = [...(localTickers[ticker].hits || []), ...(driveData.hits || [])]
+              .filter((v, i, a) => a.findIndex(x => x.timestamp === v.timestamp) === i);
+            localTickers[ticker].hits = merged;
+            localTickers[ticker].totalHits = merged.length;
+          }
+        });
+        localStorage.setItem('tradeos_ticker_history', JSON.stringify(localTickers));
+        state.tickerHistory = localTickers;
+        state.driveSync.lastSync = Date.now();
+      } catch (e) {
+        console.error('Drive sync read:', e);
+      } finally {
+        state.driveSync.isSyncing = false;
+      }
+    }
+
+    async function syncToDrive() {
+      if (state.driveSync.isSyncing) return;
+      state.driveSync.isSyncing = true;
+      
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        const payload = {
+          scanHistory: JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]'),
+          tickerHistory: JSON.parse(localStorage.getItem('tradeos_ticker_history') || '{}'),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const fileId = (await listRes.json()).files?.[0]?.id;
+        
+        if (fileId) {
+          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          const boundary = '===============abc123==';
+          const body = `--${boundary}\nContent-Type: application/json\n\n${JSON.stringify({name: DRIVE_FILE_ID, parents: ['appDataFolder']})}\n--${boundary}\nContent-Type: application/json\n\n${JSON.stringify(payload)}\n--${boundary}--`;
+          await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': `multipart/related; boundary="===============abc123=="` },
+            body
+          });
+        }
+        state.driveSync.lastSync = Date.now();
+      } catch (e) {
+        console.error('Drive sync write:', e);
+      } finally {
+        state.driveSync.isSyncing = false;
+      }
+    }
+
+    // ========== PLAYS SYNC ==========
+    async function syncPlaysToDrive() {
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        if (!token) return;
+        
+        const payload = {
+          plays: JSON.parse(localStorage.getItem('tradeos_plays') || '[]'),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='tradeos_plays.json'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const fileId = (await listRes.json()).files?.[0]?.id;
+        
+        if (fileId) {
+          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          const boundary = '===============abc123==';
+          const body = `--${boundary}\nContent-Type: application/json\n\n${JSON.stringify({name: 'tradeos_plays.json', parents: ['appDataFolder']})}\n--${boundary}\nContent-Type: application/json\n\n${JSON.stringify(payload)}\n--${boundary}--`;
+          await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': `multipart/related; boundary="===============abc123=="` },
+            body
+          });
+        }
+      } catch (e) {
+        console.error('Drive sync write plays:', e);
+      }
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
       try {
@@ -1026,6 +1443,7 @@
         loadCustomPresets();
         updateFilterDisplay();
         updatePresetsUI();
+        initDriveSync();
         updateStatusDot();
       } catch (e) {
         console.error('Init error:', e);
@@ -1067,10 +1485,12 @@
 
     function recordTickerHit(ticker, price) {
       if (!state.tickerHistory[ticker]) {
-        state.tickerHistory[ticker] = { totalHits: 0, firstSeen: new Date(), hits: [] };
+        state.tickerHistory[ticker] = { totalHits: 0, firstSeen: new Date().toISOString(), hits: [] };
       }
       state.tickerHistory[ticker].totalHits++;
-      state.tickerHistory[ticker].hits.push({ price, timestamp: new Date() });
+      state.tickerHistory[ticker].hits.push({ price, timestamp: new Date().toISOString() });
+      localStorage.setItem('tradeos_ticker_history', JSON.stringify(state.tickerHistory));
+      syncToDrive(); // Push to Google Drive
     }
 
     function toggleScanner() {
@@ -1116,11 +1536,22 @@
 
         const data = await response.json();
         const results = data.results || [];
+        state.dataSource = data.source || '';
 
         // Worker has already filtered — sort by change % desc and render.
         state.results = results.sort((a, b) => b.changePercent - a.changePercent);
 
         state.results.forEach(r => recordTickerHit(r.ticker, r.price));
+        
+        // Save scan history
+        const scanHistory = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
+        scanHistory.push({
+          timestamp: new Date().toISOString(),
+          results: state.results.map(r => r.ticker)
+        });
+        localStorage.setItem('tradeos_scan_history', JSON.stringify(scanHistory.slice(-100))); // Keep last 100 scans
+        syncToDrive(); // Push to Google Drive
+        
         state.lastUpdate = new Date();
         renderResults();
         saveScannerState();
@@ -1202,6 +1633,11 @@
       document.getElementById('volumeMinVal').textContent = `${(state.currentFilters.volume.min / 1000).toFixed(0)}K`;
     }
 
+    function getPriceRange(hits) {
+      const prices = hits.map(h => h.price);
+      return { min: Math.min(...prices), max: Math.max(...prices) };
+    }
+
     function renderResults() {
       const container = document.getElementById('resultsBody');
       const count = document.getElementById('resultCount');
@@ -1215,6 +1651,11 @@
         const hitCount = history ? history.totalHits : 0;
         const priceRange = history ? getPriceRange(history.hits) : { min: r.price, max: r.price };
         const changeClass = r.change >= 0 ? 'positive' : 'negative';
+        const relVolDisplay = r.relVol != null ? `${r.relVol.toFixed(2)}x` : '—';
+        const relVolClass = r.relVol != null && r.relVol >= 1.5 ? 'positive' : 'neutral';
+        const floatDisplay = r.float != null ? `${(r.float / 1e6).toFixed(2)}M` : '—';
+        const floatClass = r.float != null && r.float <= 20e6 ? 'positive' : 'neutral';
+        const mktCapDisplay = r.mktCap != null ? `$${(r.mktCap / 1e9).toFixed(2)}B` : '—';
         return `<div class="result-card" onclick="showTickerModal('${r.ticker}', ${r.price}, ${r.change}, ${r.volume}, ${r.relVol}, ${r.float}, ${r.mktCap})" title="Hit ${hitCount}x - Range: $${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}">
           <div class="card-header">
             <div class="card-ticker">${r.ticker}<span class="hit-badge">${hitCount}</span></div>
@@ -1228,26 +1669,73 @@
             </div>
             <div class="metric-item">
               <div class="metric-label">Rel Vol</div>
-              <div class="metric-value ${r.relVol >= 1.5 ? 'positive' : 'neutral'}">${r.relVol.toFixed(2)}x</div>
+              <div class="metric-value ${relVolClass}">${relVolDisplay}</div>
             </div>
             <div class="metric-item">
               <div class="metric-label">Float</div>
-              <div class="metric-value ${r.float <= 20e6 ? 'positive' : 'neutral'}">${(r.float / 1e6).toFixed(2)}M</div>
+              <div class="metric-value ${floatClass}">${floatDisplay}</div>
             </div>
             <div class="metric-item">
               <div class="metric-label">Mkt Cap</div>
-              <div class="metric-value">$${(r.mktCap / 1e9).toFixed(2)}B</div>
+              <div class="metric-value">${mktCapDisplay}</div>
             </div>
           </div>
         </div>`;
       }).join('');
       count.textContent = state.results.length;
       if (state.lastUpdate) lastUpdate.textContent = `Updated ${state.lastUpdate.toLocaleTimeString()}`;
+      const sourceTag = document.getElementById('sourceTag');
+      const sourceWarning = document.getElementById('sourceWarning');
+      if (state.dataSource === 'yahoo_limited') {
+        sourceTag.textContent = '(Yahoo — large cap only)';
+        sourceWarning.style.display = 'block';
+      } else if (state.dataSource === 'fmp') {
+        sourceTag.textContent = '(FMP)';
+        sourceWarning.style.display = 'none';
+      } else if (state.dataSource === 'benzinga') {
+        sourceTag.textContent = '(Benzinga)';
+        sourceWarning.style.display = 'none';
+      } else {
+        sourceTag.textContent = '';
+        sourceWarning.style.display = 'none';
+      }
     }
 
-    function getPriceRange(hits) {
-      const prices = hits.map(h => h.price);
-      return { min: Math.min(...prices), max: Math.max(...prices) };
+    function getMockNews(ticker) {
+      const sources = ['Benzinga', 'SeekingAlpha', 'MarketWatch', 'Reuters', 'Yahoo Finance'];
+      const headlines = [
+        `${ticker} Reports Strong Q3 Earnings Beat`,
+        `Analyst Upgrades ${ticker} to Buy Rating`,
+        `${ticker} Announces New Product Launch`,
+        `${ticker} Secures Major Partnership Deal`,
+        `Insider Buying Detected at ${ticker}`,
+        `${ticker} FDA Approval Expected This Quarter`
+      ];
+      
+      return headlines.slice(0, 3).map((h, i) => ({
+        title: h,
+        source: sources[i % sources.length],
+        time: `${i + 1}h ago`,
+        url: `https://finance.yahoo.com/quote/${ticker}`
+      }));
+    }
+
+    function populateNews(ticker) {
+      const news = getMockNews(ticker);
+      const newsHTML = news.length > 0 ? news.map(n => `
+        <div class="news-item" onclick="addNewsToCatalyst('${n.title.replace(/'/g, "\\'")}')">
+          <div class="news-title">${n.title}</div>
+          <div class="news-time">${n.time} • ${n.source}</div>
+        </div>
+      `).join('') : '<div class="news-placeholder">No news available</div>';
+      
+      document.getElementById('newsContainer').innerHTML = newsHTML;
+    }
+
+    function addNewsToCatalyst(headline) {
+      const currentCatalyst = document.getElementById('catalystInput').value.trim();
+      const newCatalyst = currentCatalyst ? `${currentCatalyst} | ${headline}` : headline;
+      document.getElementById('catalystInput').value = newCatalyst;
     }
 
     function showTickerModal(t, p, c, v, rv, f, mc) {
@@ -1256,32 +1744,46 @@
       document.getElementById('modalPrice').textContent = `$${p.toFixed(2)}`;
       document.getElementById('modalChange').textContent = `${c >= 0 ? '+' : ''}${c.toFixed(2)}%`;
       document.getElementById('modalChange').className = `modal-value ${c >= 0 ? 'positive' : 'negative'}`;
-      document.getElementById('modalVolume').textContent = `${(v / 1e6).toFixed(2)}M`;
-      document.getElementById('modalRelVol').textContent = `${rv.toFixed(2)}x`;
-      document.getElementById('modalFloat').textContent = `${(f / 1e6).toFixed(2)}M`;
-      document.getElementById('modalMktCap').textContent = `$${(mc / 1e9).toFixed(2)}B`;
-
+      
       const history = state.tickerHistory[t];
-      const historyHTML = history ? `
+      const firstHitPrice = history && history.hits.length > 0 ? history.hits[0].price : p;
+      const changeSinceScan = history && history.hits.length > 0 ? ((p - firstHitPrice) / firstHitPrice) * 100 : 0;
+      const changeSinceScanClass = changeSinceScan >= 0 ? 'positive' : 'negative';
+      document.getElementById('modalChangeSinceScan').textContent = `${changeSinceScan >= 0 ? '+' : ''}${changeSinceScan.toFixed(2)}%`;
+      document.getElementById('modalChangeSinceScan').className = `modal-stat-value ${changeSinceScanClass}`;
+      document.getElementById('modalVolume').textContent = `${(v / 1e6).toFixed(2)}M`;
+      document.getElementById('modalRelVol').textContent = rv != null ? `${rv.toFixed(2)}x` : '—';
+      document.getElementById('modalFloat').textContent = f != null ? `${(f / 1e6).toFixed(2)}M` : '—';
+      document.getElementById('modalMktCap').textContent = mc != null ? `$${(mc / 1e9).toFixed(2)}B` : '—';
+      
+      // Scanner History: first hit details
+      const scannerHistoryHTML = history ? `
         <div class="modal-history">
-          <div class="history-header">
-            <span>Hit Count: ${history.totalHits}</span>
-            <span>First Seen: ${new Date(history.firstSeen).toLocaleDateString()}</span>
-          </div>
-          <div class="history-prices">
-            <div class="history-row"><strong>Price Range:</strong> $${Math.min(...history.hits.map(h => h.price)).toFixed(2)} - $${Math.max(...history.hits.map(h => h.price)).toFixed(2)}</div>
-            <div class="history-list">
-              <strong>Recent Hits:</strong>
-              <div class="hit-items">
-                ${history.hits.slice(-5).reverse().map(h => `<div class="hit-item">$${h.price.toFixed(2)} - ${new Date(h.timestamp).toLocaleString()}</div>`).join('')}
-              </div>
+          <div class="history-row"><strong>First Hit:</strong> $${history.hits[0].price.toFixed(2)} - ${new Date(history.firstSeen).toLocaleDateString()}</div>
+          <div class="history-row"><strong>Total Hits:</strong> ${history.totalHits}</div>
+        </div>
+      ` : '<div class="modal-history"><p>No scanner history</p></div>';
+      document.getElementById('scannerHistoryContainer').innerHTML = scannerHistoryHTML;
+      
+      // Ticker History: all hits + range
+      const tickerHistoryHTML = history ? `
+        <div class="modal-history">
+          <div class="history-row"><strong>Range:</strong> $${Math.min(...history.hits.map(h => h.price)).toFixed(2)} - $${Math.max(...history.hits.map(h => h.price)).toFixed(2)}</div>
+          <div class="history-list">
+            <strong>Recent Hits:</strong>
+            <div class="hit-items">
+              ${history.hits.slice(-5).reverse().map(h => `<div class="hit-item">$${h.price.toFixed(2)} - ${new Date(h.timestamp).toLocaleString()}</div>`).join('')}
             </div>
           </div>
         </div>
-      ` : '<div class="modal-history"><p>No history yet</p></div>';
-
-      document.getElementById('tickerHistoryContainer').innerHTML = historyHTML;
+      ` : '<div class="modal-history"><p>No ticker history</p></div>';
+      document.getElementById('tickerHistoryContainer').innerHTML = tickerHistoryHTML;
+      populateNews(t);
       document.getElementById('catalystInput').value = '';
+      document.getElementById('plannerEntry').value = '';
+      document.getElementById('plannerTarget').value = '';
+      document.getElementById('plannerStop').value = '';
+      document.getElementById('plannerShares').value = '';
       document.getElementById('tickerModal').classList.add('active');
     }
 
@@ -1291,9 +1793,235 @@
 
     function addToPlay() {
       const catalyst = document.getElementById('catalystInput').value.trim();
-      const msg = catalyst ? `Added ${state.selectedTicker.ticker} to Play with catalyst: "${catalyst}"` : `Added ${state.selectedTicker.ticker} to Play`;
-      alert(msg);
+      const entry = document.getElementById('plannerEntry').value;
+      const target = document.getElementById('plannerTarget').value;
+      const stop = document.getElementById('plannerStop').value;
+      const shares = document.getElementById('plannerShares').value;
+      
+      const play = {
+        id: Date.now(),
+        ticker: state.selectedTicker.ticker,
+        price: state.selectedTicker.price,
+        catalyst: catalyst || '(no catalyst)',
+        entry: entry ? parseFloat(entry) : null,
+        target: target ? parseFloat(target) : null,
+        stop: stop ? parseFloat(stop) : null,
+        shares: shares ? parseInt(shares) : null,
+        createdAt: new Date().toISOString(),
+        status: 'pending'
+      };
+      
+      let plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+      plays.push(play);
+      localStorage.setItem('tradeos_plays', JSON.stringify(plays));
+      syncPlaysToDrive(); // Push to Drive
+      
+      alert(`Added ${play.ticker} to Plays`);
       closeModal();
+      window.location.href = '/tradeos/plays.html';
+    }
+
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      
+      // Show selected tab
+      document.getElementById(tabName).classList.add('active');
+      document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+      
+      // Populate tab data
+      if (tabName === 'result-history') {
+        renderScanHistory();
+      } else if (tabName === 'ticker-history') {
+        renderTickerHistory();
+      }
+    }
+
+    function renderScanHistory() {
+      const container = document.getElementById('scanHistoryList');
+      const scanHistory = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
+      
+      if (scanHistory.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>No scan history yet</p></div>';
+        return;
+      }
+      
+      container.innerHTML = scanHistory.slice().reverse().map((scan) => {
+        const time = new Date(scan.timestamp).toLocaleTimeString();
+        const date = new Date(scan.timestamp).toLocaleDateString();
+        const tickerTags = scan.results.slice(0, 10).map(t => {
+          const tickerHistory = state.tickerHistory[t] || { hits: [] };
+          const lastHit = tickerHistory.hits[tickerHistory.hits.length - 1];
+          const scanPrice = lastHit ? lastHit.price : null;
+          const priceDisplay = scanPrice !== null ? `$${scanPrice.toFixed(2)}` : '';
+          return `<div class="scan-ticker-tag" style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px;"><div>${t}</div><div style="font-size: 10px; opacity: 0.8;">${priceDisplay}</div></div>`;
+        }).join('');
+        
+        const moreTag = scan.results.length > 10 ? `<div class="scan-ticker-tag">+${scan.results.length - 10}</div>` : '';
+        
+        return `<div class="scan-history-item" onclick="openScanResultsModal(${scan.timestamp})" style="cursor: pointer; transition: all 0.2s;">
+          <div class="scan-history-header">
+            <span>${date} ${time}</span>
+            <span style="color: #666;">${scan.results.length} tickers</span>
+          </div>
+          <div class="scan-tickers">
+            ${tickerTags}
+            ${moreTag}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderTickerHistory() {
+      const container = document.getElementById('tickerHistoryList');
+      const tickers = state.tickerHistory;
+      
+      if (Object.keys(tickers).length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>No ticker history yet</p></div>';
+        return;
+      }
+      
+      const tickerArray = Object.entries(tickers).map(([ticker, data]) => ({
+        ticker,
+        ...data
+      }));
+      
+      container.innerHTML = tickerArray.map(t => {
+        const priceRange = getPriceRange(t.hits);
+        return `<div class="ticker-history-item">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-weight: 600; font-size: 14px;">${t.ticker}</span>
+            <span style="color: #ffd93d; font-size: 12px; background: rgba(255, 217, 61, 0.2); padding: 2px 8px; border-radius: 4px;">Hit ${t.totalHits}x</span>
+          </div>
+          <div class="ticker-stats">
+            <div class="stat-item">
+              <div class="stat-label">Current</div>
+              <div class="stat-value">$${t.hits[t.hits.length - 1].price.toFixed(2)}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">First Hit</div>
+              <div class="stat-value">$${t.hits[0].price.toFixed(2)}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Range</div>
+              <div class="stat-value">$${priceRange.min.toFixed(2)}-$${priceRange.max.toFixed(2)}</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Last Seen</div>
+              <div class="stat-value" style="font-size: 11px;">${new Date(t.hits[t.hits.length - 1].timestamp).toLocaleTimeString()}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function exportScanHistory() {
+      const history = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
+      const csv = ['Timestamp,Tickers,Count'].concat(
+        history.map(h => `"${new Date(h.timestamp).toISOString()}","${h.results.join(', ')}",${h.results.length}`)
+      ).join('\n');
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `scan_history_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+    }
+
+    function openScanResultsModal(timestamp) {
+      const scanHistory = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
+      const scan = scanHistory.find(s => s.timestamp === timestamp);
+      
+      if (!scan) {
+        console.error('Scan data not found for timestamp:', timestamp);
+        return;
+      }
+      
+      console.log('Opening scan results modal for', scan.results.length, 'tickers');
+      
+      // Create or get modal
+      let modal = document.getElementById('scanResultsModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'scanResultsModal';
+        modal.className = 'modal-overlay';
+        modal.onclick = function(e) {
+          if (e.target === modal) closeScanResultsModal();
+        };
+        document.body.appendChild(modal);
+      }
+      
+      // Build modal header and content
+      const modalTitle = `<div class="modal-title-block">
+        <h2 style="margin: 0; font-size: 18px;">Scan Results</h2>
+        <p style="margin: 4px 0 0 0; color: #888; font-size: 12px;">${new Date(scan.timestamp).toLocaleString()}</p>
+      </div>`;
+      
+      const closeBtn = `<button class="modal-close" onclick="closeScanResultsModal()" style="background: none; border: none; color: #aaa; font-size: 28px; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">×</button>`;
+      
+      // Build ticker rows
+      let tickerRows = '';
+      scan.results.forEach(ticker => {
+        const tickerHistory = state.tickerHistory[ticker] || { hits: [] };
+        const lastHit = tickerHistory.hits[tickerHistory.hits.length - 1];
+        const scanPrice = lastHit ? lastHit.price : null;
+        
+        tickerRows += `<div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; align-items: center;">
+          <div>
+            <div style="font-weight: 600; font-size: 14px;">${ticker}</div>
+            <div style="color: #888; font-size: 12px;">Ticker</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="color: #ffd93d; font-weight: 600;">$${scanPrice !== null ? scanPrice.toFixed(2) : '--'}</div>
+            <div style="color: #888; font-size: 12px;">Scanner</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="color: #aaa; font-weight: 600;">$${scanPrice !== null ? scanPrice.toFixed(2) : '--'}</div>
+            <div style="color: #888; font-size: 12px;">Current</div>
+          </div>
+          <div style="text-align: right;">
+            <button onclick="loadTickerModal('${ticker}')" style="padding: 8px 12px; background: rgba(255,217,61,0.1); border: 1px solid rgba(255,217,61,0.3); color: #ffd93d; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">View</button>
+          </div>
+        </div>`;
+      });
+      
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 16px;">
+            ${modalTitle}
+            ${closeBtn}
+          </div>
+          <div style="color: #aaa; margin-bottom: 16px; font-size: 13px;">
+            ${scan.results.length} tickers found
+          </div>
+          <div style="display: grid; gap: 12px;">
+            ${tickerRows}
+          </div>
+        </div>
+      `;
+      
+      // Show modal
+      modal.classList.add('active');
+      console.log('Modal shown');
+    }
+    
+    function closeScanResultsModal() {
+      const modal = document.getElementById('scanResultsModal');
+      if (modal) {
+        modal.classList.remove('active');
+      }
+    }
+    
+    function loadTickerModal(ticker) {
+      closeScanResultsModal();
+      // Call existing openModal logic
+      const tickerData = state.tickerHistory[ticker];
+      if (tickerData) {
+        state.selectedTicker = { ticker, ...tickerData };
+        openModal(ticker);
+      }
     }
 
     function loadCustomPresets() {
@@ -1318,10 +2046,14 @@
       window.location.href = '/tradeos/';
     }
 
+    function goProfile() {
+      window.location.href = '/tradeos/settings.html';
+    }
+
     function signOut() {
       if (confirm('Sign out of TradeOS?')) {
         localStorage.removeItem('tradeos_id_token');
-        localStorage.removeItem('tradeos_access_token');
+        localStorage.removeItem('');
         localStorage.removeItem('tradeos_token_expiry');
         window.location.href = '/tradeos/login.html';
       }
@@ -1329,10 +2061,6 @@
   </script>
 
   <div class="footer-nav">
-    <a href="/tradeos/index.html" class="nav-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Home
-    </a>
     <a href="/tradeos/scanner.html" class="nav-link active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       Scanner
@@ -1348,10 +2076,6 @@
     <a href="/tradeos/tools.html" class="nav-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
       Tools
-    </a>
-    <a href="/tradeos/settings.html" class="nav-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Profile
     </a>
   </div>
 </body>

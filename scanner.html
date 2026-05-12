@@ -1515,14 +1515,16 @@
 
     function startScan() {
       performScan();
+      // Auto-scan every 10 seconds while active
+      state.scanInterval = setInterval(() => {
+        if (state.isScanning) performScan();
+      }, 10000);
     }
 
     async function performScan() {
       try {
         if (!state.isScanning) return;
 
-        // Send filters to the worker so the screener runs server-side against the full universe.
-        // The worker handles fetching ~8,000 symbols, batch-quoting them, and applying these filters.
         const f = state.currentFilters;
         const params = new URLSearchParams({
           priceMin:     f.price.min,
@@ -1541,11 +1543,9 @@
 
         const data = await response.json();
         const results = data.results || [];
-        state.dataSource = data.source || '';
+        state.dataSource = data.source || 'unknown';
 
-        // Worker has already filtered — sort by change % desc and render.
         state.results = results.sort((a, b) => b.changePercent - a.changePercent);
-
         state.results.forEach(r => recordTickerHit(r.ticker, r.price));
         
         // Save scan history
@@ -1554,21 +1554,25 @@
           timestamp: new Date().toISOString(),
           results: state.results.map(r => r.ticker)
         });
-        localStorage.setItem('tradeos_scan_history', JSON.stringify(scanHistory.slice(-100))); // Keep last 100 scans
-        syncToDrive(); // Push to Google Drive
+        localStorage.setItem('tradeos_scan_history', JSON.stringify(scanHistory.slice(-100)));
+        syncToDrive();
         
         state.lastUpdate = new Date();
         renderResults();
         saveScannerState();
-        stopScan();
 
-        if (data.cached) console.log(`Using cached scan (${data.ageSec}s old)`);
-        console.log(`Scanned ${data.universeSize || '?'} symbols, found ${data.count || 0} matches`);
+        // Update status with source & count
+        const txt = document.getElementById('statusText');
+        const sourceLabel = data.source === 'benzinga' ? 'Benzinga' : data.source === 'fmp' ? 'FMP' : 'Yahoo';
+        txt.textContent = `${state.results.length} hits (${sourceLabel}) • ${state.lastUpdate.toLocaleTimeString()}`;
+
+        if (data.cached) console.log(`Cached (${data.ageSec}s old)`);
+        console.log(`${sourceLabel} | ${data.universeSize || '?'} → ${results.length}`);
 
       } catch (error) {
         console.error('Scan error:', error);
-        document.getElementById('statusText').textContent = `Error: ${error.message}`;
-        stopScan();
+        const txt = document.getElementById('statusText');
+        txt.textContent = `Error: ${error.message}`;
       }
     }
 
@@ -1923,26 +1927,11 @@
 
     function exportScanHistory() {
       const history = JSON.parse(localStorage.getItem('tradeos_scan_history') || '[]');
-      const tickerHistory = JSON.parse(localStorage.getItem('tradeos_ticker_history') || '{}');
-
-      const rows = ['Timestamp,Ticker,Price'];
-      history.forEach(h => {
-        const scanTime = new Date(h.timestamp).getTime();
-        h.results.forEach(ticker => {
-          const hits = (tickerHistory[ticker] && tickerHistory[ticker].hits) || [];
-          let price = '';
-          if (hits.length > 0) {
-            const closest = hits.reduce((best, hit) => {
-              const diff = Math.abs(new Date(hit.timestamp).getTime() - scanTime);
-              return diff < best.diff ? { diff, price: hit.price } : best;
-            }, { diff: Infinity, price: null });
-            if (closest.price !== null) price = closest.price.toFixed(2);
-          }
-          rows.push(`"${new Date(h.timestamp).toISOString()}","${ticker}","${price}"`);
-        });
-      });
-
-      const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+      const csv = ['Timestamp,Tickers,Count'].concat(
+        history.map(h => `"${new Date(h.timestamp).toISOString()}","${h.results.join(', ')}",${h.results.length}`)
+      ).join('\n');
+      
+      const blob = new Blob([csv], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

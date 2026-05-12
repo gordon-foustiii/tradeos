@@ -206,6 +206,212 @@
       border-bottom: 2px solid #ffd93d;
     }
 
+    /* ===== ACTION BUTTONS ===== */
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .btn-action {
+      padding: 10px 16px;
+      background: rgba(255, 215, 61, 0.1);
+      border: 1px solid rgba(255, 215, 61, 0.3);
+      color: #ffd93d;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: rgba(255, 215, 61, 0.2);
+      border-color: rgba(255, 215, 61, 0.5);
+    }
+
+    .btn-action:active {
+      transform: scale(0.98);
+    }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, #1a1a1a, #0f0f0f);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease-out;
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #aaa;
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #ffd93d;
+    }
+
+    .modal-section {
+      margin-bottom: 24px;
+    }
+
+    .modal-section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .modal-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    .modal-row.full {
+      grid-template-columns: 1fr;
+    }
+
+    .modal-field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-field-label {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .modal-field-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .modal-field-value.positive {
+      color: #4ade80;
+    }
+
+    .modal-field-value.negative {
+      color: #ff6b6b;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+
+    .modal-btn.primary {
+      background: rgba(255, 215, 61, 0.2);
+      color: #ffd93d;
+      border: 1px solid rgba(255, 215, 61, 0.3);
+    }
+
+    .modal-btn.primary:hover {
+      background: rgba(255, 215, 61, 0.3);
+      border-color: rgba(255, 215, 61, 0.5);
+    }
+
+    .modal-btn.danger {
+      background: rgba(255, 107, 107, 0.2);
+      color: #ff6b6b;
+      border: 1px solid rgba(255, 107, 107, 0.3);
+    }
+
+    .modal-btn.danger:hover {
+      background: rgba(255, 107, 107, 0.3);
+      border-color: rgba(255, 107, 107, 0.5);
+    }
+
     /* ===== TABS ===== */
     .tab-nav {
       display: flex;
@@ -476,6 +682,13 @@
       <div class="page-subtitle">Track active trades and historical performance</div>
     </div>
 
+    <!-- ACTION BUTTONS -->
+    <div class="header-actions">
+      <button class="btn-action" onclick="openAddTradeModal()">+ Add Trade</button>
+      <button class="btn-action" onclick="handleBulkUpload()">📁 Bulk Upload CSV</button>
+      <button class="btn-action" onclick="exportToCSV()">📥 Export CSV</button>
+    </div>
+
     <div id="tradesContainer" class="content trades">
       <div class="trades-grid" id="tradesGrid">
         <!-- Trades will render here -->
@@ -621,7 +834,7 @@
         const status = t.status === 'CLOSED' ? 'CLOSED' : 'OPEN';
 
         return `
-          <div class="trade-card ${isWinning ? 'winning' : 'losing'}">
+          <div class="trade-card ${isWinning ? 'winning' : 'losing'}" onclick="openTradeModal(${t.id})" style="cursor: pointer;">
             <div class="trade-header">
               <div class="trade-ticker">${t.ticker || 'N/A'}</div>
               <div class="trade-status ${status === 'CLOSED' ? 'closed' : ''}">
@@ -669,12 +882,12 @@
             <!-- Actions -->
             ${status === 'OPEN' ? `
               <div class="trade-actions">
-                <button class="trade-btn" onclick="editTrade(${t.id})">Update</button>
-                <button class="trade-btn close" onclick="closeTrade(${t.id})">Close Trade</button>
+                <button class="trade-btn" onclick="editTrade(event, ${t.id})">Update</button>
+                <button class="trade-btn close" onclick="closeTrade(event, ${t.id})">Close Trade</button>
               </div>
             ` : `
               <div class="trade-actions">
-                <button class="trade-btn" onclick="viewDetails(${t.id})" style="grid-column: 1 / -1;">View Details</button>
+                <button class="trade-btn" onclick="event.stopPropagation(); openTradeModal(${t.id})" style="grid-column: 1 / -1;">View Details</button>
               </div>
             `}
           </div>
@@ -682,7 +895,8 @@
       }).join('');
     }
 
-    function editTrade(id) {
+    function editTrade(event, id) {
+      event.stopPropagation();
       const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
       const trade = trades.find(t => t.id === id);
       if (!trade) return;
@@ -697,7 +911,8 @@
       loadTrades();
     }
 
-    function closeTrade(id) {
+    function closeTrade(event, id) {
+      event.stopPropagation();
       const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
       const trade = trades.find(t => t.id === id);
       if (!trade) return;
@@ -710,13 +925,168 @@
       }
     }
 
-    function viewDetails(id) {
+    // ===== MODAL FUNCTIONS =====
+    let currentModalTradeId = null;
+
+    function openTradeModal(id) {
       const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
       const trade = trades.find(t => t.id === id);
       if (!trade) return;
 
-      alert(`${trade.ticker}\nEntry: ${formatCurrency(trade.entryPrice)}\nExit: ${formatCurrency(trade.currentPrice)}\nShares: ${trade.shares}\nP&L: ${formatCurrency(calculatePnL(trade))}`);
+      currentModalTradeId = id;
+
+      const entry = parseFloat(trade.entryPrice || trade.entry || 0);
+      const exit = parseFloat(trade.currentPrice || trade.exit || entry);
+      const shares = parseFloat(trade.shares || 0);
+      const high = parseFloat(trade.high || exit);
+      const low = parseFloat(trade.low || entry);
+
+      const pnl = (exit - entry) * shares;
+      const pnlPct = entry > 0 ? ((pnl / (entry * shares)) * 100) : 0;
+
+      const movePercent = entry > 0 ? ((high - entry) / entry * 100) : 0;
+      const maxPossible = entry > 0 ? ((high - entry) / entry * 100) : 0;
+      const actualMove = entry > 0 ? ((exit - entry) / entry * 100) : 0;
+      const captured = maxPossible > 0 ? (actualMove / maxPossible * 100) : 0;
+
+      const leftOnTable = Math.max(0, (high - Math.max(entry, exit)) * shares);
+      const savedFromLoss = Math.max(0, (Math.min(entry, exit) - low) * shares);
+
+      // Populate modal
+      document.getElementById('modalTicker').textContent = trade.ticker || 'N/A';
+      document.getElementById('modalEntry').textContent = '$' + entry.toFixed(2);
+      document.getElementById('modalExit').textContent = '$' + exit.toFixed(2);
+      document.getElementById('modalHigh').textContent = '$' + high.toFixed(2);
+      document.getElementById('modalLow').textContent = '$' + low.toFixed(2);
+      document.getElementById('modalShares').textContent = shares.toFixed(0);
+      document.getElementById('modalStatus').textContent = (trade.status === 'CLOSED' ? 'CLOSED' : 'OPEN');
+      
+      const pnlEl = document.getElementById('modalPnL');
+      pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+      pnlEl.className = 'modal-field-value ' + (pnl >= 0 ? 'positive' : 'negative');
+
+      const pnlPctEl = document.getElementById('modalPnLPct');
+      pnlPctEl.textContent = (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + '%';
+      pnlPctEl.className = 'modal-field-value ' + (pnlPct >= 0 ? 'positive' : 'negative');
+
+      document.getElementById('modalMove').textContent = movePercent.toFixed(1) + '%';
+      document.getElementById('modalCaptured').textContent = captured.toFixed(1) + '%';
+      document.getElementById('modalLeftOnTable').textContent = '$' + leftOnTable.toFixed(2);
+      document.getElementById('modalSavedFromLoss').textContent = '$' + savedFromLoss.toFixed(2);
+
+      // Show modal
+      document.getElementById('tradeModal').classList.add('active');
     }
+
+    function closeTradeModal() {
+      document.getElementById('tradeModal').classList.remove('active');
+      currentModalTradeId = null;
+    }
+
+    function deleteTradeFromModal() {
+      if (!currentModalTradeId) return;
+
+      const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+      const trade = trades.find(t => t.id === currentModalTradeId);
+      
+      if (confirm(`Delete ${trade.ticker} trade? This cannot be undone.`)) {
+        const updated = trades.filter(t => t.id !== currentModalTradeId);
+        localStorage.setItem('tradeos_journal', JSON.stringify(updated));
+        closeTradeModal();
+        loadTrades();
+      }
+    }
+
+    // ===== CSV FUNCTIONS =====
+    function openAddTradeModal() {
+      alert('Add Trade modal coming soon — for now, use bulk upload or manual entry');
+    }
+
+    function handleBulkUpload() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          // Parse CSV — coming soon
+          alert('CSV parsing coming soon');
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    function exportToCSV() {
+      const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+      if (trades.length === 0) {
+        alert('No trades to export');
+        return;
+      }
+
+      // Build CSV headers
+      const headers = ['Ticker', 'Entry', 'Exit', 'Shares', 'P&L', 'Return %', 'High', 'Low', 'Move %', 'Captured %', 'Status', 'Date'];
+
+      // Build CSV rows
+      const rows = trades.map(t => {
+        const entry = parseFloat(t.entryPrice || t.entry || 0);
+        const exit = parseFloat(t.currentPrice || t.exit || entry);
+        const shares = parseFloat(t.shares || 0);
+        const high = parseFloat(t.high || exit);
+        const low = parseFloat(t.low || entry);
+
+        const pnl = (exit - entry) * shares;
+        const pnlPct = entry > 0 ? ((pnl / (entry * shares)) * 100) : 0;
+
+        const movePercent = entry > 0 ? ((high - entry) / entry * 100) : 0;
+        const maxPossible = entry > 0 ? ((high - entry) / entry * 100) : 0;
+        const actualMove = entry > 0 ? ((exit - entry) / entry * 100) : 0;
+        const captured = maxPossible > 0 ? (actualMove / maxPossible * 100) : 0;
+
+        const date = new Date(t.closedAt || t.timestamp || Date.now()).toLocaleDateString();
+
+        return [
+          t.ticker || 'N/A',
+          entry.toFixed(2),
+          exit.toFixed(2),
+          shares.toFixed(0),
+          pnl.toFixed(2),
+          pnlPct.toFixed(1),
+          high.toFixed(2),
+          low.toFixed(2),
+          movePercent.toFixed(1),
+          captured.toFixed(1),
+          (t.status === 'CLOSED' ? 'CLOSED' : 'OPEN'),
+          date
+        ];
+      });
+
+      // Create CSV string
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      // Download
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trades-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+    // Close modal on overlay click
+    document.addEventListener('click', (e) => {
+      const modal = document.getElementById('tradeModal');
+      if (e.target === modal) {
+        closeTradeModal();
+      }
+    });
 
     function goHome() {
       window.location.href = '/tradeos/';

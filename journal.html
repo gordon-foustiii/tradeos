@@ -996,8 +996,16 @@
   </div>
 
   <script>
-    // Your existing scanner worker URL
-    const WORKER_URL = 'https://your-worker-subdomain.workers.dev';
+    // ===== CONFIGURATION =====
+    // UPDATE THIS TO YOUR CLOUDFLARE WORKER URL
+    const WORKER_URL = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
+    // Example: const WORKER_URL = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
+    
+    console.log('📊 TradeOS Journal initialized');
+    console.log('🔗 Worker URL:', WORKER_URL);
+    if (WORKER_URL === 'https://your-worker-subdomain.workers.dev') {
+      console.warn('⚠️ WORKER_URL not configured! Historical OHLC lookups will fail.');
+    }
 
     async function fetchLivePrice(ticker) {
       try {
@@ -1230,6 +1238,11 @@
               <div class="trade-pnl-value ${isWinning ? 'positive' : 'negative'}">
                 ${isWinning ? '+' : ''}$${pnl.toFixed(2)} (${isWinning ? '+' : ''}${pnlPct.toFixed(1)}%)
               </div>
+            </div>
+
+            <!-- Data Source Badge -->
+            <div style="margin-top:12px;padding:8px;border-radius:6px;background:${t.ohlcSource === 'historical' ? 'rgba(34,197,94,0.15)' : 'rgba(255,193,7,0.15)'};border:1px solid ${t.ohlcSource === 'historical' ? 'rgba(34,197,94,0.3)' : 'rgba(255,193,7,0.3)'};font-size:10px;text-align:center;color:${t.ohlcSource === 'historical' ? '#4ade80' : '#ffc107'};font-weight:600;text-transform:uppercase;letter-spacing:0.5px">
+              📊 ${t.ohlcSource === 'historical' ? '✓ Real OHLC' : '⚠️ Inferred H/L'}
             </div>
 
             <!-- Actions -->

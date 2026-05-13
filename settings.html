@@ -756,6 +756,11 @@
         <div style="font-size: 13px; color: #aaa; margin-top: 12px;">
           Your trades are automatically synced to Google Sheets for backup and analysis.
         </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button class="btn btn-secondary" onclick="backupToGoogleSheets()">
+            ⬇ Backup Data
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1056,6 +1061,64 @@
     }
 
     window.addEventListener('load', loadProfile);
+
+    // ========== GOOGLE SHEETS BACKUP ==========
+    async function backupToGoogleSheets() {
+      const token = localStorage.getItem('tradeos_id_token');
+      if (!token) {
+        alert('Not authenticated. Please log in first.');
+        return;
+      }
+
+      try {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = '⟳ Backing up...';
+        btn.disabled = true;
+
+        // Get journal data from localStorage or fetch from API
+        const journalData = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+        
+        if (!journalData || journalData.length === 0) {
+          alert('No trade data to backup.');
+          btn.textContent = originalText;
+          btn.disabled = false;
+          return;
+        }
+
+        // Send to Cloudflare Worker for Google Sheets sync
+        const response = await fetch('https://tradeos-proxy.gordon-foustiii.workers.dev/google-sheets/backup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ trades: journalData })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+          alert(`✓ Backup complete! ${result.rowsUpdated || journalData.length} rows synced to Google Sheets.`);
+        } else {
+          alert(`Backup failed: ${result.error || 'Unknown error'}`);
+        }
+
+        btn.textContent = originalText;
+        btn.disabled = false;
+      } catch (err) {
+        console.error('Backup error:', err);
+        alert('Backup failed: ' + err.message);
+        if (event.target) {
+          event.target.textContent = '⬇ Backup Data';
+          event.target.disabled = false;
+        }
+      }
+    }
 
     // ========== CSV IMPORT HANDLER ==========
     let importedData = null;

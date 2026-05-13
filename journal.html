@@ -935,6 +935,9 @@
             <div class="modal-field-value" id="modalLow">—</div>
           </div>
         </div>
+        <div style="font-size:10px;color:#666;margin-top:8px;padding:6px;background:rgba(255,255,255,0.03);border-radius:4px;border-left:2px solid #ffd93d;">
+          Data Source: <span id="modalOHLCSource" style="color:#ffd93d;font-weight:600;">—</span>
+        </div>
       </div>
 
       <div class="modal-section">
@@ -1308,6 +1311,7 @@
       document.getElementById('modalExit').textContent = '$' + exit.toFixed(2);
       document.getElementById('modalHigh').textContent = '$' + high.toFixed(2);
       document.getElementById('modalLow').textContent = '$' + low.toFixed(2);
+      document.getElementById('modalOHLCSource').textContent = (trade.ohlcSource || 'inferred').toUpperCase();
       document.getElementById('modalShares').textContent = shares.toFixed(0);
       document.getElementById('modalStatus').textContent = (trade.status === 'CLOSED' ? 'CLOSED' : 'OPEN');
       
@@ -1352,16 +1356,57 @@
       alert('Add Trade modal coming soon — for now, use bulk upload or manual entry');
     }
 
-    function handleBulkUpload() {
+    async function fetchHistoricalOHLC(ticker, tradeDate) {
+      // Fetch real OHLC from market data API
+      const date = typeof tradeDate === 'string' ? new Date(tradeDate) : tradeDate;
+      const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      try {
+        // Try Polygon.io endpoint via Cloudflare Worker (YOUR_WORKER_URL must be set)
+        const apiUrl = `${WORKER_URL}/market-data/${ticker}/${dateStr}`;
+        const res = await fetch(apiUrl);
+        
+        if (!res.ok) {
+          console.warn(`No OHLC data for ${ticker} on ${dateStr}`);
+          return null;
+        }
+        
+        const data = await res.json();
+        return {
+          open: data.open,
+          high: data.high,
+          low: data.low,
+          close: data.close,
+          volume: data.volume,
+          source: 'polygon'
+        };
+      } catch (err) {
+        console.warn(`Failed to fetch OHLC for ${ticker} on ${dateStr}:`, err);
+        return null;
+      }
+    }
+
+    async function handleBulkUpload() {
+      // Check if WORKER_URL is configured
+      if (WORKER_URL === 'https://your-worker-subdomain.workers.dev') {
+        const proceed = confirm(
+          '⚠️ WORKER_URL not configured.\n\n' +
+          'Historical OHLC lookup requires Cloudflare Worker setup.\n\n' +
+          'Without it, the system will infer High/Low from entry/exit prices.\n\n' +
+          'Proceed with import anyway? (Check CSV_IMPORT_GUIDE.md for setup)'
+        );
+        if (!proceed) return;
+      }
+
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.csv';
-      input.onchange = (e) => {
+      input.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
           try {
             const csv = event.target.result;
             const trades = parseCSV(csv);
@@ -1377,10 +1422,35 @@
               return;
             }
 
-            const merged = mergeTrades(validated.trades);
+            // Attempt to fetch real OHLC for each trade
+            showToast('📊 Fetching historical OHLC data...', 'info');
+            
+            const enriched = [];
+            for (let i = 0; i < validated.trades.length; i++) {
+              const trade = validated.trades[i];
+              const ohlc = await fetchHistoricalOHLC(trade.ticker, trade.timestamp);
+              
+              if (ohlc) {
+                trade.high = ohlc.high;
+                trade.low = ohlc.low;
+                trade.open = ohlc.open;
+                trade.close = ohlc.close;
+                trade.volume = ohlc.volume;
+                trade.ohlcSource = 'historical';
+              } else {
+                // Fallback: infer from entry/exit, flag for manual verification
+                trade.high = Math.max(trade.entryPrice, trade.currentPrice);
+                trade.low = Math.min(trade.entryPrice, trade.currentPrice);
+                trade.ohlcSource = 'inferred';
+              }
+              
+              enriched.push(trade);
+            }
+
+            const merged = mergeTrades(enriched);
             localStorage.setItem('tradeos_journal', JSON.stringify(merged));
             loadTrades();
-            showToast(`✓ Imported ${validated.trades.length} trades`, 'success');
+            showToast(`✓ Imported ${validated.trades.length} trades with OHLC data`, 'success');
           } catch (err) {
             showToast(`Error: ${err.message}`, 'error');
           }

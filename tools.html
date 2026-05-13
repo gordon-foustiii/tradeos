@@ -371,13 +371,37 @@
           };
         }
 
-        function getClockColor(phase) {
+        function getClockColor(phase, totalMins) {
+          // NO TRADE window (market open only) = RED
+          const notradeStart = getTimeInMinutes(windows.notrade.start);
+          const notradeEnd = getTimeInMinutes(windows.notrade.end);
+          const inNoTradeWindow = totalMins >= notradeStart && totalMins < notradeEnd;
+          
+          // IDEAL trading window = GREEN
+          const idealStart = getTimeInMinutes(windows.ideal.start);
+          const idealEnd = getTimeInMinutes(windows.ideal.end);
+          const inIdealWindow = totalMins >= idealStart && totalMins < idealEnd;
+          
+          // If in NO TRADE window during market open/premarket = RED
+          if (inNoTradeWindow && (phase === 'Market Open' || phase === 'Premarket')) {
+            return '#ef4565';
+          }
+          
+          // If in IDEAL window = GREEN
+          if (inIdealWindow) {
+            return '#2cb67d';
+          }
+          
+          // If market open/premarket/afterhours but outside ideal = AMBER
+          if (phase === 'Market Open' || phase === 'Premarket' || phase === 'Afterhours') {
+            return '#f4b942';
+          }
+          
+          // Closed/London = RED (market closed)
           if (phase === 'Closed') return '#ef4565';
-          if (phase === 'Afterhours') return '#f4b942'; // amber/orange for afterhours
-          if (phase === 'Market Open') return '#2cb67d';
-          if (phase === 'Premarket') return '#7f5af0';
           if (phase === 'London Trading') return '#6b9bd1';
-          return '#7f5af0';
+          
+          return '#f4b942';
         }
 
         function renderTimer() {
@@ -391,11 +415,11 @@
 
           // Format time (HH:MM:SS)
           clock.textContent = String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
-          clock.style.color = getClockColor(phase);
+          clock.style.color = getClockColor(phase, totalMins);
 
           // Update market status
           status.textContent = currentEvent.phase;
-          status.style.color = getClockColor(phase);
+          status.style.color = getClockColor(phase, totalMins);
 
           // Determine label based on phase
           if (phase.includes('Closed')) {
@@ -415,7 +439,7 @@
           // Progress bar (0-100% of time until next event)
           const pct = Math.max(0, Math.min(100, 100 - (state.diffSecs / (state.nextEventSecs > state.totalSecs ? state.nextEventSecs - state.totalSecs + 1 : 24 * 3600)) * 100));
           bar.style.width = pct + '%';
-          bar.style.background = getClockColor(phase);
+          bar.style.background = getClockColor(phase, totalMins);
 
           // Update window badges
           renderWindowBadges(totalMins);

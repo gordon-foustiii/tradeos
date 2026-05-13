@@ -563,7 +563,7 @@
           document.getElementById('month-pnl').textContent = formatMoney(Math.abs(monthPnl));
           const monthEl = document.getElementById('month-change');
           monthEl.className = 'stat-change ' + (monthPnl > 0 ? 'positive' : monthPnl < 0 ? 'negative' : 'neutral');
-          monthEl.innerHTML = monthPnl > 0 ? '↑ ' + formatMoney(monthPnl) : monthPnl < 0 ? '↓ ' + formatMoney(Math.abs(monthPnl)) : 'No trades this month';
+          monthEl.innerHTML = monthPnl > 0 ? '↑ ' + formatMoney(monthPnl) : monthPnl < 0 ? '↓ ' + formatMoney(Math.abs(monthPnl)) : 'No closed trades this month';
         });
       }
 
@@ -580,14 +580,17 @@
 
           const recent = trades.slice(-5).reverse();
           tbody.innerHTML = recent.map(function(t) {
-            const pnl = parseFloat(t.pnl) || 0;
+            const entry = parseFloat(t.entryPrice || 0);
+            const exit = parseFloat(t.currentPrice || 0);
+            const shares = parseFloat(t.shares || 0);
+            const pnl = (exit - entry) * shares;
             return `
               <tr>
-                <td>${formatDate(t.createdAt || t.date)}</td>
+                <td>${formatDate(t.closedAt || t.timestamp)}</td>
                 <td class="trade-ticker">${t.ticker}</td>
-                <td>$${(t.entry || 0).toFixed(2)}</td>
-                <td>$${(t.exit || 0).toFixed(2)}</td>
-                <td>${t.shares}</td>
+                <td>$${entry.toFixed(2)}</td>
+                <td>$${exit.toFixed(2)}</td>
+                <td>${shares.toFixed(0)}</td>
                 <td class="trade-pnl ${pnl > 0 ? 'win' : pnl < 0 ? 'loss' : ''}">${pnl > 0 ? '+' : ''}${formatMoney(Math.abs(pnl))}</td>
               </tr>
             `;

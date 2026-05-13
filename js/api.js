@@ -1,77 +1,24 @@
 // TradeOS API Layer
-// Parses CSV from textarea/localStorage and calculates stats
+// Reads from journal (tradeos_journal) localStorage
 
 let tradesCache = null;
 
 /**
- * Parse CSV data
- * Expected format: Ticker,Entry,Exit,Shares,High,Low,Status,Catalyst,Notes,Date
- */
-function parseCsvData(csvText) {
-  const lines = csvText.trim().split('\n');
-  if (lines.length < 2) return [];
-
-  const trades = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
-    
-    const values = line.split(',');
-    if (values.length < 10) continue;
-
-    const trade = {
-      ticker: values[0].trim(),
-      entry: parseFloat(values[1]) || 0,
-      exit: parseFloat(values[2]) || 0,
-      shares: parseInt(values[3]) || 0,
-      high: parseFloat(values[4]) || 0,
-      low: parseFloat(values[5]) || 0,
-      status: values[6].trim(),
-      catalyst: values[7].trim(),
-      notes: values[8].trim(),
-      date: values[9].trim(),
-      createdAt: formatDateToISO(values[9].trim())
-    };
-
-    // P&L = (exit - entry) * shares
-    trade.pnl = (trade.exit - trade.entry) * trade.shares;
-    trades.push(trade);
-  }
-
-  return trades;
-}
-
-/**
- * Convert MM/DD/YY to ISO YYYY-MM-DD
- */
-function formatDateToISO(dateStr) {
-  if (!dateStr) return new Date().toISOString();
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return new Date().toISOString();
-  
-  let [month, day, year] = parts;
-  year = parseInt(year) < 50 ? '20' + year : '19' + year;
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00Z`;
-}
-
-/**
- * Get trades from textarea or localStorage
+ * Load trades directly from journal localStorage
  */
 function loadTrades() {
-  // Check if CSV is in textarea (for testing)
-  const textarea = document.getElementById('csv-textarea');
-  if (textarea && textarea.value.trim()) {
-    return parseCsvData(textarea.value);
+  const journalData = localStorage.getItem('tradeos_journal');
+  if (!journalData) {
+    return [];
   }
   
-  // Otherwise load from localStorage
-  const csvData = localStorage.getItem('tradeos_csv_data');
-  if (csvData) {
-    return parseCsvData(csvData);
+  try {
+    const trades = JSON.parse(journalData);
+    return Array.isArray(trades) ? trades : [];
+  } catch (err) {
+    console.error('Error parsing journal:', err);
+    return [];
   }
-  
-  return [];
 }
 
 /**
@@ -85,7 +32,7 @@ async function getTrades() {
 }
 
 /**
- * Calculate stats
+ * Calculate stats from journal trades
  */
 async function getStats() {
   if (!tradesCache) {
@@ -109,23 +56,34 @@ async function getStats() {
   let wins = 0, losses = 0, totalPnl = 0;
 
   trades.forEach(t => {
-    if (t.pnl > 0) wins++;
-    else if (t.pnl < 0) losses++;
-    totalPnl += t.pnl;
+    const entry = parseFloat(t.entryPrice || t.entry || 0);
+    const exit = parseFloat(t.currentPrice || t.exit || 0);
+    const shares = parseFloat(t.shares || 0);
+    const pnl = (exit - entry) * shares;
+    
+    if (pnl > 0) wins++;
+    else if (pnl < 0) losses++;
+    totalPnl += pnl;
   });
 
   const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
-  // Month P&L
+  // Month P&L - closed trades only from current month
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
 
   let monthPnl = 0;
   trades.forEach(t => {
-    const d = new Date(t.createdAt);
-    if (d.getFullYear() === currentYear && d.getMonth() + 1 === currentMonth) {
-      monthPnl += t.pnl;
+    // Only count CLOSED trades
+    if (t.status !== 'CLOSED') return;
+    
+    const tradeDate = new Date(t.closedAt || t.timestamp || 0);
+    if (tradeDate.getFullYear() === currentYear && tradeDate.getMonth() + 1 === currentMonth) {
+      const entry = parseFloat(t.entryPrice || 0);
+      const exit = parseFloat(t.currentPrice || 0);
+      const shares = parseFloat(t.shares || 0);
+      monthPnl += (exit - entry) * shares;
     }
   });
 
@@ -140,27 +98,7 @@ async function getStats() {
 }
 
 /**
- * Import CSV file into localStorage
- */
-function importCsvFile(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        localStorage.setItem('tradeos_csv_data', e.target.result);
-        tradesCache = null;
-        resolve({ success: true });
-      } catch (err) {
-        reject({ error: err.message });
-      }
-    };
-    reader.onerror = () => reject({ error: 'Failed to read file' });
-    reader.readAsText(file);
-  });
-}
-
-/**
- * Clear cache
+ * Clear cache (call after journal updates)
  */
 function clearApiCache() {
   tradesCache = null;

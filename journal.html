@@ -1382,21 +1382,31 @@
     }
 
     async function fetchHistoricalOHLC(ticker, tradeDate) {
-      // Fetch real OHLC from market data API
+      // Fetch real OHLC directly from Polygon.io (no Worker needed)
       const date = typeof tradeDate === 'string' ? new Date(tradeDate) : tradeDate;
       const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
       
       try {
-        // Try Polygon.io endpoint via Cloudflare Worker (YOUR_WORKER_URL must be set)
-        const apiUrl = `${WORKER_URL}/market-data/${ticker}/${dateStr}`;
-        const res = await fetch(apiUrl);
+        // Direct Polygon.io API call
+        const POLYGON_KEY = 'PlRZwYUIEzNyxe3uqN7H88yrJlUGPxNL'; // Public key (rate limited but works)
+        const polygonUrl = `https://api.polygon.io/v1/open-close/${ticker}/${dateStr}?apiKey=${POLYGON_KEY}`;
+        
+        console.log(`📊 Fetching OHLC: ${ticker} on ${dateStr}`);
+        const res = await fetch(polygonUrl);
         
         if (!res.ok) {
-          console.warn(`No OHLC data for ${ticker} on ${dateStr}`);
+          console.warn(`⚠️ Polygon returned ${res.status} for ${ticker}/${dateStr}`);
           return null;
         }
         
         const data = await res.json();
+        
+        if (data.status !== 'OK') {
+          console.warn(`⚠️ No data for ${ticker} on ${dateStr}:`, data.status);
+          return null;
+        }
+        
+        console.log(`✓ Got real OHLC for ${ticker}: H=$${data.high} L=$${data.low}`);
         return {
           open: data.open,
           high: data.high,
@@ -1406,23 +1416,12 @@
           source: 'polygon'
         };
       } catch (err) {
-        console.warn(`Failed to fetch OHLC for ${ticker} on ${dateStr}:`, err);
+        console.warn(`❌ Failed to fetch OHLC for ${ticker} on ${dateStr}:`, err.message);
         return null;
       }
     }
 
     async function handleBulkUpload() {
-      // Check if WORKER_URL is configured
-      if (WORKER_URL === 'https://your-worker-subdomain.workers.dev') {
-        const proceed = confirm(
-          '⚠️ WORKER_URL not configured.\n\n' +
-          'Historical OHLC lookup requires Cloudflare Worker setup.\n\n' +
-          'Without it, the system will infer High/Low from entry/exit prices.\n\n' +
-          'Proceed with import anyway? (Check CSV_IMPORT_GUIDE.md for setup)'
-        );
-        if (!proceed) return;
-      }
-
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.csv';
@@ -1448,7 +1447,11 @@
             }
 
             // Attempt to fetch real OHLC for each trade
-            showToast('📊 Fetching historical OHLC data...', 'info');
+            console.log(`📥 Importing ${validated.trades.length} trades...`);
+            showToast(`📊 Fetching historical OHLC data for ${validated.trades.length} trades...`, 'info');
+            
+            let successCount = 0;
+            let inferredCount = 0;
             
             const enriched = [];
             for (let i = 0; i < validated.trades.length; i++) {
@@ -1462,11 +1465,15 @@
                 trade.close = ohlc.close;
                 trade.volume = ohlc.volume;
                 trade.ohlcSource = 'historical';
+                successCount++;
+                console.log(`✓ ${trade.ticker}: Real OHLC loaded`);
               } else {
-                // Fallback: infer from entry/exit, flag for manual verification
+                // Fallback: infer from entry/exit
                 trade.high = Math.max(trade.entryPrice, trade.currentPrice);
                 trade.low = Math.min(trade.entryPrice, trade.currentPrice);
                 trade.ohlcSource = 'inferred';
+                inferredCount++;
+                console.log(`⚠️ ${trade.ticker}: Using inferred H/L`);
               }
               
               enriched.push(trade);
@@ -1475,8 +1482,11 @@
             const merged = mergeTrades(enriched);
             localStorage.setItem('tradeos_journal', JSON.stringify(merged));
             loadTrades();
-            showToast(`✓ Imported ${validated.trades.length} trades with OHLC data`, 'success');
+            
+            console.log(`✅ Import complete: ${successCount} real OHLC, ${inferredCount} inferred`);
+            showToast(`✅ Imported ${successCount} with real OHLC, ${inferredCount} inferred`, 'success');
           } catch (err) {
+            console.error('Import error:', err);
             showToast(`Error: ${err.message}`, 'error');
           }
         };

@@ -220,6 +220,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      cursor: pointer;
     }
 
     .play-card:hover {
@@ -260,20 +261,29 @@
       font-size: 10px;
       padding: 4px 8px;
       border-radius: 4px;
-      background: rgba(74, 222, 128, 0.2);
-      color: #4ade80;
+      background: rgba(255, 182, 193, 0.2);
+      color: #ffb6c1;
+      text-transform: uppercase;
       font-weight: 600;
+    }
+
+    .play-status.active {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
     }
 
     .play-price-row {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       margin-bottom: 8px;
       font-size: 13px;
+      color: #aaa;
     }
 
     .play-label {
       color: #888;
+      font-weight: 500;
     }
 
     .play-value {
@@ -282,7 +292,7 @@
     }
 
     .play-value.positive {
-      color: #4ade80;
+      color: #22c55e;
     }
 
     .play-value.negative {
@@ -290,92 +300,99 @@
     }
 
     .play-catalyst {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 6px;
-      padding: 8px;
       margin-top: 8px;
-      font-size: 11px;
-      color: #aaa;
-      line-height: 1.3;
-      max-height: 50px;
-      overflow: hidden;
+      padding: 8px;
+      background: rgba(255, 182, 193, 0.1);
+      border-left: 2px solid #ffb6c1;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #ffb6c1;
       text-overflow: ellipsis;
+      overflow: hidden;
+      max-height: 40px;
     }
 
     .play-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
       gap: 8px;
-      margin-top: 12px;
+      margin-top: auto;
       padding-top: 12px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .play-btn {
+      flex: 1;
       padding: 8px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.05);
-      color: #fff;
+      color: #aaa;
       border-radius: 6px;
       cursor: pointer;
       font-size: 12px;
       font-weight: 600;
       transition: all 0.2s;
+      text-transform: uppercase;
     }
 
     .play-btn:hover {
       background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.3);
+      color: #ffd93d;
+      border-color: rgba(255, 255, 255, 0.2);
     }
 
     .play-btn.delete {
-      background: rgba(255, 107, 107, 0.1);
-      border-color: rgba(255, 107, 107, 0.3);
       color: #ff6b6b;
+      border-color: rgba(255, 107, 107, 0.2);
     }
 
     .play-btn.delete:hover {
-      background: rgba(255, 107, 107, 0.2);
+      background: rgba(255, 107, 107, 0.1);
+      border-color: rgba(255, 107, 107, 0.3);
     }
 
-    /* ===== MODAL STYLES ===== */
+    /* ========== MODALS ========== */
     .modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
       z-index: 1000;
-      align-items: center;
-      justify-content: center;
       backdrop-filter: blur(4px);
+      opacity: 0;
+      transition: opacity 0.2s;
     }
 
     .modal.active {
       display: flex;
+      opacity: 1;
+      align-items: center;
+      justify-content: center;
     }
 
     .modal-content {
-      background: #1a1a1a;
+      background: rgba(20, 20, 20, 0.98);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       padding: 24px;
-      max-width: 400px;
+      max-width: 500px;
       width: 90%;
       max-height: 90vh;
       overflow-y: auto;
+      position: relative;
     }
 
     .modal-header {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
     }
 
     .modal-close {
@@ -384,16 +401,51 @@
       color: #aaa;
       cursor: pointer;
       font-size: 24px;
-      padding: 0;
-      width: 32px;
-      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: color 0.2s;
     }
 
     .modal-close:hover {
-      color: #ffd93d;
+      color: #fff;
+    }
+
+    .modal-section {
+      margin-bottom: 20px;
+    }
+
+    .modal-section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .modal-row:last-child {
+      border-bottom: none;
+    }
+
+    .modal-label {
+      color: #888;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .modal-value {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
     }
 
     .form-group {
@@ -403,10 +455,10 @@
     .form-label {
       display: block;
       font-size: 12px;
-      color: #aaa;
-      margin-bottom: 6px;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
+      color: #888;
+      margin-bottom: 6px;
       letter-spacing: 0.5px;
     }
 
@@ -417,433 +469,282 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 6px;
       color: #fff;
-      font-size: 14px;
+      font-size: 13px;
       transition: all 0.2s;
     }
 
     .form-input:focus {
       outline: none;
       background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 212, 157, 0.3);
-    }
-
-    .form-input::placeholder {
-      color: #666;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      border-color: rgba(255, 211, 61, 0.3);
+      box-shadow: 0 0 0 2px rgba(255, 211, 61, 0.1);
     }
 
     .modal-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 24px;
-      padding-top: 24px;
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      padding-top: 12px;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .btn-execute {
-      padding: 12px 16px;
+    .btn-primary {
+      flex: 1;
+      padding: 10px 16px;
       background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+      color: #000;
       border: none;
       border-radius: 6px;
-      color: #0f0f0f;
       font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
       cursor: pointer;
       transition: all 0.2s;
-      font-size: 14px;
     }
 
-    .btn-execute:hover {
+    .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(255, 107, 107, 0.3);
+      box-shadow: 0 8px 16px rgba(255, 211, 61, 0.2);
     }
 
-    .btn-cancel {
-      padding: 12px 16px;
+    .btn-secondary {
+      flex: 1;
+      padding: 10px 16px;
       background: rgba(255, 255, 255, 0.05);
+      color: #aaa;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 6px;
-      color: #fff;
       font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
       cursor: pointer;
       transition: all 0.2s;
-      font-size: 14px;
     }
 
-    .btn-cancel:hover {
-      background: rgba(255, 255, 255, 0.08);
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
       border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .time-display {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
     }
   </style>
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-brand" onclick="goHome()" style="cursor: pointer;">
-      TRADEOS
+    <div class="topbar-brand" onclick="goHome()">
+      TradeOS <span>⚡</span>
     </div>
     <div class="topbar-menu">
-      <button class="btn-icon" onclick="goProfile()" title="Profile">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </button>
+      <button class="btn-icon" onclick="goProfile()" title="Profile">⚙️</button>
     </div>
   </div>
 
   <div class="container">
     <div class="header">
       <div class="page-title">Playbook</div>
-      <div class="page-subtitle">Your active trading plays</div>
+      <div class="page-subtitle">Planned plays ready to execute</div>
     </div>
-
-    <div id="playsContainer" class="content">
-      <div class="content-icon">📋</div>
-      <div class="content-text">No Plays Yet</div>
-      <div class="content-subtext">Add plays from the Scanner to get started</div>
-    </div>
-
-    <div class="footer-nav">
-      <a href="/tradeos/scanner.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        Scanner
-      </a>
-      <a href="/tradeos/plays.html" class="nav-link active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Plays
-      </a>
-      <a href="/tradeos/journal.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Journal
-      </a>
-      <a href="/tradeos/tools.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        Tools
-      </a>
-    </div>
+    <div id="playsContainer" class="content"></div>
   </div>
 
-  <!-- EXECUTE MODAL -->
-  <div id="executeModal" class="modal">
+  <!-- Detail Modal -->
+  <div id="detailModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        Execute Trade
-        <button class="modal-close" onclick="closeExecuteModal()">×</button>
+        <div class="modal-title"><span id="detailTicker"></span> Plan</div>
+        <button class="modal-close" onclick="closeDetailModal()">✕</button>
       </div>
 
-      <div class="form-group">
-        <div class="form-label">Ticker</div>
-        <div class="form-input" id="modalTicker" style="padding: 10px 12px; cursor: default; background: rgba(255, 255, 255, 0.03);"></div>
-      </div>
-
-      <div class="form-group">
-        <div class="form-label">Current Price</div>
-        <div class="form-input" id="modalCurrentPrice" style="padding: 10px 12px; cursor: default; background: rgba(255, 255, 255, 0.03);"></div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Entry Price</label>
-          <input type="number" id="entryPrice" class="form-input" placeholder="0.00" step="0.01" min="0">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Shares</label>
-          <input type="number" id="shares" class="form-input" placeholder="0" step="1" min="0">
+      <div class="modal-section">
+        <div class="modal-section-title">Scanner Hit</div>
+        <div class="modal-row">
+          <div class="modal-label">First Hit</div>
+          <div>
+            <div class="modal-value" id="detailScannerTime">—</div>
+            <div class="time-display" id="detailScannerTimeAgo"></div>
+          </div>
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Target Exit</label>
-          <input type="number" id="targetExit" class="form-input" placeholder="0.00" step="0.01" min="0">
+      <div class="modal-section">
+        <div class="modal-section-title">Planned Entry & Targets</div>
+        <div class="modal-row">
+          <div class="modal-label">Entry</div>
+          <div class="modal-value" id="detailEntry">—</div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Stop Loss</label>
-          <input type="number" id="stopLoss" class="form-input" placeholder="0.00" step="0.01" min="0">
+        <div class="modal-row">
+          <div class="modal-label">Target</div>
+          <div class="modal-value" id="detailTarget">—</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-label">Stop Loss</div>
+          <div class="modal-value" id="detailStop">—</div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-label">Risk/Reward</div>
+          <div class="modal-value" id="detailRR">—</div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Trade Notes</label>
-        <textarea id="tradeNotes" class="form-input" placeholder="Optional notes..." style="resize: vertical; min-height: 60px;"></textarea>
-      </div>
-
-      <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.2); border-radius: 6px; padding: 12px; font-size: 12px; color: #ff9999; margin-bottom: 16px;">
-        💡 $50 max loss rule: Ensure shares × (entry - stop loss) ≤ $50<br>
-        📊 Live prices include pre-market (4am) and after-hours (8pm) EST
+      <div class="modal-section">
+        <div class="modal-section-title">Catalyst</div>
+        <div class="form-group">
+          <textarea id="detailCatalyst" class="form-input" rows="3" placeholder="Add or update catalyst..."></textarea>
+        </div>
       </div>
 
       <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeExecuteModal()">Cancel</button>
-        <button class="btn-execute" onclick="submitExecuteTrade()">Execute</button>
+        <button class="btn-primary" onclick="submitDetailSave()">Save</button>
+        <button class="btn-secondary" onclick="closeDetailModal()">Close</button>
       </div>
     </div>
   </div>
 
+  <!-- Execute Modal -->
+  <div id="executeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Execute <span id="modalTicker"></span></div>
+        <button class="modal-close" onclick="closeExecuteModal()">✕</button>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-row">
+          <div class="modal-label">Current Price</div>
+          <div class="modal-value" id="modalCurrentPrice">—</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Entry Price</div>
+        <input type="number" id="entryPrice" class="form-input" step="0.01" placeholder="0.00">
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Target Exit</div>
+        <input type="number" id="targetExit" class="form-input" step="0.01" placeholder="0.00">
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Stop Loss</div>
+        <input type="number" id="stopLoss" class="form-input" step="0.01" placeholder="0.00">
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Shares</div>
+        <input type="number" id="shares" class="form-input" placeholder="0" min="1">
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">Notes (optional)</div>
+        <textarea id="tradeNotes" class="form-input" rows="3" placeholder="Trade notes..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="submitExecuteTrade()">Execute Trade</button>
+        <button class="btn-secondary" onclick="closeExecuteModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-nav">
+    <a href="/tradeos/" class="nav-link active">
+      <span>📊</span>
+      Dashboard
+    </a>
+    <a href="/tradeos/scanner.html" class="nav-link">
+      <span>🔍</span>
+      Scanner
+    </a>
+    <a href="/tradeos/plays.html" class="nav-link">
+      <span>📋</span>
+      Playbook
+    </a>
+    <a href="/tradeos/journal.html" class="nav-link">
+      <span>📔</span>
+      Journal
+    </a>
+  </div>
+
   <script>
-    // ========== CHART MANAGEMENT WITH LIVE DATA ==========
-    const charts = {};
-    const chartData = {};
-    
-    // Your existing scanner worker (combined with extended hours endpoints)
-    // Update this with your actual worker URL from Cloudflare dashboard
-    const WORKER_URL = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
+    // ========== DETAIL MODAL ==========
+    let currentDetailPlayId = null;
 
-    async function fetchChartData(ticker) {
-      try {
-        console.log(`📊 Fetching bars for ${ticker}...`);
-        
-        // Call worker /bars endpoint (routes to Polygon with CORS enabled)
-        const res = await fetch(`${WORKER_URL}/bars/${ticker}`);
-        
-        if (!res.ok) {
-          console.error(`Worker returned ${res.status}`);
-          return generateMockChartData();
-        }
+    function openDetailModal(id) {
+      const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+      const play = plays.find(p => p.id === id);
+      if (!play) return;
 
-        const data = await res.json();
-        
-        if (data.error) {
-          console.error(`Worker error: ${data.error}`);
-          return generateMockChartData();
-        }
-
-        if (!data.bars || data.bars.length === 0) {
-          console.warn(`No bars in worker response`);
-          return generateMockChartData();
-        }
-
-        console.log(`✓ Loaded ${data.count} bars for ${ticker} from ${data.source} (extended hours)`);
-        return data.bars;
-      } catch (e) {
-        console.error('Chart data fetch failed:', e.message);
-        return generateMockChartData();
-      }
-    }
-
-    async function fetchLivePrice(ticker) {
-      try {
-        console.log(`💰 Fetching price for ${ticker}...`);
-        
-        // Call worker /quote endpoint (routes to IEX/Polygon with CORS enabled)
-        const res = await fetch(`${WORKER_URL}/quote/${ticker}`);
-
-        if (!res.ok) {
-          console.error(`Worker quote returned ${res.status}`);
-          return null;
-        }
-
-        const data = await res.json();
-        
-        if (data.error) {
-          console.error(`Worker quote error: ${data.error}`);
-          return null;
-        }
-
-        if (data.price) {
-          console.log(`✓ Got price for ${ticker}: $${data.price} from ${data.source}`);
-          return {
-            price: data.price,
-            bid: data.bid,
-            ask: data.ask,
-            bidSize: data.bidSize,
-            askSize: data.askSize,
-            high: data.high,
-            low: data.low,
-            volume: data.volume,
-            marketStatus: data.marketStatus,
-            timestamp: data.timestamp,
-            source: data.source
-          };
-        }
-      } catch (e) {
-        console.error('Live price fetch failed:', e.message);
-      }
-      return null;
-    }
-
-    function generateMockChartData() {
-      const data = [];
-      let basePrice = 5 + Math.random() * 15;
-      const now = Math.floor(Date.now() / 1000);
+      currentDetailPlayId = id;
       
-      for (let i = 390; i > 0; i--) {
-        const time = now - (i * 60);
-        const open = basePrice;
-        basePrice += (Math.random() - 0.48) * 0.5;
-        const close = basePrice;
-        const high = Math.max(open, close) + Math.random() * 0.3;
-        const low = Math.min(open, close) - Math.random() * 0.3;
-        
-        data.push({
-          time: Math.floor(time),
-          open: Math.round(open * 100) / 100,
-          high: Math.round(high * 100) / 100,
-          low: Math.round(low * 100) / 100,
-          close: Math.round(close * 100) / 100,
-          volume: Math.floor(Math.random() * 100000) + 10000
-        });
+      // Populate fields
+      document.getElementById('detailTicker').textContent = play.ticker;
+      
+      // Scanner hit time
+      const scanTime = new Date(play.createdAt || Date.now());
+      document.getElementById('detailScannerTime').textContent = scanTime.toLocaleString();
+      
+      // Time ago
+      const now = new Date();
+      const diff = now - scanTime;
+      const mins = Math.floor(diff / 60000);
+      const hours = Math.floor(mins / 60);
+      const days = Math.floor(hours / 24);
+      let timeAgo = '';
+      if (days > 0) timeAgo = `${days}d ago`;
+      else if (hours > 0) timeAgo = `${hours}h ago`;
+      else if (mins > 0) timeAgo = `${mins}m ago`;
+      else timeAgo = 'now';
+      document.getElementById('detailScannerTimeAgo').textContent = timeAgo;
+      
+      // Entry/Target/Stop
+      document.getElementById('detailEntry').textContent = play.entry ? '$' + play.entry.toFixed(2) : 'N/A';
+      document.getElementById('detailTarget').textContent = play.target ? '$' + play.target.toFixed(2) : 'N/A';
+      document.getElementById('detailStop').textContent = play.stop ? '$' + play.stop.toFixed(2) : 'N/A';
+      
+      // Risk/Reward ratio
+      if (play.entry && play.target && play.stop) {
+        const risk = play.entry - play.stop;
+        const reward = play.target - play.entry;
+        const ratio = reward / risk;
+        document.getElementById('detailRR').textContent = ratio.toFixed(2) + ':1';
+      } else {
+        document.getElementById('detailRR').textContent = 'N/A';
       }
       
-      return data;
+      // Catalyst
+      document.getElementById('detailCatalyst').value = play.catalyst || '';
+      
+      document.getElementById('detailModal').classList.add('active');
     }
 
-    function initChart(cardElement, ticker, initialPrice) {
-      const chartContainer = cardElement.querySelector('.play-chart');
-      if (!chartContainer) return;
-
-      const container = document.createElement('div');
-      Object.assign(container.style, {
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'transparent'
-      });
-      chartContainer.appendChild(container);
-
-      const chart = LightweightCharts.createChart(container, {
-        layout: { background: { color: 'transparent' }, textColor: '#aaa' },
-        width: chartContainer.offsetWidth,
-        height: 160,
-        timeScale: { timeVisible: true, secondsVisible: false },
-      });
-
-      const candleSeries = chart.addCandlestickSeries({
-        upColor: '#4ade80',
-        downColor: '#ff6b6b',
-        borderUpColor: '#4ade80',
-        borderDownColor: '#ff6b6b',
-        wickUpColor: '#4ade80',
-        wickDownColor: '#ff6b6b',
-      });
-
-      charts[ticker] = { chart, candleSeries };
-
-      // Fetch live data
-      fetchChartData(ticker).then(data => {
-        chartData[ticker] = data;
-        candleSeries.setData(data);
-        chart.timeScale().fitContent();
-      }).catch(e => {
-        console.error('Failed to init chart for ' + ticker, e);
-      });
-
-      // Live price updates every 5 seconds
-      const liveInterval = setInterval(async () => {
-        const livePrice = await fetchLivePrice(ticker);
-        if (livePrice) {
-          updatePriceDisplay(cardElement, livePrice.price);
-          
-          // Update chart if we have data
-          if (chartData[ticker] && chartData[ticker].length > 0 && charts[ticker]) {
-            const lastBar = chartData[ticker][chartData[ticker].length - 1];
-            const now = Math.floor(Date.now() / 1000);
-            
-            // If new minute started, add new candle
-            if (now - lastBar.time >= 60) {
-              const newBar = {
-                time: now,
-                open: livePrice.price,
-                high: livePrice.price,
-                low: livePrice.price,
-                close: livePrice.price,
-                volume: 0
-              };
-              chartData[ticker].push(newBar);
-              charts[ticker].candleSeries.update(newBar);
-            } else {
-              // Update current bar
-              lastBar.high = Math.max(lastBar.high, livePrice.price);
-              lastBar.low = Math.min(lastBar.low, livePrice.price);
-              lastBar.close = livePrice.price;
-              charts[ticker].candleSeries.update(lastBar);
-            }
-          }
-        }
-      }, 5000);
-
-      // Store interval ID for cleanup
-      cardElement.liveInterval = liveInterval;
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.remove('active');
+      currentDetailPlayId = null;
     }
 
-    function updatePriceDisplay(cardElement, newPrice) {
-      const priceRow = cardElement.querySelector('.play-price-row');
-      if (priceRow) {
-        const priceValue = priceRow.querySelector('.play-value');
-        priceValue.textContent = '$' + newPrice.toFixed(2);
-      }
+    function submitDetailSave() {
+      const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+      const play = plays.find(p => p.id === currentDetailPlayId);
+      if (!play) return;
+
+      play.catalyst = document.getElementById('detailCatalyst').value;
+      localStorage.setItem('tradeos_plays', JSON.stringify(plays));
+      syncPlaysToDrive();
+      loadPlays();
+      closeDetailModal();
     }
 
-    // ========== GOOGLE DRIVE SYNC ==========
-    const DRIVE_FILE_ID = 'tradeos_plays.json';
-    
-    async function syncPlaysFromDrive() {
-      try {
-        const token = localStorage.getItem('tradeos_access_token');
-        if (!token) return;
-        
-        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const files = (await listRes.json()).files || [];
-        if (!files.length) return;
-        
-        const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${files[0].id}?alt=media`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const driveData = await fileRes.json();
-        const local = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
-        const drive = driveData.plays || [];
-        
-        const merged = {};
-        [...local, ...drive].forEach(p => {
-          if (!merged[p.id] || new Date(p.createdAt) > new Date(merged[p.id].createdAt)) {
-            merged[p.id] = p;
-          }
-        });
-        
-        const result = Object.values(merged);
-        localStorage.setItem('tradeos_plays', JSON.stringify(result));
-      } catch (e) {
-        console.error('Drive sync read plays:', e);
-      }
-    }
-
-    async function syncPlaysToDrive() {
-      try {
-        const token = localStorage.getItem('tradeos_access_token');
-        if (!token) return;
-        
-        const payload = {
-          plays: JSON.parse(localStorage.getItem('tradeos_plays') || '[]'),
-          lastUpdated: new Date().toISOString()
-        };
-        
-        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        const fileId = (await listRes.json()).files?.[0]?.id;
-        
-        if (fileId) {
-          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
-            method: 'PATCH',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-        }
-      } catch (e) {
-        console.error('Drive sync write plays:', e);
-      }
-    }
-
-    // ========== EXECUTE & JOURNAL ==========
+    // ========== EXECUTE MODAL (EXISTING) ==========
     let currentPlayId = null;
 
-    function openExecuteModal(id) {
+    function openExecuteModal(id, e) {
+      e.stopPropagation();
       const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
       const play = plays.find(p => p.id === id);
       if (!play) return;
@@ -932,7 +833,7 @@
 
       container.className = 'plays-grid';
       container.innerHTML = plays.map(p => `
-        <div class="play-card" id="card-${p.id}">
+        <div class="play-card" id="card-${p.id}" onclick="openDetailModal(${p.id})">
           <div class="play-chart" id="chart-wrapper-${p.id}">
             <img src="https://finviz.com/chart.ashx?tv=151&t=${p.ticker}" style="width:100%;height:100%;object-fit:contain;background:#000;" alt="${p.ticker} chart" />
           </div>
@@ -957,21 +858,87 @@
             </div>
             ${p.catalyst ? `<div class="play-catalyst"><strong>Catalyst:</strong> ${p.catalyst}</div>` : ''}
             <div class="play-actions">
-              <button class="play-btn" onclick="openExecuteModal(${p.id})">Execute</button>
-              <button class="play-btn delete" onclick="deletePlay(${p.id})">Delete</button>
+              <button class="play-btn" onclick="openExecuteModal(${p.id}, event)">Execute</button>
+              <button class="play-btn delete" onclick="deletePlay(${p.id}, event)">Delete</button>
             </div>
           </div>
         </div>
       `).join('');
     }
 
-    function deletePlay(id) {
+    function deletePlay(id, e) {
+      e.stopPropagation();
       if (confirm('Delete this play?')) {
         let plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
         plays = plays.filter(p => p.id !== id);
         localStorage.setItem('tradeos_plays', JSON.stringify(plays));
         syncPlaysToDrive();
         loadPlays();
+      }
+    }
+
+    // ========== GOOGLE DRIVE SYNC ==========
+    const DRIVE_FILE_ID = 'tradeos_plays.json';
+    
+    async function syncPlaysFromDrive() {
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        if (!token) return;
+        
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const files = (await listRes.json()).files || [];
+        if (!files.length) return;
+        
+        const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${files[0].id}?alt=media`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const driveData = await fileRes.json();
+        const local = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
+        const drive = driveData.plays || [];
+        
+        const merged = {};
+        [...local, ...drive].forEach(p => {
+          if (!merged[p.id] || new Date(p.createdAt) > new Date(merged[p.id].createdAt)) {
+            merged[p.id] = p;
+          }
+        });
+        
+        const result = Object.values(merged);
+        localStorage.setItem('tradeos_plays', JSON.stringify(result));
+      } catch (e) {
+        console.error('Drive sync read plays:', e);
+      }
+    }
+
+    async function syncPlaysToDrive() {
+      try {
+        const token = localStorage.getItem('tradeos_access_token');
+        if (!token) return;
+        
+        const payload = {
+          plays: JSON.parse(localStorage.getItem('tradeos_plays') || '[]'),
+          lastUpdated: new Date().toISOString()
+        };
+        
+        const listRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_ID}'&spaces=appDataFolder&fields=files(id)`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const fileId = (await listRes.json()).files?.[0]?.id;
+        
+        if (fileId) {
+          await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        }
+      } catch (e) {
+        console.error('Drive sync write plays:', e);
       }
     }
 
@@ -990,7 +957,10 @@
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeExecuteModal();
+      if (e.key === 'Escape') {
+        closeDetailModal();
+        closeExecuteModal();
+      }
     });
   </script>
 </body>

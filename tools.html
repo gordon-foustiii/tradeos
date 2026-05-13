@@ -583,8 +583,8 @@
             <input type="number" id="accountSize" placeholder="25000" min="0" step="1" style="width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px;">
           </div>
           <div>
-            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #aaa; display: block; margin-bottom: 6px;">Max Daily Risk ($)</label>
-            <input type="number" id="maxDailyRisk" placeholder="50" min="0" step="1" style="width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px;">
+            <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #aaa; display: block; margin-bottom: 6px;">Max Daily Risk (1% auto)</label>
+            <input type="number" id="maxDailyRisk" placeholder="250" min="0" step="1" style="width: 100%; padding: 10px 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #fff; font-size: 14px;" readonly>
           </div>
         </div>
 
@@ -666,6 +666,15 @@
       // Position Calculator Logic
       const calcBtn = document.getElementById('calcBtn');
       const resultsDiv = document.getElementById('results');
+      const accountSizeInput = document.getElementById('accountSize');
+      const maxDailyRiskInput = document.getElementById('maxDailyRisk');
+
+      // Auto-calculate Max Daily Risk as 1% of Account Size
+      accountSizeInput.addEventListener('input', function() {
+        const accountSize = parseFloat(this.value) || 0;
+        const riskAmount = accountSize * 0.01;
+        maxDailyRiskInput.value = riskAmount > 0 ? riskAmount.toFixed(2) : '';
+      });
 
       calcBtn.addEventListener('click', function() {
         const accountSize = parseFloat(document.getElementById('accountSize').value) || 0;

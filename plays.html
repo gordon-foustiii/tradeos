@@ -236,39 +236,6 @@
       position: relative;
     }
 
-    .chart-controls {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      z-index: 10;
-      display: flex;
-      gap: 6px;
-    }
-
-    .chart-source-btn {
-      font-size: 11px;
-      padding: 6px 10px;
-      background: rgba(0, 0, 0, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #aaa;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 600;
-    }
-
-    .chart-source-btn:hover {
-      background: rgba(0, 0, 0, 0.9);
-      color: #ffd93d;
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-
-    .chart-source-btn.active {
-      background: rgba(255, 215, 61, 0.2);
-      color: #ffd93d;
-      border-color: #ffd93d;
-    }
-
     .play-info {
       padding: 16px;
       flex: 1;
@@ -949,36 +916,6 @@
       alert('Trade executed! Check Journal to track.');
     }
 
-    // ========== CHART SOURCE SWITCHING ==========
-    function switchChart(event, playId, source) {
-      const wrapper = document.getElementById(`chart-wrapper-${playId}`);
-      const ticker = wrapper.closest('.play-card').querySelector('.play-ticker').textContent;
-      const chartDiv = wrapper.querySelector('.play-chart');
-      const buttons = wrapper.querySelectorAll('.chart-source-btn');
-      
-      buttons.forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-      
-      let url;
-      if (source === 'tradingview') {
-        url = `https://www.tradingview.com/chart/?symbol=NASDAQ:${ticker}`;
-      } else if (source === 'finviz') {
-        url = `https://finviz.com/quote.ashx?t=${ticker}`;
-      } else if (source === 'benzinga') {
-        url = `https://www.benzinga.com/quote/${ticker}`;
-      }
-      
-      if (url) {
-        const iframeDiv = chartDiv.querySelector('[id^="iframe-"]');
-        if (iframeDiv) iframeDiv.remove();
-        const newDiv = document.createElement('div');
-        newDiv.id = `iframe-${playId}`;
-        newDiv.style.cssText = 'width:100%;height:calc(100% - 36px);';
-        newDiv.innerHTML = `<iframe src="${url}" style="width:100%;height:100%;border:none;background:#000;" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>`;
-        chartDiv.appendChild(newDiv);
-      }
-    }
-
     function loadPlays() {
       const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
       const container = document.getElementById('playsContainer');
@@ -997,14 +934,7 @@
       container.innerHTML = plays.map(p => `
         <div class="play-card" id="card-${p.id}">
           <div class="play-chart" id="chart-wrapper-${p.id}">
-            <div id="iframe-${p.id}" style="width:100%;height:calc(100% - 36px);">
-              <iframe src="https://www.tradingview.com/chart/?symbol=NASDAQ:${p.ticker}" style="width:100%;height:100%;border:none;background:#000;" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
-            </div>
-            <div class="chart-controls">
-              <button class="chart-source-btn active" onclick="switchChart(event, '${p.id}', 'tradingview')">TV</button>
-              <button class="chart-source-btn" onclick="switchChart(event, '${p.id}', 'finviz')">Finviz</button>
-              <button class="chart-source-btn" onclick="switchChart(event, '${p.id}', 'benzinga')">Bz</button>
-            </div>
+            <img src="https://finviz.com/chart.ashx?tv=151&t=${p.ticker}" style="width:100%;height:100%;object-fit:contain;background:#000;" alt="${p.ticker} chart" />
           </div>
           <div class="play-info">
             <div class="play-header">

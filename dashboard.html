@@ -110,6 +110,9 @@
     .header {
       margin-bottom: 32px;
       animation: slideDown 0.6s ease-out;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
     }
 
     @keyframes slideDown {
@@ -117,16 +120,37 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .welcome {
+    .header-left h1 {
       font-size: 28px;
       font-weight: 700;
       margin-bottom: 4px;
       letter-spacing: -1px;
     }
 
-    .welcome-sub {
+    .header-sub {
       font-size: 14px;
       color: #aaa;
+    }
+
+    .btn-upload {
+      padding: 10px 16px;
+      background: rgba(255, 215, 61, 0.1);
+      border: 1px solid rgba(255, 215, 61, 0.3);
+      border-radius: 8px;
+      color: #ffd93d;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+
+    .btn-upload:hover {
+      background: rgba(255, 215, 61, 0.2);
+      border-color: rgba(255, 215, 61, 0.5);
+    }
+
+    #csv-input {
+      display: none;
     }
 
     .grid {
@@ -143,6 +167,7 @@
       padding: 20px;
       animation: fadeIn 0.6s ease-out;
       animation-fill-mode: both;
+      position: relative;
     }
 
     .card:nth-child(1) { animation-delay: 0.1s; }
@@ -198,10 +223,6 @@
       opacity: 0.3;
     }
 
-    .card {
-      position: relative;
-    }
-
     .section-title {
       font-size: 16px;
       font-weight: 700;
@@ -240,17 +261,11 @@
 
     .trade-ticker {
       font-weight: 700;
-      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      min-width: 60px;
+      color: #ffd93d;
     }
 
     .trade-pnl {
-      font-weight: 700;
-      text-align: right;
-      min-width: 80px;
+      font-weight: 600;
     }
 
     .trade-pnl.win {
@@ -270,97 +285,13 @@
     .empty-state-icon {
       font-size: 48px;
       margin-bottom: 12px;
-      opacity: 0.3;
-    }
-
-    .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      margin-bottom: 32px;
-    }
-
-    .btn-action {
-      background: linear-gradient(135deg, #ff6b6b, #ffd93d);
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      padding: 14px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    .btn-action:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
-    }
-
-    .btn-action:active {
-      transform: translateY(0);
-    }
-
-    .footer-nav {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 8px 4px;
-      background: rgba(0, 0, 0, 0.95);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      z-index: 100;
-      backdrop-filter: blur(10px);
-    }
-
-    .nav-link {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 4px;
-      text-decoration: none;
-      color: #aaa;
-      border-radius: 8px;
-      transition: all 0.2s;
-      font-size: 9px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 600;
-    }
-
-    .nav-link svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    .nav-link:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: #ffd93d;
-    }
-
-    .nav-link.active {
-      background: rgba(255, 255, 255, 0.05);
-      color: #ffd93d;
-      border-bottom: 2px solid #ffd93d;
-    }
-
-    .loading {
-      color: #aaa;
-      text-align: center;
-      padding: 20px;
     }
 
     .spinner {
       display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.1);
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 215, 61, 0.2);
       border-top-color: #ffd93d;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
@@ -369,31 +300,97 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      border-radius: 8px;
+      color: #4ade80;
+      font-size: 13px;
+      z-index: 1000;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .toast.error {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .footer-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: rgba(15, 15, 15, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+      color: #aaa;
+      font-size: 11px;
+      font-weight: 600;
+      transition: color 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-link:hover {
+      color: #ffd93d;
+    }
+
+    .nav-link svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 1.8;
+    }
   </style>
 </head>
 <body>
   <div class="topbar">
-    <div class="topbar-brand" onclick="goHome()" style="cursor: pointer;">
-      TRADEOS
+    <div class="topbar-brand">
+      <span>⚔️</span>
+      <span>TradeOS</span>
     </div>
     <div class="topbar-menu">
-      <button class="btn-icon" onclick="goProfile()" title="Profile">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </button>
+      <button class="btn-icon" onclick="goHome()" title="Home">🏠</button>
+      <button class="btn-icon" onclick="goProfile()" title="Settings">⚙️</button>
+      <button class="btn-icon" onclick="signOut()" title="Sign out">🚪</button>
     </div>
   </div>
 
   <div class="container">
     <div class="header">
-      <div class="welcome">Welcome back, trader</div>
-      <div class="welcome-sub" id="greeting"></div>
-    </div>
-
-    <div class="quick-actions">
-      <button class="btn-action" onclick="goTo('journal.html')">+ New Trade</button>
-      <button class="btn-action" onclick="goTo('scanner.html')">Scanner</button>
-      <button class="btn-action" onclick="goTo('plays.html')">Plays</button>
-      <button class="btn-action" onclick="goTo('journal.html')">Journal</button>
+      <div class="header-left">
+        <h1 id="greeting">Market opens in...</h1>
+        <div class="header-sub">Track trades, refine edge</div>
+      </div>
+      <button class="btn-upload" onclick="document.getElementById('csv-input').click()">📥 Import CSV</button>
+      <input type="file" id="csv-input" accept=".csv" onchange="handleCsvUpload(event)">
     </div>
 
     <div class="grid">
@@ -499,25 +496,29 @@
       </div>
 
     </div>
+  </div>
 
-        <div class="footer-nav">
-      <a href="/tradeos/scanner.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        Scanner
-      </a>
-      <a href="/tradeos/plays.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Plays
-      </a>
-      <a href="/tradeos/journal.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Journal
-      </a>
-      <a href="/tradeos/tools.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        Tools
-      </a>
-    </div>
+  <div class="footer-nav">
+    <a href="/tradeos/" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Dashboard
+    </a>
+    <a href="/tradeos/scanner.html" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Scanner
+    </a>
+    <a href="/tradeos/plays.html" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Plays
+    </a>
+    <a href="/tradeos/journal.html" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Journal
+    </a>
+    <a href="/tradeos/tools.html" class="nav-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      Tools
+    </a>
   </div>
 
   <script src="/tradeos/js/api.js"></script>
@@ -542,12 +543,31 @@
       return '$' + Math.abs(num).toFixed(2);
     }
 
-    function loadDashboard() {
-      if (!isLoggedIn()) {
-        window.location.href = '/tradeos/login.html';
-        return;
+    function showToast(message, isError = false) {
+      const toast = document.createElement('div');
+      toast.className = 'toast' + (isError ? ' error' : '');
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function handleCsvUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      try {
+        const result = await importCsvFile(file);
+        showToast('✓ CSV imported: ' + file.name);
+        refreshStats();
+      } catch (err) {
+        showToast('✗ ' + (err.error || 'Upload failed'), true);
       }
 
+      // Reset input
+      document.getElementById('csv-input').value = '';
+    }
+
+    function loadDashboard() {
       document.getElementById('greeting').textContent = getGreeting();
 
       // Load stats
@@ -562,10 +582,13 @@
           document.getElementById('total-pnl').textContent = formatMoney(pnl);
           const pnlEl = document.getElementById('pnl-change');
           pnlEl.className = 'stat-change ' + (pnl > 0 ? 'positive' : pnl < 0 ? 'negative' : 'neutral');
-          pnlEl.innerHTML = (pnl > 0 ? '↑ ' : pnl < 0 ? '↓ ' : '') + formatMoney(pnl);
+          pnlEl.innerHTML = (pnl > 0 ? '↑ ' : pnl < 0 ? '↓ ' : '') + formatMoney(Math.abs(pnl));
 
-          document.getElementById('month-pnl').textContent = '$0.00';
-          document.getElementById('month-change').innerHTML = 'No trades this month';
+          const monthPnl = stats.monthPnl || 0;
+          document.getElementById('month-pnl').textContent = formatMoney(monthPnl);
+          const monthEl = document.getElementById('month-change');
+          monthEl.className = 'stat-change ' + (monthPnl > 0 ? 'positive' : monthPnl < 0 ? 'negative' : 'neutral');
+          monthEl.innerHTML = monthPnl > 0 ? '↑ ' + formatMoney(monthPnl) : monthPnl < 0 ? '↓ ' + formatMoney(Math.abs(monthPnl)) : 'No trades this month';
         });
       }
 
@@ -576,11 +599,11 @@
           const tbody = document.getElementById('trades-body');
 
           if (trades.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">📭</div><div>No trades yet. Start trading!</div></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">📭</div><div>No trades yet. Import CSV to get started!</div></td></tr>';
             return;
           }
 
-          const recent = trades.slice(-5).reverse();
+          const recent = trades.slice(-10).reverse();
           tbody.innerHTML = recent.map(function(t) {
             const pnl = parseFloat(t.pnl) || 0;
             return `
@@ -589,8 +612,8 @@
                 <td class="trade-ticker">${t.ticker}</td>
                 <td>$${(t.entry || 0).toFixed(2)}</td>
                 <td>$${(t.exit || 0).toFixed(2)}</td>
-                <td>${t.qty}</td>
-                <td class="trade-pnl ${pnl > 0 ? 'win' : pnl < 0 ? 'loss' : ''}">${pnl > 0 ? '+' : ''}${formatMoney(pnl)}</td>
+                <td>${t.shares}</td>
+                <td class="trade-pnl ${pnl > 0 ? 'win' : pnl < 0 ? 'loss' : ''}">${pnl > 0 ? '+' : ''}${formatMoney(Math.abs(pnl))}</td>
               </tr>
             `;
           }).join('');
@@ -603,10 +626,12 @@
       loadDashboard();
     }
 
-    function isLoggedIn() {
-      const token = localStorage.getItem('tradeos_id_token');
-      const expiry = localStorage.getItem('tradeos_token_expiry');
-      return token && expiry && Date.now() < parseInt(expiry);
+    function goHome() {
+      window.location.href = '/tradeos/';
+    }
+
+    function goProfile() {
+      window.location.href = '/tradeos/settings.html';
     }
 
     function signOut() {
@@ -616,14 +641,6 @@
         localStorage.removeItem('tradeos_token_expiry');
         window.location.href = '/tradeos/login.html';
       }
-    }
-
-    function goHome() {
-      window.location.href = '/tradeos/';
-    }
-
-    function goProfile() {
-      window.location.href = '/tradeos/settings.html';
     }
 
     // Load on page load

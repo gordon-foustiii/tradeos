@@ -998,14 +998,11 @@
   <script>
     // ===== CONFIGURATION =====
     // UPDATE THIS TO YOUR CLOUDFLARE WORKER URL
-    const WORKER_URL = 'https://your-worker-subdomain.workers.dev';
-    // Example: const WORKER_URL = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
+    const WORKER_URL = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
+    // This Worker has the /market-data/{ticker}/{date} endpoint built in
     
     console.log('📊 TradeOS Journal initialized');
     console.log('🔗 Worker URL:', WORKER_URL);
-    if (WORKER_URL === 'https://your-worker-subdomain.workers.dev') {
-      console.warn('⚠️ WORKER_URL not configured! Historical OHLC lookups will fail.');
-    }
 
     async function fetchLivePrice(ticker) {
       try {
@@ -1382,27 +1379,25 @@
     }
 
     async function fetchHistoricalOHLC(ticker, tradeDate) {
-      // Fetch real OHLC directly from Polygon.io (no Worker needed)
+      // Fetch real OHLC from Cloudflare Worker /market-data endpoint
       const date = typeof tradeDate === 'string' ? new Date(tradeDate) : tradeDate;
       const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
       
       try {
-        // Direct Polygon.io API call
-        const POLYGON_KEY = 'PlRZwYUIEzNyxe3uqN7H88yrJlUGPxNL'; // Public key (rate limited but works)
-        const polygonUrl = `https://api.polygon.io/v1/open-close/${ticker}/${dateStr}?apiKey=${POLYGON_KEY}`;
+        const apiUrl = `${WORKER_URL}/market-data/${ticker}/${dateStr}`;
+        console.log(`🔗 Fetching: ${apiUrl}`);
         
-        console.log(`📊 Fetching OHLC: ${ticker} on ${dateStr}`);
-        const res = await fetch(polygonUrl);
+        const res = await fetch(apiUrl);
         
         if (!res.ok) {
-          console.warn(`⚠️ Polygon returned ${res.status} for ${ticker}/${dateStr}`);
+          console.warn(`⚠️ Worker returned ${res.status} for ${ticker}/${dateStr}`);
           return null;
         }
         
         const data = await res.json();
         
-        if (data.status !== 'OK') {
-          console.warn(`⚠️ No data for ${ticker} on ${dateStr}:`, data.status);
+        if (data.error) {
+          console.warn(`⚠️ API error for ${ticker}/${dateStr}:`, data.error);
           return null;
         }
         
@@ -1416,7 +1411,7 @@
           source: 'polygon'
         };
       } catch (err) {
-        console.warn(`❌ Failed to fetch OHLC for ${ticker} on ${dateStr}:`, err.message);
+        console.warn(`❌ Failed to fetch OHLC for ${ticker}/${dateStr}:`, err.message);
         return null;
       }
     }

@@ -845,6 +845,7 @@
     let currentPlayId = null;
 
     function openExecuteModal(id) {
+      id = parseInt(id, 10);
       const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
       const play = plays.find(p => p.id === id);
       if (!play) return;

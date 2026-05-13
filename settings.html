@@ -757,7 +757,7 @@
           Your trades are automatically synced to Google Sheets for backup and analysis.
         </div>
         <div style="display: flex; gap: 8px; margin-top: 12px;">
-          <button class="btn btn-secondary" onclick="backupToGoogleSheets()">
+          <button class="btn btn-secondary" onclick="backupToGoogleSheets(this)">
             ⬇ Backup Data
           </button>
         </div>
@@ -1063,16 +1063,18 @@
     window.addEventListener('load', loadProfile);
 
     // ========== GOOGLE SHEETS BACKUP ==========
-    async function backupToGoogleSheets() {
+    async function backupToGoogleSheets(btnElement) {
       const token = localStorage.getItem('tradeos_id_token');
       if (!token) {
         alert('Not authenticated. Please log in first.');
         return;
       }
 
+      // If called from onclick, get button from DOM
+      const btn = btnElement || document.querySelector('button[onclick="backupToGoogleSheets()"]');
+      const originalText = btn.textContent;
+      
       try {
-        const btn = event.target;
-        const originalText = btn.textContent;
         btn.textContent = '⟳ Backing up...';
         btn.disabled = true;
 
@@ -1113,10 +1115,8 @@
       } catch (err) {
         console.error('Backup error:', err);
         alert('Backup failed: ' + err.message);
-        if (event.target) {
-          event.target.textContent = '⬇ Backup Data';
-          event.target.disabled = false;
-        }
+        btn.textContent = originalText;
+        btn.disabled = false;
       }
     }
 

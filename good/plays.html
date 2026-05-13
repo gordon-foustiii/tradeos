@@ -220,7 +220,6 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      cursor: pointer;
     }
 
     .play-card:hover {
@@ -933,7 +932,7 @@
 
       container.className = 'plays-grid';
       container.innerHTML = plays.map(p => `
-        <div class="play-card" id="card-${p.id}" onclick="openExecuteModal('${p.id}')">
+        <div class="play-card" id="card-${p.id}">
           <div class="play-chart" id="chart-wrapper-${p.id}">
             <img src="https://finviz.com/chart.ashx?tv=151&t=${p.ticker}" style="width:100%;height:100%;object-fit:contain;background:#000;" alt="${p.ticker} chart" />
           </div>
@@ -958,8 +957,8 @@
             </div>
             ${p.catalyst ? `<div class="play-catalyst"><strong>Catalyst:</strong> ${p.catalyst}</div>` : ''}
             <div class="play-actions">
-              <button class="play-btn" onclick="event.stopPropagation(); openExecuteModal('${p.id}')">Execute</button>
-              <button class="play-btn delete" onclick="event.stopPropagation(); deletePlay('${p.id}')">Delete</button>
+              <button class="play-btn" onclick="openExecuteModal(${p.id})">Execute</button>
+              <button class="play-btn delete" onclick="deletePlay(${p.id})">Delete</button>
             </div>
           </div>
         </div>

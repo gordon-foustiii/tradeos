@@ -1033,14 +1033,6 @@
           </div>
         </div>
       `).join('');
-
-      // Init charts after DOM is ready
-      setTimeout(() => {
-        plays.forEach(p => {
-          const card = document.getElementById(`card-${p.id}`);
-          if (card) initChart(card, p.ticker, p.price);
-        });
-      }, 100);
     }
 
     function deletePlay(id) {

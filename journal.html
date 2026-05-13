@@ -998,7 +998,7 @@
   <script>
     // ===== CONFIGURATION =====
     // UPDATE THIS TO YOUR CLOUDFLARE WORKER URL
-    const WORKER_URL = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
+    const WORKER_URL = 'https://your-worker-subdomain.workers.dev';
     // Example: const WORKER_URL = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
     
     console.log('📊 TradeOS Journal initialized');
@@ -1231,6 +1231,18 @@
             </div>
 
             <div class="trade-divider"></div>
+
+            <!-- Day High/Low Display -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;padding:8px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.08)">
+              <div style="text-align:center">
+                <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;font-weight:500">Day High</div>
+                <div style="font-size:16px;color:#ffd93d;font-weight:700">$${high.toFixed(2)}</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;font-weight:500">Day Low</div>
+                <div style="font-size:16px;color:#ffd93d;font-weight:700">$${low.toFixed(2)}</div>
+              </div>
+            </div>
 
             <!-- P&L Box -->
             <div class="trade-pnl">

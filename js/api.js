@@ -1,21 +1,23 @@
 // TradeOS API Layer
-// Loads CSV from localStorage and calculates stats
+// Parses CSV from textarea/localStorage and calculates stats
 
 let tradesCache = null;
 
 /**
- * Parse CSV data from localStorage
+ * Parse CSV data
  * Expected format: Ticker,Entry,Exit,Shares,High,Low,Status,Catalyst,Notes,Date
  */
 function parseCsvData(csvText) {
   const lines = csvText.trim().split('\n');
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(',');
   const trades = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',');
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    const values = line.split(',');
     if (values.length < 10) continue;
 
     const trade = {
@@ -28,13 +30,12 @@ function parseCsvData(csvText) {
       status: values[6].trim(),
       catalyst: values[7].trim(),
       notes: values[8].trim(),
-      date: values[9].trim(), // MM/DD/YY format
+      date: values[9].trim(),
       createdAt: formatDateToISO(values[9].trim())
     };
 
-    // Calculate P&L: (exit - entry) * shares
+    // P&L = (exit - entry) * shares
     trade.pnl = (trade.exit - trade.entry) * trade.shares;
-    
     trades.push(trade);
   }
 
@@ -42,29 +43,35 @@ function parseCsvData(csvText) {
 }
 
 /**
- * Convert MM/DD/YY to ISO format YYYY-MM-DD
+ * Convert MM/DD/YY to ISO YYYY-MM-DD
  */
 function formatDateToISO(dateStr) {
   if (!dateStr) return new Date().toISOString();
-  
   const parts = dateStr.split('/');
   if (parts.length !== 3) return new Date().toISOString();
   
   let [month, day, year] = parts;
   year = parseInt(year) < 50 ? '20' + year : '19' + year;
-  
   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T00:00:00Z`;
 }
 
 /**
- * Load trades from localStorage
+ * Get trades from textarea or localStorage
  */
 function loadTrades() {
-  const csvData = localStorage.getItem('tradeos_csv_data');
-  if (!csvData) {
-    return [];
+  // Check if CSV is in textarea (for testing)
+  const textarea = document.getElementById('csv-textarea');
+  if (textarea && textarea.value.trim()) {
+    return parseCsvData(textarea.value);
   }
-  return parseCsvData(csvData);
+  
+  // Otherwise load from localStorage
+  const csvData = localStorage.getItem('tradeos_csv_data');
+  if (csvData) {
+    return parseCsvData(csvData);
+  }
+  
+  return [];
 }
 
 /**
@@ -78,7 +85,7 @@ async function getTrades() {
 }
 
 /**
- * Calculate statistics from trades
+ * Calculate stats
  */
 async function getStats() {
   if (!tradesCache) {
@@ -98,35 +105,27 @@ async function getStats() {
     };
   }
 
-  // Total trades
   const total = trades.length;
+  let wins = 0, losses = 0, totalPnl = 0;
 
-  // Win/loss count
-  let wins = 0;
-  let losses = 0;
-  let totalPnl = 0;
-
-  trades.forEach(trade => {
-    if (trade.pnl > 0) wins++;
-    else if (trade.pnl < 0) losses++;
-    totalPnl += trade.pnl;
+  trades.forEach(t => {
+    if (t.pnl > 0) wins++;
+    else if (t.pnl < 0) losses++;
+    totalPnl += t.pnl;
   });
 
   const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
 
-  // Current month P&L
+  // Month P&L
   const now = new Date();
   const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentMonth = now.getMonth() + 1;
 
   let monthPnl = 0;
-  trades.forEach(trade => {
-    const tradeDate = new Date(trade.createdAt);
-    const tradeYear = tradeDate.getFullYear();
-    const tradeMonth = tradeDate.getMonth() + 1;
-
-    if (tradeYear === currentYear && tradeMonth === currentMonth) {
-      monthPnl += trade.pnl;
+  trades.forEach(t => {
+    const d = new Date(t.createdAt);
+    if (d.getFullYear() === currentYear && d.getMonth() + 1 === currentMonth) {
+      monthPnl += t.pnl;
     }
   });
 
@@ -142,58 +141,27 @@ async function getStats() {
 
 /**
  * Import CSV file into localStorage
- * Call this when user uploads CSV
  */
 function importCsvFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-
-    reader.onload = function(e) {
+    reader.onload = (e) => {
       try {
-        const csvText = e.target.result;
-        localStorage.setItem('tradeos_csv_data', csvText);
-        tradesCache = null; // Clear cache
-        resolve({ success: true, message: 'CSV imported successfully' });
+        localStorage.setItem('tradeos_csv_data', e.target.result);
+        tradesCache = null;
+        resolve({ success: true });
       } catch (err) {
-        reject({ success: false, error: err.message });
+        reject({ error: err.message });
       }
     };
-
-    reader.onerror = function() {
-      reject({ success: false, error: 'Failed to read file' });
-    };
-
+    reader.onerror = () => reject({ error: 'Failed to read file' });
     reader.readAsText(file);
   });
 }
 
 /**
- * Clear cache (call after import)
+ * Clear cache
  */
 function clearApiCache() {
   tradesCache = null;
-}
-
-/**
- * Export trades as CSV
- */
-function exportTradesAsCsv() {
-  if (!tradesCache) {
-    tradesCache = loadTrades();
-  }
-
-  const header = 'Ticker,Entry,Exit,Shares,High,Low,Status,Catalyst,Notes,Date,P&L\n';
-  const rows = tradesCache.map(t => {
-    const date = t.date || new Date(t.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' });
-    return `${t.ticker},${t.entry},${t.exit},${t.shares},${t.high},${t.low},${t.status},${t.catalyst},${t.notes},${date},${t.pnl.toFixed(2)}`;
-  }).join('\n');
-
-  const csv = header + rows;
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `trades_${new Date().toISOString().split('T')[0]}.csv`;
-  link.click();
-  URL.revokeObjectURL(url);
 }

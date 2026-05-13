@@ -484,6 +484,15 @@
       color: #fff;
     }
 
+    .trade-date {
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
     .trade-status {
       font-size: 10px;
       padding: 4px 8px;
@@ -526,6 +535,49 @@
     .trade-divider {
       border-top: 1px solid rgba(255, 255, 255, 0.1);
       margin: 12px 0;
+    }
+
+    .trade-chart {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .trade-chart-title {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+
+    .trade-chart-svg {
+      width: 100%;
+      max-height: 150px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .candle-wick {
+      stroke-width: 1;
+      stroke-linecap: round;
+    }
+
+    .candle-body {
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .high-low-line {
+      font-size: 9px;
+      color: #666;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 4px;
     }
 
     .trade-pnl {
@@ -856,6 +908,7 @@
       <div class="modal-header">
         <div class="modal-title">
           <span id="modalTicker">—</span> Details
+          <div style="font-size:11px;color:#666;margin-top:6px;text-transform:uppercase;letter-spacing:0.5px;" id="modalDate">—</div>
         </div>
         <button class="modal-close" onclick="closeTradeModal()">✕</button>
       </div>
@@ -997,6 +1050,10 @@
           <span style="position:absolute;left:${p(exit)};transform:translateX(-50%);background:${dark};color:white;padding:2px 6px;border-radius:4px;white-space:nowrap;font-weight:700">X $${exit.toFixed(2)}</span>
           <span style="position:absolute;left:${p(high)};transform:translateX(-50%);color:rgba(255,255,255,0.4);white-space:nowrap">H $${high.toFixed(2)}</span>
         </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 4px;font-size:10px;color:#666;margin-top:4px;border-top:1px solid rgba(255,255,255,0.05)">
+          <span>High: <span style="color:#ffd93d;font-weight:700">$${high.toFixed(2)}</span></span>
+          <span>Low: <span style="color:#ffd93d;font-weight:700">$${low.toFixed(2)}</span></span>
+        </div>
       </div>`;
     }
 
@@ -1127,6 +1184,7 @@
         // OPEN TRADES: Full detail card (unchanged)
         return `
           <div class="trade-card ${isWinning ? 'winning' : 'losing'}" data-id="${t.id}" onclick="openTradeModal(${t.id})" style="cursor: pointer;">
+            <div class="trade-date">${tradeDate}</div>
             <div class="trade-header">
               <div class="trade-ticker">${t.ticker || 'N/A'}</div>
               <div class="trade-status ${status === 'CLOSED' ? 'closed' : ''}">
@@ -1239,6 +1297,12 @@
       const savedFromLoss = Math.max(0, (Math.min(entry, exit) - low) * shares);
 
       // Populate modal
+      const tradeDate = new Date(trade.closedAt || trade.timestamp || Date.now()).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+      document.getElementById('modalDate').textContent = tradeDate;
       document.getElementById('modalTicker').textContent = trade.ticker || 'N/A';
       document.getElementById('modalEntry').textContent = '$' + entry.toFixed(2);
       document.getElementById('modalExit').textContent = '$' + exit.toFixed(2);

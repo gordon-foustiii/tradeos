@@ -874,6 +874,7 @@
       <button class="btn-action" onclick="openAddTradeModal()">+ Add Trade</button>
       <button class="btn-action" onclick="handleBulkUpload()">📁 Bulk Upload CSV</button>
       <button class="btn-action" onclick="exportToCSV()">📥 Export CSV</button>
+      <button class="btn-action" onclick="openDriveFile()" id="btnOpenDrive" style="display:none;">📂 Open in Drive</button>
     </div>
 
     <div id="tradesContainer" class="content trades">
@@ -1712,6 +1713,18 @@
       }
     });
 
+    function openDriveFile() {
+      var folderId = localStorage.getItem('tradeos_drive_folder_id');
+      var sheetId  = localStorage.getItem('tradeos_sheet_id');
+      if (folderId) {
+        window.open('https://drive.google.com/drive/folders/' + folderId, '_blank');
+      } else if (sheetId) {
+        window.open('https://docs.google.com/spreadsheets/d/' + sheetId + '/edit', '_blank');
+      } else {
+        showToast('No Drive file found — set up your journal first', 'error');
+      }
+    }
+
     function goHome() {
       window.location.href = '/tradeos/';
     }
@@ -1730,6 +1743,11 @@
         } catch (e) {
           console.warn('Could not sync from Sheets, using cached data:', e.message);
         }
+      }
+
+      // Show Drive button if a folder or sheet has been set up
+      if (localStorage.getItem('tradeos_drive_folder_id') || localStorage.getItem('tradeos_sheet_id')) {
+        document.getElementById('btnOpenDrive').style.display = '';
       }
 
       loadTrades();

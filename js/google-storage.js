@@ -546,10 +546,11 @@
     describeBackup: describeBackup,
     restoreFromDrive: restoreFromDrive,
     exportToSheets: exportToSheets,
-    // exposed for tests / debugging
     _internals: {
       collectAppData: collectAppData,
-      rowsFromObjects: rowsFromObjects
+      rowsFromObjects: rowsFromObjects,
+      getAccessToken: getAccessToken,
+      gfetch: gfetch
     }
   };
 })();

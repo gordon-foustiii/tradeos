@@ -995,6 +995,8 @@
     </div>
   </div>
 
+  <script src="/tradeos/js/google-storage.js"></script>
+  <script src="/tradeos/js/journal-sheets.js"></script>
   <script>
     // ===== CONFIGURATION =====
     // UPDATE THIS TO YOUR CLOUDFLARE WORKER URL
@@ -1278,6 +1280,7 @@
 
       localStorage.setItem('tradeos_journal', JSON.stringify(trades));
       loadTrades();
+      if (window.JournalSheets) JournalSheets.pushToSheets().catch(e => console.warn('Sheets sync:', e.message));
     }
 
     function closeTrade(event, id) {
@@ -1291,6 +1294,7 @@
         trade.closedAt = new Date().toISOString();
         localStorage.setItem('tradeos_journal', JSON.stringify(trades));
         loadTrades();
+        if (window.JournalSheets) JournalSheets.pushToSheets().catch(e => showToast('Sheets sync failed: ' + e.message, 'error'));
       }
     }
 
@@ -1370,6 +1374,7 @@
         localStorage.setItem('tradeos_journal', JSON.stringify(updated));
         closeTradeModal();
         loadTrades();
+        if (window.JournalSheets) JournalSheets.pushToSheets().catch(e => showToast('Sheets sync failed: ' + e.message, 'error'));
       }
     }
 
@@ -1477,7 +1482,8 @@
             const merged = mergeTrades(enriched);
             localStorage.setItem('tradeos_journal', JSON.stringify(merged));
             loadTrades();
-            
+            if (window.JournalSheets) JournalSheets.pushToSheets().catch(e => showToast('Sheets sync failed: ' + e.message, 'error'));
+
             console.log(`✅ Import complete: ${successCount} real OHLC, ${inferredCount} inferred`);
             showToast(`✅ Imported ${successCount} with real OHLC, ${inferredCount} inferred`, 'success');
           } catch (err) {
@@ -1714,7 +1720,18 @@
       window.location.href = '/tradeos/settings.html';
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Sync from Google Sheets before rendering (Sheets is source of truth).
+      if (window.JournalSheets && localStorage.getItem('tradeos_sheet_id')) {
+        const grid = document.getElementById('tradesGrid');
+        if (grid) grid.innerHTML = '<div style="text-align:center;padding:40px;color:#888;font-size:14px">Syncing with Google Sheets...</div>';
+        try {
+          await JournalSheets.syncFromSheets();
+        } catch (e) {
+          console.warn('Could not sync from Sheets, using cached data:', e.message);
+        }
+      }
+
       loadTrades();
       // Update live prices every 5 seconds
       setInterval(async () => {

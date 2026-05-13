@@ -182,6 +182,8 @@
     </div>
   </div>
 
+  <script src="/tradeos/js/google-storage.js"></script>
+  <script src="/tradeos/js/journal-sheets.js"></script>
   <script>
     function updateStatus(icon, text, subtext, isError = false) {
       const container = document.getElementById('status-container');
@@ -268,9 +270,21 @@
           localStorage.setItem('tradeos_id_token', data.id_token);
           localStorage.setItem('tradeos_access_token', data.access_token || '');
           localStorage.setItem('tradeos_token_expiry', Date.now() + (data.expires_in * 1000 || 3600000));
-          
+
+          // First login: find or create the TradeOS folder + Trade Journal sheet in Google Drive.
+          if (window.JournalSheets && !localStorage.getItem('tradeos_sheet_id')) {
+            updateStatus('<div class="spinner"></div>', 'Setting up workspace',
+              'Connecting your Trade Journal in Google Drive...');
+            try {
+              await window.JournalSheets.setup();
+            } catch (e) {
+              console.warn('Journal workspace setup failed:', e.message);
+              // Non-fatal — user can still access the journal; setup retries on next login.
+            }
+          }
+
           updateStatus('<div class="checkmark"></div>', 'Signed In!', 'Redirecting to dashboard...');
-          setTimeout(function() { window.location.href = '/tradeos/'; }, 1200);
+          setTimeout(function() { window.location.href = '/tradeos/dashboard.html'; }, 1200);
         } else {
           updateStatus('❌', 'Sign In Failed', data.error || 'Unknown error', true);
           console.error('Token response:', data);

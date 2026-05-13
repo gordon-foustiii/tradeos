@@ -480,6 +480,99 @@
       background: rgba(255, 255, 255, 0.08);
       border-color: rgba(255, 255, 255, 0.2);
     }
+
+    /* News section styles */
+    .news-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .news-header {
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .news-container {
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .news-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .news-container::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+    }
+
+    .news-container::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    .news-container::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .news-item {
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .news-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .news-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s;
+      padding: 8px;
+      border-radius: 6px;
+      margin: -8px;
+    }
+
+    .news-link:hover {
+      background: rgba(255, 212, 157, 0.1);
+    }
+
+    .news-headline {
+      font-size: 13px;
+      color: #fff;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+
+    .news-meta {
+      font-size: 11px;
+      color: #999;
+    }
+
+    .news-empty {
+      text-align: center;
+      padding: 20px 12px;
+      color: #666;
+      font-size: 13px;
+    }
+
+    .news-loading {
+      text-align: center;
+      padding: 20px 12px;
+      color: #aaa;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -574,6 +667,14 @@
       <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.2); border-radius: 6px; padding: 12px; font-size: 12px; color: #ff9999; margin-bottom: 16px;">
         💡 $50 max loss rule: Ensure shares × (entry - stop loss) ≤ $50<br>
         📊 Live prices include pre-market (4am) and after-hours (8pm) EST
+      </div>
+
+      <!-- Recent News Section -->
+      <div class="news-section">
+        <div class="news-header">Recent News</div>
+        <div class="news-container" id="newsContainer">
+          <div class="news-loading">Loading news...</div>
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -844,6 +945,35 @@
     // ========== EXECUTE & JOURNAL ==========
     let currentPlayId = null;
 
+    async function fetchRecentNews(ticker) {
+      try {
+        const worker = 'https://tradeos-proxy.gordon-foustiii.workers.dev';
+        const res = await fetch(`${worker}/tv-data/${ticker}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        return data.news || [];
+      } catch (e) {
+        console.error('Error fetching news:', e);
+        return [];
+      }
+    }
+
+    function renderNews(newsList) {
+      if (!newsList || newsList.length === 0) {
+        return '<div class="news-empty">No recent news</div>';
+      }
+      
+      return newsList.slice(0, 5).map(item => `
+        <div class="news-item">
+          <a href="${item.url}" target="_blank" rel="noopener" class="news-link">
+            <div class="news-headline">${item.title}</div>
+            <div class="news-meta">${new Date(item.published_utc).toLocaleDateString()} · ${item.source}</div>
+          </a>
+        </div>
+      `).join('');
+    }
+
     function openExecuteModal(id) {
       id = parseInt(id, 10);
       const plays = JSON.parse(localStorage.getItem('tradeos_plays') || '[]');
@@ -860,6 +990,15 @@
       document.getElementById('tradeNotes').value = '';
 
       document.getElementById('executeModal').classList.add('active');
+
+      // Load & render news async
+      const newsContainer = document.getElementById('newsContainer');
+      if (newsContainer) {
+        newsContainer.innerHTML = '<div class="news-loading">Loading news...</div>';
+        fetchRecentNews(play.ticker).then(news => {
+          newsContainer.innerHTML = renderNews(news);
+        });
+      }
     }
 
     function closeExecuteModal() {

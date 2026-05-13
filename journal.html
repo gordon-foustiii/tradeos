@@ -850,6 +850,95 @@
     </div>
   </div>
 
+  <!-- TRADE DETAIL MODAL -->
+  <div id="tradeModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span id="modalTicker">—</span> Details
+        </div>
+        <button class="modal-close" onclick="closeTradeModal()">✕</button>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Price Action</div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <div class="modal-field-label">Entry</div>
+            <div class="modal-field-value" id="modalEntry">—</div>
+          </div>
+          <div class="modal-field">
+            <div class="modal-field-label">Exit</div>
+            <div class="modal-field-value" id="modalExit">—</div>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <div class="modal-field-label">High</div>
+            <div class="modal-field-value" id="modalHigh">—</div>
+          </div>
+          <div class="modal-field">
+            <div class="modal-field-label">Low</div>
+            <div class="modal-field-value" id="modalLow">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Trade Info</div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <div class="modal-field-label">Shares</div>
+            <div class="modal-field-value" id="modalShares">—</div>
+          </div>
+          <div class="modal-field">
+            <div class="modal-field-label">Status</div>
+            <div class="modal-field-value" id="modalStatus">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Performance</div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <div class="modal-field-label">P&L</div>
+            <div class="modal-field-value" id="modalPnL">—</div>
+          </div>
+          <div class="modal-field">
+            <div class="modal-field-label">Return %</div>
+            <div class="modal-field-value" id="modalPnLPct">—</div>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <div class="modal-field-label">Move %</div>
+            <div class="modal-field-value" id="modalMove">—</div>
+          </div>
+          <div class="modal-field">
+            <div class="modal-field-label">Captured %</div>
+            <div class="modal-field-value" id="modalCaptured">—</div>
+          </div>
+        </div>
+        <div class="modal-row">
+          <div class="modal-field">
+            <div class="modal-field-label">Left on Table</div>
+            <div class="modal-field-value" id="modalLeftOnTable">—</div>
+          </div>
+          <div class="modal-field">
+            <div class="modal-field-label">Saved from Loss</div>
+            <div class="modal-field-value" id="modalSavedFromLoss">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn primary" onclick="closeTradeModal()">Close</button>
+        <button class="modal-btn danger" onclick="deleteTradeFromModal()">Delete Trade</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // Your existing scanner worker URL
     const WORKER_URL = 'https://your-worker-subdomain.workers.dev';
@@ -1037,7 +1126,7 @@
 
         // OPEN TRADES: Full detail card (unchanged)
         return `
-          <div class="trade-card ${isWinning ? 'winning' : 'losing'}" onclick="openTradeModal(${t.id})" style="cursor: pointer;">
+          <div class="trade-card ${isWinning ? 'winning' : 'losing'}" data-id="${t.id}" onclick="openTradeModal(${t.id})" style="cursor: pointer;">
             <div class="trade-header">
               <div class="trade-ticker">${t.ticker || 'N/A'}</div>
               <div class="trade-status ${status === 'CLOSED' ? 'closed' : ''}">

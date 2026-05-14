@@ -10,6 +10,7 @@ var CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization"
 };
 var POLYGON_API_KEY = "PlRZwYUIEzNyxe3uqN7H88yrJlUGPxNL";
+// FMP API key will be passed via env.FMP_API_KEY (Cloudflare secret)
 
 // ALIGNED DEFAULT FILTERS (matches TradingView screener)
 var DEFAULT_FILTERS = {
@@ -48,6 +49,11 @@ var worker_default = {
       if (url.pathname === "/test/benzinga") return testBenzinga(env);
       if (url.pathname === "/test/fmp") return testFMP(env);
       if (url.pathname === "/test/yahoo") return testYahoo(env);
+      
+      // NEW: FMP enrichment endpoints
+      if (url.pathname.startsWith("/scanner-enrich/")) return handleScannerEnrich(url, env);
+      if (url.pathname.startsWith("/trade-history/")) return handleTradeHistory(url, env);
+      if (url.pathname.startsWith("/fmp-quote/")) return handleFMPQuote(url, env);
       
       // NEW: Live polling endpoint
       if (url.pathname === "/scan/live") return handleScanLive(url, env);
@@ -996,6 +1002,179 @@ async function saveHabits(userId, body, env) {
   }
 }
 __name(saveHabits, "saveHabits");
+
+/**
+ * SCANNER ENRICHMENT ENDPOINT: /scanner-enrich/:ticker
+ * Pulls FMP fundamentals for scanner result detail modal
+ * Caches for 24 hours in KV
+ */
+async function handleScannerEnrich(url, env) {
+  try {
+    const ticker = url.pathname.split("/").pop().toUpperCase();
+    if (!ticker || ticker.length < 1) {
+      return jsonResponse({ error: "Invalid ticker" }, 400);
+    }
+
+    const FMP_API_KEY = env.FMP_API_KEY;
+    if (!FMP_API_KEY) {
+      return jsonResponse({ error: "FMP_API_KEY not configured" }, 500);
+    }
+
+    // Check cache (24h TTL)
+    const cached = await env.TRADEOS_CACHE.get(`fmp:enrich:${ticker}`);
+    if (cached) {
+      return jsonResponse(JSON.parse(cached));
+    }
+
+    // Pull key metrics from FMP
+    const metricsUrl = `https://financialmodelingprep.com/api/v3/enterprise-values/${ticker}?apikey=${FMP_API_KEY}`;
+    const metricsRes = await fetch(metricsUrl);
+    const metricsData = await metricsRes.json();
+
+    const metrics = metricsData[0] || {};
+
+    // Pull company profile for float/shares
+    const profileUrl = `https://financialmodelingprep.com/api/v3/profile/${ticker}?apikey=${FMP_API_KEY}`;
+    const profileRes = await fetch(profileUrl);
+    const profileData = await profileRes.json();
+    const profile = profileData[0] || {};
+
+    const enriched = {
+      ticker,
+      marketCap: metrics.marketCapitalization || profile.marketCapitalization || 0,
+      enterpriseValue: metrics.enterpriseValue || 0,
+      sharesOutstanding: profile.sharesOutstanding || 0,
+      float: profile.sharesFloat || 0,  // Note: FMP may not have direct float; use sharesFloat if available
+      pe: metrics.peRatio || profile.peRatioTTM || 0,
+      ps: metrics.priceToSalesRatio || 0,
+      industry: profile.industry || '',
+      sector: profile.sector || '',
+      website: profile.website || '',
+      description: profile.description || '',
+      lastUpdate: new Date().toISOString()
+    };
+
+    // Cache for 24 hours
+    await env.TRADEOS_CACHE.put(`fmp:enrich:${ticker}`, JSON.stringify(enriched), { expirationTtl: 86400 });
+
+    return jsonResponse(enriched);
+  } catch (err) {
+    console.error(`Scanner enrich error for ${url.pathname}:`, err);
+    return jsonResponse({ error: err.message, ticker: url.pathname.split("/").pop() }, 500);
+  }
+}
+__name(handleScannerEnrich, "handleScannerEnrich");
+
+/**
+ * TRADE HISTORY ENDPOINT: /trade-history/:ticker
+ * Pulls historical earnings dates, splits, dividend dates for backfill
+ * Used when editing old trades to auto-fill missing fundamental data
+ */
+async function handleTradeHistory(url, env) {
+  try {
+    const ticker = url.pathname.split("/").pop().toUpperCase();
+    if (!ticker) {
+      return jsonResponse({ error: "Invalid ticker" }, 400);
+    }
+
+    const FMP_API_KEY = env.FMP_API_KEY;
+    if (!FMP_API_KEY) {
+      return jsonResponse({ error: "FMP_API_KEY not configured" }, 500);
+    }
+
+    // Check cache (7 days TTL — less frequent update)
+    const cached = await env.TRADEOS_CACHE.get(`fmp:history:${ticker}`);
+    if (cached) {
+      return jsonResponse(JSON.parse(cached));
+    }
+
+    // Pull earnings call history
+    const earningsUrl = `https://financialmodelingprep.com/api/v3/earnings-calendar?symbol=${ticker}&apikey=${FMP_API_KEY}`;
+    const earningsRes = await fetch(earningsUrl);
+    const earningsData = await earningsRes.json();
+
+    // Pull dividend history
+    const dividendUrl = `https://financialmodelingprep.com/api/v3/historical-price-full/dividend/${ticker}?apikey=${FMP_API_KEY}`;
+    const dividendRes = await fetch(dividendUrl);
+    const dividendData = await dividendRes.json();
+
+    // Pull stock splits
+    const splitsUrl = `https://financialmodelingprep.com/api/v3/historical-price-full/stock_split/${ticker}?apikey=${FMP_API_KEY}`;
+    const splitsRes = await fetch(splitsUrl);
+    const splitsData = await splitsRes.json();
+
+    const history = {
+      ticker,
+      earnings: (earningsData || []).slice(0, 10).map(e => ({
+        date: e.announcementTime || e.date,
+        epsEstimate: e.epsEstimated,
+        epsActual: e.eps,
+        revenue: e.revenue,
+        revenueEstimate: e.revenueEstimate
+      })),
+      dividends: (dividendData?.historical || []).slice(0, 10).map(d => ({
+        date: d.date,
+        amount: d.adjDividend || d.dividend
+      })),
+      splits: (splitsData?.historical || []).slice(0, 10).map(s => ({
+        date: s.date,
+        ratio: s.splitFactor
+      })),
+      lastUpdate: new Date().toISOString()
+    };
+
+    // Cache for 7 days
+    await env.TRADEOS_CACHE.put(`fmp:history:${ticker}`, JSON.stringify(history), { expirationTtl: 604800 });
+
+    return jsonResponse(history);
+  } catch (err) {
+    console.error(`Trade history error for ${url.pathname}:`, err);
+    return jsonResponse({ error: err.message, ticker: url.pathname.split("/").pop() }, 500);
+  }
+}
+__name(handleTradeHistory, "handleTradeHistory");
+
+/**
+ * FMP QUOTE ENDPOINT: /fmp-quote/:ticker
+ * Real-time quote (paid tier only; free tier returns EOD data)
+ * Returns: price, bid, ask, volume, change%, change
+ */
+async function handleFMPQuote(url, env) {
+  try {
+    const ticker = url.pathname.split("/").pop().toUpperCase();
+    if (!ticker) {
+      return jsonResponse({ error: "Invalid ticker" }, 400);
+    }
+
+    const FMP_API_KEY = env.FMP_API_KEY;
+    if (!FMP_API_KEY) {
+      return jsonResponse({ error: "FMP_API_KEY not configured" }, 500);
+    }
+
+    // Use quote endpoint (real-time on Premium+, EOD on free)
+    const quoteUrl = `https://financialmodelingprep.com/api/v3/quote/${ticker}?apikey=${FMP_API_KEY}`;
+    const res = await fetch(quoteUrl);
+    const data = await res.json();
+
+    const quote = data[0] || {};
+
+    return jsonResponse({
+      ticker,
+      price: quote.price || 0,
+      bid: quote.bid || 0,
+      ask: quote.ask || 0,
+      change: quote.change || 0,
+      changePercent: quote.changesPercentage || 0,
+      volume: quote.volume || 0,
+      marketCap: quote.marketCap || 0,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    console.error(`FMP quote error for ${url.pathname}:`, err);
+    return jsonResponse({ error: err.message }, 500);
+  }
+}
+__name(handleFMPQuote, "handleFMPQuote");
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {

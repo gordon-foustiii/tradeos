@@ -798,6 +798,42 @@
       margin-top: 8px;
     }
 
+    /* FMP Fundamentals Display */
+    .fmp-fundamentals {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 12px 0;
+    }
+
+    .fmp-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .fmp-row:last-child {
+      border-bottom: none;
+    }
+
+    .fmp-label {
+      color: #888;
+      font-weight: 500;
+    }
+
+    .fmp-value {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    #fmpContainer {
+      margin: 12px 0;
+    }
+
     .hit-items {
       margin: 4px 0 0 0;
       padding-left: 12px;
@@ -1802,12 +1838,63 @@
       ` : '<div class="modal-history"><p>No ticker history</p></div>';
       document.getElementById('tickerHistoryContainer').innerHTML = tickerHistoryHTML;
       populateNews(t);
+      
+      // FETCH FMP ENRICHMENT DATA
+      fetchFMPEnrichment(t);
+      
       document.getElementById('catalystInput').value = '';
       document.getElementById('plannerEntry').value = '';
       document.getElementById('plannerTarget').value = '';
       document.getElementById('plannerStop').value = '';
       document.getElementById('plannerShares').value = '';
       document.getElementById('tickerModal').classList.add('active');
+    }
+
+    async function fetchFMPEnrichment(ticker) {
+      try {
+        const res = await fetch(`https://tradeos-proxy.gordon-foustiii.workers.dev/scanner-enrich/${ticker}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const fmp = await res.json();
+        
+        // Display FMP fundamentals in modal
+        const fmpHTML = `
+          <div class="fmp-fundamentals">
+            <div class="fmp-row">
+              <div class="fmp-label">Market Cap</div>
+              <div class="fmp-value">${fmp.marketCap ? `$${(fmp.marketCap / 1e9).toFixed(2)}B` : '—'}</div>
+            </div>
+            <div class="fmp-row">
+              <div class="fmp-label">Shares Out</div>
+              <div class="fmp-value">${fmp.sharesOutstanding ? `${(fmp.sharesOutstanding / 1e6).toFixed(0)}M` : '—'}</div>
+            </div>
+            <div class="fmp-row">
+              <div class="fmp-label">Float</div>
+              <div class="fmp-value">${fmp.float ? `${(fmp.float / 1e6).toFixed(0)}M` : '—'}</div>
+            </div>
+            <div class="fmp-row">
+              <div class="fmp-label">P/E Ratio</div>
+              <div class="fmp-value">${fmp.pe && fmp.pe > 0 ? fmp.pe.toFixed(2) : '—'}</div>
+            </div>
+            <div class="fmp-row">
+              <div class="fmp-label">Sector</div>
+              <div class="fmp-value">${fmp.sector || '—'}</div>
+            </div>
+          </div>
+        `;
+        
+        const container = document.getElementById('fmpContainer') || document.createElement('div');
+        container.id = 'fmpContainer';
+        container.innerHTML = fmpHTML;
+        
+        // Insert after modal-stats if not already present
+        if (!document.getElementById('fmpContainer')) {
+          document.querySelector('.modal-stats')?.parentNode.insertBefore(container, document.querySelector('.modal-stats').nextSibling);
+        }
+      } catch (err) {
+        console.warn(`FMP enrichment failed for ${ticker}:`, err.message);
+        // Fail silently — don't break modal if FMP is unavailable
+      }
     }
 
     function closeModal() {

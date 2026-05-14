@@ -35,3 +35,7 @@ id = "aae1638fc4d144f0a8accd0cd956a7bc"
 #	GOOGLE_CLIENT_ID = "421306806975-bnktjac5i2g8js8sadr8lrfdtm0age02.apps.googleusercontent.com",
 #	GOOGLE_CLIENT_SECRET = "YOUR_SECRET",
 #	GOOGLE_REDIRECT_URI = "https://gordon-foustiii.github.io/tradeos/auth.html" }
+
+# FMP API Key (add to Cloudflare secrets: wrangler secret put FMP_API_KEY)
+# Command: wrangler secret put FMP_API_KEY
+# Then paste: JGcEpKJC3VcjEHlJXuu5uwo861CtUORC

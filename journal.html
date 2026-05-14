@@ -991,6 +991,7 @@
 
       <div class="modal-actions">
         <button class="modal-btn primary" onclick="closeTradeModal()">Close</button>
+        <button class="modal-btn secondary" onclick="enrichTradeFromFMP()">Enrich from FMP</button>
         <button class="modal-btn danger" onclick="deleteTradeFromModal()">Delete Trade</button>
       </div>
     </div>
@@ -1357,6 +1358,74 @@
 
       // Show modal
       document.getElementById('tradeModal').classList.add('active');
+      
+      // Optionally load FMP data in background
+      loadFMPTradeData(trade.ticker);
+    }
+
+    async function enrichTradeFromFMP() {
+      if (!currentModalTradeId) return;
+      
+      const trades = JSON.parse(localStorage.getItem('tradeos_journal') || '[]');
+      const trade = trades.find(t => t.id === currentModalTradeId);
+      if (!trade) return;
+      
+      try {
+        // Fetch trade history (earnings, splits, dividends)
+        const res = await fetch(`https://tradeos-proxy.gordon-foustiii.workers.dev/trade-history/${trade.ticker}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const history = await res.json();
+        
+        // Create enrichment UI
+        const enrichHTML = `
+          <div style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:8px;padding:12px;margin:12px 0;">
+            <div style="font-weight:700;color:#4ade80;margin-bottom:8px;">FMP Trade History</div>
+            <div style="font-size:12px;color:#ccc;margin-bottom:6px;">
+              <strong>Recent Earnings:</strong> ${history.earnings?.length > 0 ? history.earnings[0].date : 'None found'}
+            </div>
+            <div style="font-size:12px;color:#ccc;margin-bottom:6px;">
+              <strong>Splits in 2y:</strong> ${history.splits?.length || 0}
+            </div>
+            <div style="font-size:12px;color:#ccc;">
+              <strong>Dividends in 2y:</strong> ${history.dividends?.length || 0}
+            </div>
+          </div>
+        `;
+        
+        const container = document.getElementById('fmpTradeEnrichContainer') || document.createElement('div');
+        container.id = 'fmpTradeEnrichContainer';
+        container.innerHTML = enrichHTML;
+        
+        // Insert into modal
+        const modal = document.getElementById('tradeModal');
+        const existingContainer = modal.querySelector('#fmpTradeEnrichContainer');
+        if (existingContainer) {
+          existingContainer.replaceWith(container);
+        } else {
+          modal.querySelector('.modal-actions').parentNode.insertBefore(container, modal.querySelector('.modal-actions'));
+        }
+        
+        showToast(`${trade.ticker} enriched with FMP data`, 'success');
+      } catch (err) {
+        console.error('FMP enrichment failed:', err);
+        showToast(`FMP enrichment failed: ${err.message}`, 'error');
+      }
+    }
+
+    async function loadFMPTradeData(ticker) {
+      try {
+        const res = await fetch(`https://tradeos-proxy.gordon-foustiii.workers.dev/scanner-enrich/${ticker}`);
+        if (!res.ok) return;
+        
+        const fmp = await res.json();
+        
+        // Store in trade for reference (not shown unless user clicks "Enrich from FMP")
+        console.log(`FMP data cached for ${ticker}:`, fmp);
+      } catch (err) {
+        // Fail silently
+        console.warn(`FMP background load failed for ${ticker}:`, err.message);
+      }
     }
 
     function closeTradeModal() {
